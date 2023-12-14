@@ -1,0 +1,28 @@
+name: "C++/CMake Format"
+
+on: [push, pull_request]
+
+jobs:
+  format:
+    name: "clang-format/cmake-format"
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+            sudo apt-get update -y
+            sudo apt-get -y --no-install-recommends install \
+              clang-format='1:14.*' \
+              cmake-format='0.6.*'
+      # Check all source and header C++ files; ignore files in hidden directories
+      - name: Execute clang-format
+        run: find . \( -path '*/.*' -prune \) -o
+          \( -type f -a \( -iname '*.cpp' -o -iname '*.h' \) \)
+          -exec echo "Format checking '{}'..." \;
+          -exec clang-format --dry-run --Werror {} +
+      # Check all cmake files; ignore files in hidden directories
+      - name: Execute cmake-format
+        run: find . \( -path '*/.*' -prune \) -o
+          \( -type f -a -name 'CMakeLists.txt' \)
+          -exec echo "Format checking '{}'..." \;
+          -exec cmake-format --check -- {} +

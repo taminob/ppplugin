@@ -1,0 +1,21 @@
+name: "CMake Lint"
+
+on: [push, pull_request]
+
+jobs:
+  lint:
+    name: "cmake lint"
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+            sudo apt-get update -y
+            sudo apt-get -y --no-install-recommends install \
+              python3-pip='22.*'
+            pip install cmakelint
+      - name: Execute cmakelint
+        run: find . \( \( -path './build' -o -path '*/.*' \) -prune \) -o
+          \( -type f -a -iname 'CMakeLists.txt' \)
+          -exec echo "Linting '{}'..." \;
+          -exec cmakelint --spaces=1 {} +
