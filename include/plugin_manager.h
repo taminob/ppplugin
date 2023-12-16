@@ -7,14 +7,21 @@
 #include <functional>
 #include <variant>
 
+#include "detail/compiler_info.h"
 #include "detail/template_helpers.h"
 #include "plugin.h"
 
 namespace ppplugin {
 template <typename... Plugins>
 class GenericPluginManager {
+    static_assert(sizeof...(Plugins) > 0,
+        "Plugin manager requires at least one plugin type!");
+
 public:
-    GenericPluginManager() = default;
+    explicit GenericPluginManager(bool auto_reload = false)
+        : auto_reload_ { auto_reload }
+    {
+    }
 
     virtual ~GenericPluginManager() = default;
     GenericPluginManager(const GenericPluginManager&) = default;
@@ -34,15 +41,33 @@ public:
     };
 
     /**
-     * Load a simple plugin from given library path.
+     * Load Lua script from given path.
+     */
+    template <typename Plugin>
+    std::pair<std::shared_ptr<Plugin>, PluginLoadingError> loadLuaPlugin(
+        const std::filesystem::path& plugin_library_path)
+    {
+        static_assert((std::is_base_of_v<Plugins, Plugin> || ...),
+            "Plugin or one of its bases has to be registered in PluginManager");
+        auto new_plugin = std::make_shared<Plugin>(plugin_library_path);
+        plugins_.push_back({ PluginVariant {new_plugin}, std::nullopt });
+        return {  new_plugin, PluginLoadingError::none };
+    }
+
+    /**
+     * Load a C++ plugin from given library path.
+     * The plugin has to be returned by the given function wrapped in a std::shared_ptr
+     * and the given function has to accept all given additional arguments.
      */
     template <typename Plugin, typename... Args>
-    std::pair<std::shared_ptr<Plugin>, PluginLoadingError> loadPlugin(
+    std::pair<std::shared_ptr<Plugin>, PluginLoadingError> loadCppPlugin(
         const std::filesystem::path& plugin_library_path,
         const std::string& create_function_name,
         Args... args)
     {
-        return loadCppPlugin<Plugin, std::shared_ptr<Plugin>(Args...)>(
+        static_assert((std::is_base_of_v<Plugins, Plugin> || ...),
+            "Plugin or one of its bases has to be registered in PluginManager");
+        return internalLoadCppPlugin<Plugin, std::shared_ptr<Plugin>(Args...)>(
             plugin_library_path, create_function_name, args...);
     }
 
@@ -53,7 +78,7 @@ protected:
     template <typename PluginType,
         typename CreateFunction,
         typename... Args>
-    std::pair<std::shared_ptr<PluginType>, PluginLoadingError> loadCppPlugin(
+    std::pair<std::shared_ptr<PluginType>, PluginLoadingError> internalLoadCppPlugin(
         const std::filesystem::path& plugin_library_path,
         const std::string& create_function_name,
         Args&&... create_function_args)
@@ -86,8 +111,13 @@ private:
     using PluginVariant = typename detail::templates::WrapParameterPack<std::variant, std::shared_ptr, Plugins...>::Type;
     // store for each plugin its shared library to avoid that the lib will be
     // unloaded; this might cause segfaults when accessing the plugin
-    using PluginLibrary = std::pair<PluginVariant, boost::dll::shared_library>;
+    using PluginLibrary = std::pair<PluginVariant, std::optional<boost::dll::shared_library>>;
     std::vector<PluginLibrary> plugins_;
+
+    /**
+     * Auto-reload plugins on change on disk.
+     */
+    bool auto_reload_; // TODO: implement me :)
 };
 
 using PluginManager = GenericPluginManager<Plugin>;
