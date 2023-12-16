@@ -22,7 +22,7 @@ public:
     ConfigurablePluginInterface& operator=(const ConfigurablePluginInterface&) = default;
     ConfigurablePluginInterface& operator=(ConfigurablePluginInterface&&) noexcept = default;
 
-    virtual void loop() = 0;
+    virtual void loop(const std::atomic<bool>& stop) = 0;
 
 protected:
     template <typename T>
@@ -50,7 +50,7 @@ public:
         return std::make_shared<ConfigurablePluginA>(std::move(config));
     }
 
-    void loop() override;
+    void loop(const std::atomic<bool>& stop) override;
 };
 
 #endif // PPPLUGIN__EXAMPLES__SIMPLE_PLUGIN_H

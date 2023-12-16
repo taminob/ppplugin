@@ -5,33 +5,39 @@
 #include "plugin_manager.h"
 #include "simple_plugin.h"
 
+template <typename ErrorType>
 void printError(const std::string& plugin_name,
-    ppplugin::PluginManager::PluginLoadingError error)
+    ErrorType error)
 {
-    using PluginError = ppplugin::PluginManager::PluginLoadingError;
-    std::string_view error_string = error == PluginError::notFound ? "not found"
-        : error == PluginError::loadingFailed
+    std::string_view error_string = error == ErrorType::notFound ? "not found"
+        : error == ErrorType::loadingFailed
         ? "loading failed"
-        : error == PluginError::none ? "no error"
-                                     : "other error";
+        : error == ErrorType::none ? "no error"
+                                   : "other error";
     std::cerr << "Unable to load '" << plugin_name << "' ('" << error_string
               << "')!" << std::endl;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+    // TODO: add top-level try-catch block
+    if (argc < 1) {
+        return -1;
+    }
+    auto executable_dir = std::filesystem::path { argv[0] }.parent_path();
+    auto library = executable_dir / "libsimple_plugin.so";
     // setup manager - has to stay alive for as long as you want to use the
     // plugins
-    ppplugin::PluginManager manager;
+    ppplugin::GenericPluginManager<SimplePluginInterface> manager;
     // load first plugin and check for errors
-    auto [plugin_a, error_a] = manager.loadPlugin<SimplePluginA>(
-        std::filesystem::path { "./libsimple_plugin.so" }, "create_a");
+    auto [plugin_a, error_a] = manager.loadCppPlugin<SimplePluginA>(
+        std::filesystem::path { library }, "create_a");
     if (!plugin_a) {
         printError("simple_plugin_a", error_a);
     }
     // load second plugin and check for errors
-    auto [plugin_b, error_b] = manager.loadPlugin<SimplePluginB>(
-        std::filesystem::path { "./libsimple_plugin.so" }, "create_b");
+    auto [plugin_b, error_b] = manager.loadCppPlugin<SimplePluginInterface>(
+        std::filesystem::path { library }, "create_b");
     if (!plugin_b) {
         printError("simple_plugin_b", error_b);
     }

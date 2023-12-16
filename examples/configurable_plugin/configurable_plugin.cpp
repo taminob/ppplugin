@@ -4,9 +4,9 @@
 
 BOOST_DLL_ALIAS(ConfigurablePluginA::create, create_a);
 
-void ConfigurablePluginA::loop()
+void ConfigurablePluginA::loop(const std::atomic<bool>& stop)
 {
-    while (true) {
+    while (!stop) {
         print(configuration().printValue);
         sleep(configuration().printInterval);
     }
