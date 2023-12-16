@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 project(ppplugin)
 
 option(PPPLUGIN_ENABLE_EXAMPLES "Enable compilation of examples" OFF)
+option(PPPLUGIN_ENABLE_CPP17_COMPATIBILITY
+       "Enable compilation with unreachable sanitize flags" OFF)
+option(PPPLUGIN_ENABLE_LUA_PLUGINS "Enable compilation with Lua plugin support"
+       ON)
 option(PPPLUGIN_ENABLE_TESTS "Enable compilation of tests" OFF)
 option(PPPLUGIN_ENABLE_COVERAGE "Enable compilation with test coverage flags"
        OFF)
@@ -14,10 +18,9 @@ option(PPPLUGIN_ENABLE_UNDEFINED_SANITIZE
        "Enable compilation with undefined sanitize flags" OFF)
 option(PPPLUGIN_ENABLE_UNREACHABLE_SANITIZE
        "Enable compilation with unreachable sanitize flags" OFF)
-option(PPPLUGIN_ENABLE_CPP17_COMPATIBILITY
-       "Enable compilation with unreachable sanitize flags" OFF)
 
 find_package(Boost 1.68.0 REQUIRED COMPONENTS program_options filesystem)
+find_package(Lua 5.2 REQUIRED)
 # TODO: check if necessary
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -29,6 +32,9 @@ endif()
 
 set(LIBRARY_NAME "ppplugin")
 set(LIBRARY_VERSION "0.1.0")
+
+set(LIBRARY_TARGET_STATIC "${LIBRARY_NAME}_static")
+set(LIBRARY_TARGET_SHARED "${LIBRARY_NAME}_shared")
 
 # enable generation of compile_commands.json file
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -43,6 +49,8 @@ set(DEBUG_FLAGS "-g3")
 if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})
   find_package(fmt 8.1.0 REQUIRED)
   set(CMAKE_CXX_STANDARD 17)
+  add_definitions("-DPPPLUGIN_CPP17_COMPATIBILITY")
+  link_libraries(fmt::fmt)
 else()
   set(CMAKE_CXX_STANDARD 20)
 endif()
