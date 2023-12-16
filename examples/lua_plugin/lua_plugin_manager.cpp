@@ -14,10 +14,10 @@ int main()
         }
         const auto& path = entry.path();
         if (path.extension() == ".lua") {
-            auto [plugin, error] = manager.loadLuaPlugin<ppplugin::LuaScript>(path);
+            auto plugin = manager.loadLuaPlugin(path);
             if (plugin) {
-                plugin->call("initialize");
-                std::thread t { [plugin = plugin]() { plugin->call("loop", "2"); } };
+                std::ignore = plugin.call("initialize");
+                std::thread t { [&plugin]() { std::ignore = plugin.call("loop", "2"); } };
                 t.join();
             }
         }

@@ -43,15 +43,11 @@ public:
     /**
      * Load Lua script from given path.
      */
-    template <typename Plugin>
-    std::pair<std::shared_ptr<Plugin>, PluginLoadingError> loadLuaPlugin(
+    LuaPlugin loadLuaPlugin(
         const std::filesystem::path& plugin_library_path)
     {
-        static_assert((std::is_base_of_v<Plugins, Plugin> || ...),
-            "Plugin or one of its bases has to be registered in PluginManager");
-        auto new_plugin = std::make_shared<Plugin>(plugin_library_path);
-        plugins_.push_back({ PluginVariant {new_plugin}, std::nullopt });
-        return {  new_plugin, PluginLoadingError::none };
+        LuaPlugin new_plugin { plugin_library_path };
+        return new_plugin;
     }
 
     /**
@@ -59,52 +55,11 @@ public:
      * The plugin has to be returned by the given function wrapped in a std::shared_ptr
      * and the given function has to accept all given additional arguments.
      */
-    template <typename Plugin, typename... Args>
-    std::pair<std::shared_ptr<Plugin>, PluginLoadingError> loadCppPlugin(
-        const std::filesystem::path& plugin_library_path,
-        const std::string& create_function_name,
-        Args... args)
+    template <typename... Args>
+    CppPlugin loadCppPlugin(
+        const std::filesystem::path& plugin_library_path)
     {
-        static_assert((std::is_base_of_v<Plugins, Plugin> || ...),
-            "Plugin or one of its bases has to be registered in PluginManager");
-        return internalLoadCppPlugin<Plugin, std::shared_ptr<Plugin>(Args...)>(
-            plugin_library_path, create_function_name, args...);
-    }
-
-protected:
-    /**
-     * Load any plugin of given type with given creation function and arguments.
-     */
-    template <typename PluginType,
-        typename CreateFunction,
-        typename... Args>
-    std::pair<std::shared_ptr<PluginType>, PluginLoadingError> internalLoadCppPlugin(
-        const std::filesystem::path& plugin_library_path,
-        const std::string& create_function_name,
-        Args&&... create_function_args)
-    {
-        if (!std::filesystem::exists(plugin_library_path)) {
-            return { nullptr, PluginLoadingError::notFound };
-        }
-
-        boost::dll::shared_library plugin_lib { boost::dll::fs::path { plugin_library_path } };
-        if (!plugin_lib.has(create_function_name)) {
-            return { nullptr, PluginLoadingError::symbolNotFound };
-        }
-        auto plugin_creator = boost::dll::import_alias<CreateFunction>(
-            boost::dll::fs::path { plugin_library_path }, create_function_name,
-            boost::dll::load_mode::append_decorations);
-
-        // TODO: invalid number of arguments can cause segfault?
-        // TODO: check ABI compatibility
-        std::shared_ptr<PluginType> plugin = plugin_creator(create_function_args...);
-        if (!plugin) {
-            return { nullptr, PluginLoadingError::loadingFailed };
-        }
-
-        plugins_.push_back({ PluginVariant { plugin }, plugin_lib });
-
-        return { plugin, PluginLoadingError::none };
+        return CppPlugin { plugin_library_path };
     }
 
 private:

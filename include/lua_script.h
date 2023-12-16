@@ -169,7 +169,7 @@ protected:
                 return lua_toboolean(state, -1);
             }
         } else if constexpr (std::is_same_v<PlainT, std::string>) {
-            if (lua_type(state, -1) == LUA_TNUMBER) {
+            if (lua_type(state, -1) == LUA_TSTRING) {
                 std::size_t result_length {};
                 const char* result = lua_tolstring(state, -1, &result_length);
                 return std::string { result, result_length };

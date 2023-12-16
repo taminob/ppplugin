@@ -25,21 +25,21 @@ int main(int argc, char* argv[])
         return -1;
     }
     auto executable_dir = std::filesystem::path { argv[0] }.parent_path();
-    auto library = executable_dir / "libsimple_plugin.so";
+    auto library_path = executable_dir / "libsimple_plugin.so";
     // setup manager - has to stay alive for as long as you want to use the
     // plugins
     ppplugin::GenericPluginManager<SimplePluginInterface> manager;
-    // load first plugin and check for errors
-    auto [plugin_a, error_a] = manager.loadCppPlugin<SimplePluginA>(
-        std::filesystem::path { library }, "create_a");
-    if (!plugin_a) {
-        printError("simple_plugin_a", error_a);
+    // load plugin library and check for errors
+    auto plugin_library = manager.loadCppPlugin(std::filesystem::path { library_path });
+    if (!plugin_library) {
+        printError("simple_plugin_a", plugin_library.loadingError());
+        return 1;
     }
-    // load second plugin and check for errors
-    auto [plugin_b, error_b] = manager.loadCppPlugin<SimplePluginInterface>(
-        std::filesystem::path { library }, "create_b");
+    auto plugin_a = plugin_library.call<std::shared_ptr<SimplePluginA>>("create_a");
+    auto plugin_b = plugin_library.call<std::shared_ptr<SimplePluginInterface>>("create_b");
     if (!plugin_b) {
-        printError("simple_plugin_b", error_b);
+        std::cerr << "Unable to call 'create_b'" << std::endl;
+        return 1;
     }
 
     plugin_a->initialize();

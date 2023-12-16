@@ -11,17 +11,21 @@ int main(int argc, char* argv[])
     auto library = executable_dir / "libconfigurable_plugin.so";
     ppplugin::GenericPluginManager<ConfigurablePluginInterface> manager;
     PluginConfiguration config_1 { std::chrono::milliseconds { 600 }, "1" };
-    auto [plugin_1, error_1] = manager.loadCppPlugin<ConfigurablePluginA>(library, "create_a", config_1);
+    auto plugin = manager.loadCppPlugin(library);
+    if (!plugin) {
+        return 1;
+    }
+    auto a_1 = plugin.call<std::shared_ptr<ConfigurablePluginInterface>>("create_a", config_1);
     PluginConfiguration config_2 { std::chrono::milliseconds { 200 }, "2" };
-    auto [plugin_2, error_2] = manager.loadCppPlugin<ConfigurablePluginA>(library, "create_a", config_2);
+    auto a_2 = plugin.call<std::shared_ptr<ConfigurablePluginA>>("create_a", config_2);
 
-    if (!plugin_1 || !plugin_2) {
-        return -1;
+    if (!a_1 || !a_2) {
+        return 2;
     }
 
     std::atomic<bool> stop_signal{false};
-    std::thread thread_1([plugin = plugin_1, &stop_signal]() { plugin->loop(stop_signal); });
-    std::thread thread_2([plugin = plugin_2, &stop_signal]() { plugin->loop(stop_signal); });
+    std::thread thread_1([plugin = a_1, &stop_signal]() { plugin->loop(stop_signal); });
+    std::thread thread_2([plugin = a_2, &stop_signal]() { plugin->loop(stop_signal); });
     std::this_thread::sleep_for(std::chrono::seconds{5});
     stop_signal.store(true);
     thread_1.join();
