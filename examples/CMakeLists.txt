@@ -1,2 +1,3 @@
 add_subdirectory(simple_plugin)
 add_subdirectory(configurable_plugin)
+add_subdirectory(lua_plugin)
