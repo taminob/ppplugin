@@ -2,24 +2,54 @@
 #include "plugin_manager.h"
 
 #include <filesystem>
+#include <iostream>
 #include <thread>
 
-int main()
+int main(int argc, char* argv[])
 {
-    // TODO: add top-level try-catch block
-    ppplugin::GenericPluginManager<ppplugin::LuaScript> manager;
-    for (const auto& entry : std::filesystem::recursive_directory_iterator { "." }) {
-        if (!entry.is_regular_file()) {
-            continue;
+    try {
+        if (argc < 1) {
+            return -1;
         }
-        const auto& path = entry.path();
-        if (path.extension() == ".lua") {
-            auto plugin = manager.loadLuaPlugin(path);
-            if (plugin) {
-                std::ignore = plugin.call("initialize");
-                std::thread t { [&plugin]() { std::ignore = plugin.call("loop", "2"); } };
-                t.join();
+        // path to plugins can be passed via command line;
+        // if no path was specified, the location of the executable is used instead
+        std::filesystem::path plugin_dir;
+        if (argc < 2) {
+            plugin_dir = std::filesystem::path { argv[0] }.parent_path();
+        } else {
+            plugin_dir = std::filesystem::path { argv[1] };
+        }
+        ppplugin::GenericPluginManager<ppplugin::LuaScript> manager;
+        std::vector<std::thread> threads;
+
+        // recursively traverse filesystem to find scripts
+        std::filesystem::recursive_directory_iterator dir_iterator { plugin_dir };
+        for (const auto& entry : dir_iterator) {
+            if (!entry.is_regular_file()) {
+                continue;
+            }
+            const auto& path = entry.path();
+            // only load files ending with ".lua" and execute in separate thread
+            if (path.extension() == ".lua") {
+                auto plugin = manager.loadLuaPlugin(path);
+                if (plugin) {
+                    threads.emplace_back([plugin=std::move(plugin)]() mutable {
+                        std::ignore = plugin.call("initialize");
+                        std::ignore = plugin.call("loop", "2");
+                    });
+                }
             }
         }
+
+        for (auto& thread : threads) {
+            thread.join();
+        }
+    } catch (const std::exception& exception) {
+        std::cerr << "A fatal error occurred: '" << exception.what() << "'\n";
+        return 1;
+    } catch (...) {
+        std::cerr << "An unknown fatal error occurred!";
+        return 1;
     }
+    return 0;
 }

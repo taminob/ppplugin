@@ -5,11 +5,28 @@
 #include <variant>
 #include <vector>
 
-template <
-    template <typename...> typename O,
-    template <typename, typename...> typename W,
-    typename... Types>
-using WrapParameterPack = ppplugin::detail::templates::WrapParameterPack<O, W, Types...>;
+// NOLINTNEXTLINE(google-build-using-namespace); this is alright for tests
+using namespace ppplugin::detail::templates;
+
+// Tests for First / FirstOr
+
+static_assert(
+    std::is_same_v<ppplugin::detail::templates::FirstT<int>,
+        int>);
+static_assert(
+    std::is_same_v<ppplugin::detail::templates::FirstT<float, double, int>,
+        float>);
+static_assert(
+    std::is_same_v<ppplugin::detail::templates::FirstOrT<float, bool, int>,
+        bool>);
+static_assert(
+    std::is_same_v<ppplugin::detail::templates::FirstOrT<bool, std::unique_ptr<int>>,
+        std::unique_ptr<int>>);
+static_assert(
+    std::is_same_v<ppplugin::detail::templates::FirstOrT<std::vector<double>>,
+        std::vector<double>>);
+
+// Tests for WrapParameterPack
 
 template <typename... Ts>
 using O1 = std::tuple<Ts...>;

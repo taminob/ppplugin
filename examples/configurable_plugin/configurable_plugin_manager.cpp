@@ -15,18 +15,18 @@ int main(int argc, char* argv[])
     if (!plugin) {
         return 1;
     }
-    auto a_1 = plugin.call<std::shared_ptr<ConfigurablePluginInterface>>("create_a", config_1);
+    auto a_1 = std::get<0>(plugin.call<std::shared_ptr<ConfigurablePluginInterface>>("create_a", config_1));
     PluginConfiguration config_2 { std::chrono::milliseconds { 200 }, "2" };
-    auto a_2 = plugin.call<std::shared_ptr<ConfigurablePluginA>>("create_a", config_2);
+    auto a_2 = std::get<0>(plugin.call<std::shared_ptr<ConfigurablePluginA>>("create_a", config_2));
 
     if (!a_1 || !a_2) {
         return 2;
     }
 
-    std::atomic<bool> stop_signal{false};
+    std::atomic<bool> stop_signal { false };
     std::thread thread_1([plugin = a_1, &stop_signal]() { plugin->loop(stop_signal); });
     std::thread thread_2([plugin = a_2, &stop_signal]() { plugin->loop(stop_signal); });
-    std::this_thread::sleep_for(std::chrono::seconds{5});
+    std::this_thread::sleep_for(std::chrono::seconds { 5 });
     stop_signal.store(true);
     thread_1.join();
     thread_2.join();

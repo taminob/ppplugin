@@ -1,7 +1,9 @@
 #ifndef PPPLUGIN_PLUGIN_H
 #define PPPLUGIN_PLUGIN_H
 
+#include "detail/template_helpers.h"
 #include "lua_script.h"
+
 #include <boost/dll.hpp>
 
 #ifndef PPPLUGIN_CPP17_COMPATIBILITY
@@ -34,17 +36,25 @@ concept IsPlugin = requires(P p) {
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
 
 template <typename... Plugins>
-class GenericPlugin {
+class GenericPlugin
 #ifndef PPPLUGIN_CPP17_COMPATIBILITY
     requires(IsPlugin<Plugins> && ...)
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
-        public:
+{
+
+public:
     GenericPlugin() = default;
+    template <typename P,
+        typename = std::enable_if_t<(std::is_base_of_v<Plugins, P> || ...)>>
+    GenericPlugin(P && plugin) // NOLINT(google-explicit-constructor,hicpp-explicit-conversions)
+        : plugin_(std::forward<P>(plugin))
+    {
+    }
 
     virtual ~GenericPlugin() = default;
-    GenericPlugin(const GenericPlugin&) = default;
+    GenericPlugin(const GenericPlugin&) = delete;
     GenericPlugin(GenericPlugin&&) noexcept = default;
-    GenericPlugin& operator=(const GenericPlugin&) = default;
+    GenericPlugin& operator=(const GenericPlugin&) = delete;
     GenericPlugin& operator=(GenericPlugin&&) noexcept = default;
 
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
@@ -53,29 +63,18 @@ class GenericPlugin {
         return std::visit([](const auto& plugin) -> bool { return plugin; }, plugin_);
     }
 
+    // TODO: add specialization for void return type (empty tuple triggers nodiscard)
     template <typename... ReturnValues, typename... Args>
-    [[nodiscard]] std::tuple<ReturnValues...> call(Args&&... args)
+    [[nodiscard]] std::tuple<ReturnValues...> call(Args && ... args)
     {
-        return std::visit([&args...](const auto& plugin) -> bool {
-            return plugin.template call<ReturnValues...>(args...);
+        return std::visit([&args...](auto& plugin) -> std::tuple<ReturnValues...> {
+            return plugin.template call<ReturnValues...>(std::forward<Args>(args)...);
         },
             plugin_);
     }
 
 private:
-    std::variant<Plugins...> plugin_;
-};
-
-class CPlugin {
-public:
-    CPlugin() = default;
-    explicit CPlugin(boost::dll::shared_library c_shared_library)
-        : c_shared_library_ { std::move(c_shared_library) }
-    {
-    }
-
-private:
-    boost::dll::shared_library c_shared_library_;
+    detail::templates::UniqueVariant<Plugins...> plugin_;
 };
 
 class CppPlugin {
@@ -84,6 +83,11 @@ public:
     {
         std::ignore = loadCppPlugin(cpp_shared_library);
     }
+    virtual ~CppPlugin() = default;
+    CppPlugin(const CppPlugin&) = delete;
+    CppPlugin(CppPlugin&&) = default;
+    CppPlugin& operator=(const CppPlugin&) = delete;
+    CppPlugin& operator=(CppPlugin&&) = default;
 
     [[nodiscard]] auto& raw() { return plugin_; }
     [[nodiscard]] const auto& raw() const { return plugin_; }
@@ -111,21 +115,31 @@ public:
     [[nodiscard]] LoadingError loadingError() const { return loading_error_; }
     [[nodiscard]] RuntimeError runtimeError() const { return runtime_error_; }
 
-    template <typename ReturnValue, typename... Args>
-    [[nodiscard]] ReturnValue call(const std::string& function_name, Args&&... args)
+    template <typename... ReturnValues, typename... Args>
+    [[nodiscard]] auto call(const std::string& function_name, Args&&... args)
     {
-        // TODO: check ABI compatibility
+        static_assert(sizeof...(ReturnValues) <= 1,
+            "C++ does not support more than one return value! "
+            "Consider wrapping the types into an std::tuple.");
+        using ReturnValue = detail::templates::FirstOrT<void, ReturnValues...>;
+        using FunctionType = ReturnValue (*)(Args...);
+        // TODO: check ABI compatibility (same compiler + major version)?
         if (!plugin_.has(function_name)) {
             loading_error_ = LoadingError::symbolNotFound;
-            return ReturnValue{}; // TODO
+            throw std::runtime_error("symbol not found"); // TODO
         }
         // TODO: invalid number of arguments can cause segfault
-        auto function = plugin_.get<ReturnValue(*)(Args...)>(function_name);
+        auto function = plugin_.get<FunctionType>(function_name);
         if (!function) {
             loading_error_ = LoadingError::symbolInvalid;
-            return ReturnValue{}; // TODO
+            throw std::runtime_error("symbol not valid"); // TODO
         }
-        return function(args...);
+        if constexpr (std::is_same_v<ReturnValue, void>) {
+            function(args...);
+            return std::tuple<> {};
+        } else {
+            return std::tuple<ReturnValue> { function(args...) };
+        }
     }
 
 protected:
@@ -148,10 +162,55 @@ protected:
         return plugin_.is_loaded();
     }
 
-private:
+protected:
     boost::dll::shared_library plugin_;
     LoadingError loading_error_ { LoadingError::none };
     RuntimeError runtime_error_ { RuntimeError::none };
+};
+
+class CPlugin : public CppPlugin {
+public:
+    explicit CPlugin(const std::filesystem::path& c_shared_library)
+        : CppPlugin { c_shared_library }
+    {
+    }
+
+    template <typename... ReturnValues, typename... Args>
+    [[nodiscard]] auto call(const std::string& function_name, Args&&... args)
+    {
+        // TODO: invalid number of arguments can cause segfault
+        // TODO: think of better solution than this
+        static_assert(sizeof...(ReturnValues) <= 1,
+            "C does not support more than one return value! "
+            "Consider wrapping the types into an std::tuple.");
+        using ReturnValue = detail::templates::FirstOrT<void, ReturnValues...>;
+        using FunctionType = ReturnValue (*)(Args...);
+        // TODO: check ABI compatibility (same compiler + major version)?
+        if (!plugin_.has(function_name)) {
+            throw std::runtime_error("symbol not found"); // TODO
+        }
+        // cannot use boost here because boost::dll expects the symbol to be
+        // a variable (pointing to the function) not a function
+#if BOOST_OS_WINDOWS
+        auto function = reinterpret_cast<FunctionType>(
+            boost::winapi::get_proc_address(plugin_.native(), function_name.c_str()));
+#else
+        // no other way to convert void* to function pointer
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        auto function = reinterpret_cast<FunctionType>(
+            dlsym(plugin_.native(), function_name.c_str()));
+#endif // BOOST_OS_WINDOWS
+        if (!function) {
+            loading_error_ = LoadingError::symbolInvalid;
+            throw std::runtime_error("symbol not valid"); // TODO
+        }
+        if constexpr (std::is_same_v<ReturnValue, void>) {
+            function(args...);
+            return std::tuple<> {};
+        } else {
+            return std::tuple<ReturnValue> { function(args...) };
+        }
+    }
 };
 
 template <typename P>
@@ -165,6 +224,11 @@ public:
         : plugin_ { lua_script_path }
     {
     }
+    virtual ~LuaPlugin() = default;
+    LuaPlugin(const LuaPlugin&) = delete;
+    LuaPlugin(LuaPlugin&&) = default;
+    LuaPlugin& operator=(const LuaPlugin&) = delete;
+    LuaPlugin& operator=(LuaPlugin&&) = default;
 
     [[nodiscard]] auto& raw() { return plugin_; }
     [[nodiscard]] const auto& raw() const { return plugin_; }

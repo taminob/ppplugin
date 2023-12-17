@@ -35,8 +35,8 @@ int main(int argc, char* argv[])
         printError("simple_plugin_a", plugin_library.loadingError());
         return 1;
     }
-    auto plugin_a = plugin_library.call<std::shared_ptr<SimplePluginA>>("create_a");
-    auto plugin_b = plugin_library.call<std::shared_ptr<SimplePluginInterface>>("create_b");
+    auto plugin_a = std::get<0>(plugin_library.call<std::shared_ptr<SimplePluginA>>("create_a"));
+    auto plugin_b = std::get<0>(plugin_library.call<std::shared_ptr<SimplePluginInterface>>("create_b"));
     if (!plugin_b) {
         std::cerr << "Unable to call 'create_b'" << std::endl;
         return 1;

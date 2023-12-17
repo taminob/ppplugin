@@ -61,6 +61,12 @@ public:
     {
         return CppPlugin { plugin_library_path };
     }
+    template <typename... Args>
+    CPlugin loadCPlugin(
+        const std::filesystem::path& plugin_library_path)
+    {
+        return CPlugin { plugin_library_path };
+    }
 
 private:
     using PluginVariant = typename detail::templates::WrapParameterPack<std::variant, std::shared_ptr, Plugins...>::Type;
