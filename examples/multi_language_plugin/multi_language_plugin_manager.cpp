@@ -18,8 +18,6 @@ int main(int argc, char* argv[])
 
 
         ppplugin::PluginManager manager;
-        auto c = manager.loadCPlugin(c_lib_path);
-        std::ignore = c.safeCall<>("loop");
         std::vector<ppplugin::Plugin> plugins;
         plugins.push_back(manager.loadCppPlugin(cpp_lib_path));
         plugins.push_back(manager.loadCPlugin(c_lib_path));
