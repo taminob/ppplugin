@@ -1,0 +1,4 @@
+InheritParentConfig: true
+# exceptions for testing
+Checks: >
+        -readability-magic-numbers
