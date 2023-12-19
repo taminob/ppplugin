@@ -1,0 +1,7 @@
+InheritParentConfig: true
+# exceptions for testing
+Checks: >
+        -google-build-using-namespace,
+        -readability-identifier-length,
+        -readability-named-parameter,
+        -readability-magic-numbers
