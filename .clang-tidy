@@ -4,18 +4,18 @@ Checks: >
         clang-analyzer-optin.*,
         llvm-*,-llvm-header-guard,
         google-*,-google-readability-todo,-google-readability-braces-around-statements,
-        hicpp-*,-hicpp-braces-around-statements,-hicpp-use-emplace,
+        hicpp-*,-hicpp-braces-around-statements,-hicpp-use-emplace,-hicpp-named-parameter,
+          -hicpp-no-array-decay,-hicpp-uppercase-literal-suffix,
         misc-*,-misc-no-recursion,
         bugprone-*,
         boost-*,
-        cert-*,
+        cert-*,-cert-dcl16-c,
         concurrency-*,
-        cppcoreguidelines-*,
+        cppcoreguidelines-*,-cppcoreguidelines-avoid-magic-numbers,
         modernize-*,-modernize-use-trailing-return-type,-modernize-use-emplace,
         performance-*,
         portability-*,
-        readability-*,
-        -readability-braces-around-statements,-readability-redundant-access-specifiers
+        readability-*,-readability-redundant-access-specifiers
 
 CheckOptions:
   - key:             readability-identifier-naming.AbstractClassCase
@@ -120,7 +120,7 @@ CheckOptions:
     value:           CamelCase
 # fix for clang-tidy v11, v12 and v14 when compiling with C++20
   - key:             readability-identifier-naming.TypeTemplateParameterIgnoredRegexp
-    value: 'expr-type'
+    value:           'expr-type'
   - key:             readability-identifier-naming.UnionCase
     value:           CamelCase
   - key:             readability-identifier-naming.ValueTemplateParameterCase
