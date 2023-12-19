@@ -1,6 +1,9 @@
 #include "plugin_manager.h"
 
+#include <chrono>
 #include <iostream>
+#include <limits>
+#include <thread>
 
 int main(int argc, char* argv[])
 {
@@ -13,13 +16,25 @@ int main(int argc, char* argv[])
         auto c_lib_path = executable_dir / "libc_plugin.so";
         auto lua_lib_path = executable_dir / "lua_plugin.lua";
 
+
         ppplugin::PluginManager manager;
-        ppplugin::Plugin cpp_plugin = manager.loadCppPlugin(cpp_lib_path);
-        ppplugin::Plugin c_plugin = manager.loadCPlugin(c_lib_path);
-        ppplugin::Plugin lua_plugin = manager.loadLuaPlugin(lua_lib_path);
-        std::ignore = cpp_plugin.call<>("initialize");
-        std::ignore = c_plugin.call<>("initialize");
-        std::ignore = lua_plugin.call<>("initialize");
+        auto c = manager.loadCPlugin(c_lib_path);
+        std::ignore = c.safeCall<>("loop");
+        std::vector<ppplugin::Plugin> plugins;
+        plugins.push_back(manager.loadCppPlugin(cpp_lib_path));
+        plugins.push_back(manager.loadCPlugin(c_lib_path));
+        plugins.push_back(manager.loadLuaPlugin(lua_lib_path));
+        for (auto& plugin : plugins) {
+            std::ignore = plugin.call<>("initialize");
+        }
+        for (int counter {}; counter < std::numeric_limits<int>::max(); ++counter) {
+            for (auto& plugin : plugins) {
+                // explicit cast to int to avoid passing by reference
+                std::ignore = plugin.call<>("loop", static_cast<int>(counter));
+                //std::ignore = plugin.call<>("loop", counter);
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds { 500 });
+        }
     } catch (const std::exception& exception) {
         std::cerr << "A fatal error occurred: '" << exception.what() << "'\n";
         return 1;

@@ -18,7 +18,7 @@ class A {
 public:
     static int loop(int value)
     {
-        std::cout << "C++: " << value++;
+        std::cout << "C++: " << value++ << std::endl;
         return value;
     }
 };

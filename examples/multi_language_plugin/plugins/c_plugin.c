@@ -5,6 +5,6 @@ void initialize(void) {
 }
 
 int loop(int value) {
-    printf("C: %d", value);
+    printf("C: %d\n", value);
     return value - 2;
 }
