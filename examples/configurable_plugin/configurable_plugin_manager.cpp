@@ -15,9 +15,9 @@ int main(int argc, char* argv[])
     if (!plugin) {
         return 1;
     }
-    auto a_1 = std::get<0>(plugin.call<std::shared_ptr<ConfigurablePluginInterface>>("create_a", config_1));
+    auto a_1 = plugin.call<std::shared_ptr<ConfigurablePluginInterface>>("create_a", config_1);
     PluginConfiguration config_2 { std::chrono::milliseconds { 200 }, "2" };
-    auto a_2 = std::get<0>(plugin.call<std::shared_ptr<ConfigurablePluginA>>("create_a", config_2));
+    auto a_2 = plugin.call<std::shared_ptr<ConfigurablePluginA>>("create_a", config_2);
 
     if (!a_1 || !a_2) {
         return 2;

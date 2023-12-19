@@ -23,12 +23,12 @@ int main(int argc, char* argv[])
         plugins.push_back(manager.loadCPlugin(c_lib_path));
         plugins.push_back(manager.loadLuaPlugin(lua_lib_path));
         for (auto& plugin : plugins) {
-            std::ignore = plugin.call<>("initialize");
+            plugin.call<void>("initialize");
         }
         for (int counter {}; counter < std::numeric_limits<int>::max(); ++counter) {
             for (auto& plugin : plugins) {
                 // explicit cast to int to avoid passing by reference
-                std::ignore = plugin.call<>("loop", static_cast<int>(counter));
+                plugin.call<void>("loop", static_cast<int>(counter));
                 //std::ignore = plugin.call<>("loop", counter);
             }
             std::this_thread::sleep_for(std::chrono::milliseconds { 500 });

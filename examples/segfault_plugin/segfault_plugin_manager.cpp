@@ -20,12 +20,14 @@ int main(int argc, char* argv[])
         auto segfault_plugin = manager.loadCPlugin(segfault_lib_path);
 
         auto print_result = [](std::string_view message, auto&& result) {
-            std::cout << message << static_cast<char>(std::get<0>(result)) << std::endl;
+            std::cout << message << static_cast<char>(result)
+                      << " (" << result << ')' << std::endl;
         };
 
         auto result = valid_plugin.call<int>("function", static_cast<const char*>("abc"));
         print_result("valid call, no problem: ", result);
-        // this can cause segfault, but could also result in garbage
+        // this can cause segfault, but could also result in garbage;
+        // even a "safe" call cannot catch everything
         result = valid_plugin.safeCall<int>("function");
         print_result("called function with wrong arguments: ", result);
         result = segfault_plugin.safeCall<int>("function", static_cast<const char*>("xyz"));
