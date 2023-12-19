@@ -71,7 +71,7 @@ using UniqueVariant = UniqueT<std::variant, Types...>;
  */
 template <typename... Types>
 class First {
-    template <typename T, typename... Ts>
+    template <typename T, typename...>
     struct Helper {
         using Type = T;
     };
@@ -92,12 +92,12 @@ template <typename, typename... Types>
 struct FirstOr {
     using Type = FirstT<Types...>;
 };
-template <typename Or>
-struct FirstOr<Or> {
-    using Type = Or;
+template <typename DefaultType>
+struct FirstOr<DefaultType> {
+    using Type = DefaultType;
 };
-template <typename Or, typename... Types>
-using FirstOrT = typename FirstOr<Or, Types...>::Type;
+template <typename DefaultType, typename... Types>
+using FirstOrT = typename FirstOr<DefaultType, Types...>::Type;
 
 /**
  * Wrap types into given type "Wrapper" (which has to accept exactly one template argument,
