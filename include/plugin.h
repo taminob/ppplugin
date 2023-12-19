@@ -56,15 +56,24 @@ public:
     }
 
     // TODO: add specialization for void return type (empty tuple triggers nodiscard)
-    template <typename... ReturnValues, typename... Args>
-    [[nodiscard]] std::tuple<ReturnValues...> call(const std::string& function_name, Args&&... args)
+    template <typename ReturnValue, typename... Args>
+    [[nodiscard]] ReturnValue call(const std::string& function_name, Args&&... args)
     {
         return std::visit(
-            [&function_name, &args...](auto& plugin) -> std::tuple<ReturnValues...> {
-                return plugin.template call<ReturnValues...>(
+            [&function_name, &args...](auto& plugin) {
+                return plugin.template call<ReturnValue>(
                     function_name, std::forward<Args>(args)...);
             },
             plugin_);
+    }
+
+    template <typename P>
+    std::optional<P> plugin()
+    {
+        if (auto* plugin = std::get_if<P>(plugin_)) {
+            return *plugin;
+        }
+        return std::nullopt;
     }
 
 private:
@@ -109,14 +118,13 @@ public:
     [[nodiscard]] LoadingError loadingError() const { return loading_error_; }
     [[nodiscard]] RuntimeError runtimeError() const { return runtime_error_; }
 
-    template <typename... ReturnValues, typename... Args>
+    template <typename ReturnValue, typename... Args>
     [[nodiscard]] auto call(const std::string& function_name, Args&&... args)
     {
-        static_assert(sizeof...(ReturnValues) <= 1,
-            "C++ does not support more than one return value! "
-            "Consider wrapping the types into an std::tuple.");
-        using ReturnValue = detail::templates::FirstOrT<void, ReturnValues...>;
         using FunctionType = ReturnValue (*)(Args...);
+        if (!plugin_.is_loaded()) {
+            throw std::runtime_error("plugin not loaded");
+        }
         // TODO: check ABI compatibility (same compiler + major version)?
         if (!plugin_.has(function_name)) {
             loading_error_ = LoadingError::symbolNotFound;
@@ -128,12 +136,7 @@ public:
             loading_error_ = LoadingError::symbolInvalid;
             throw std::runtime_error("symbol not valid"); // TODO
         }
-        if constexpr (std::is_same_v<ReturnValue, void>) {
-            function(std::forward<Args>(args)...);
-            return std::tuple<> {};
-        } else {
-            return std::tuple<ReturnValue> { function(std::forward<Args>(args)...) };
-        }
+        return function(std::forward<Args>(args)...);
     }
 
 protected:
@@ -188,37 +191,32 @@ public:
         T value;
     };
 
-    template <typename... ReturnValues, typename... Args>
+    template <typename ReturnValue, typename... Args>
     [[nodiscard]] auto call(const std::string& function_name, Args&&... args)
     {
-        return internalCall<false, ReturnValues...>(
+        return internalCall<false, ReturnValue>(
             function_name, std::forward<Args>(args)...);
     }
 
-    template <typename... ReturnValues, typename... Args>
+    template <typename ReturnValue, typename... Args>
     [[nodiscard]] auto safeCall(const std::string& function_name, Args&&... args)
     {
-        return internalCall<true, ReturnValues...>(
+        return internalCall<true, ReturnValue>(
             function_name, std::forward<Args>(args)...);
     }
 
 protected:
-    template <bool catchSegfaults, typename... ReturnValues, typename... Args>
-    [[nodiscard]] auto internalCall(const std::string& function_name, Args&&... args)
+    template <bool catchSegfaults, typename ReturnValue, typename... Args>
+    [[nodiscard]] ReturnValue internalCall(const std::string& function_name, Args&&... args)
     {
         // TODO: invalid number of arguments can cause segfault
-        // TODO: think of better solution than this
-        static_assert(sizeof...(ReturnValues) <= 1,
-            "C does not support more than one return value! "
-            "Consider wrapping the types into an std::tuple.");
-        static_assert(!(std::is_reference_v<ReturnValues> || ...),
+        static_assert(!std::is_reference_v<ReturnValue>,
             "C does not support references for its return value!");
         static_assert(!(std::is_reference_v<Args> || ...),
             "C does not support references for its arguments! "
             "Consider passing the argument with an explicit cast to the desired type.");
-        using ReturnValue = detail::templates::FirstOrT<void, ReturnValues...>;
         using FunctionType = ReturnValue (*)(Args...);
-        // TODO: check ABI compatibility (same compiler + major version)?
+
         if (!plugin().has(function_name)) {
             throw std::runtime_error("symbol not found"); // TODO
         }
@@ -236,21 +234,10 @@ protected:
         if (!function) {
             throw std::runtime_error("symbol not valid"); // TODO
         }
-        if constexpr (std::is_same_v<ReturnValue, void>) {
-            if constexpr (catchSegfaults) {
-                detail::segfault_handling::exec<ReturnValue>(function, std::forward<Args>(args)...);
-            } else {
-                function(std::forward<Args>(args)...);
-            }
-            return std::tuple<> {};
+        if constexpr (catchSegfaults) {
+            return detail::segfault_handling::exec<ReturnValue>(function, std::forward<Args>(args)...);
         } else {
-            if constexpr (catchSegfaults) {
-                return std::tuple<ReturnValue> {
-                    detail::segfault_handling::exec<ReturnValue>(function, std::forward<Args>(args)...)
-                };
-            } else {
-                return std::tuple<ReturnValue> { function(std::forward<Args>(args)...) };
-            }
+            return function(std::forward<Args>(args)...);
         }
     }
 };
@@ -283,10 +270,20 @@ public:
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
     operator bool() const { return true; }
 
-    template <typename... ReturnValues, typename... Args>
-    [[nodiscard]] std::tuple<ReturnValues...> call(const std::string& function_name, Args&&... args)
+    /**
+     * Accepted types are:
+     * - void
+     * - bool
+     * - int
+     * - double
+     * - std::string
+     * - const char*
+     * - std::tuple
+     */
+    template <typename ReturnValue, typename... Args>
+    [[nodiscard]] ReturnValue call(const std::string& function_name, Args&&... args)
     {
-        return plugin_.call<ReturnValues...>(function_name, std::forward<Args>(args)...);
+        return plugin_.call<ReturnValue>(function_name, std::forward<Args>(args)...);
     }
 
 private:

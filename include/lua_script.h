@@ -2,6 +2,7 @@
 #define PPPLUGIN_LUA_SCRIPT_H
 
 #include "detail/compatibility_utils.h"
+#include "detail/template_helpers.h"
 
 #include <filesystem>
 #include <functional>
@@ -47,24 +48,10 @@ public:
     LuaScript& operator=(const LuaScript&) = delete;
     LuaScript& operator=(LuaScript&&) noexcept = default;
 
-    template <typename... ReturnValues, typename... Args>
-    std::tuple<ReturnValues...> call(const std::string& function, Args&&... args)
+    template <typename ReturnValue, typename... Args>
+    ReturnValue call(const std::string& function, Args&&... args)
     {
-        StackContext context {};
-        auto type = lua_getglobal(state(), function.c_str());
-        if (type != LUA_TFUNCTION) {
-            throw std::runtime_error(format("'{}' is not callable (type: '{}')!", function,
-                lua_typename(state(), type)));
-        }
-        push(args...);
-        auto result = lua_pcall(state(), sizeof...(Args), sizeof...(ReturnValues), 0);
-        if (result != LUA_OK) {
-            // TODO: only LUA_ERRRUN puts error message on stack top
-            throw std::runtime_error(format("Unable to call '{}'. Result: '{}'. Error: '{}'",
-                function, result, top<std::string>().value_or(lua_tostring(state(), -1))));
-        }
-        // TODO: retrieve return value(s)
-        return {};
+        return CallHelper<ReturnValue, Args...>(*this, function, std::forward<Args>(args)...).returnValue();
     }
 
 protected:
@@ -242,6 +229,89 @@ protected:
         explicit StackContext(Args&&... args)
         {
         }
+    };
+
+    friend struct CallHelper;
+    template <typename ReturnValue, typename... Args>
+    struct CallHelper {
+        CallHelper(LuaScript& script, const std::string& function, Args&&... args)
+        {
+            StackContext context {};
+            auto type = lua_getglobal(script.state(), function.c_str());
+            if (type != LUA_TFUNCTION) {
+                throw std::runtime_error(format("'{}' is not callable (type: '{}')!", function,
+                    lua_typename(script.state(), type)));
+            }
+            script.push(args...);
+            // TODO: have message handler on stack for lua_pcall (last parameter)
+            auto error = lua_pcall(script.state(), sizeof...(Args), 1, 0);
+            if (error != LUA_OK) {
+                // TODO: only LUA_ERRRUN puts error message on stack top
+                throw std::runtime_error(format("Unable to call '{}'. Code: '{}'. Error: '{}'",
+                    function, error, script.top<std::string>().value_or("?")));
+            }
+            result_ = std::make_unique<ReturnValue>(std::move(script.pop<ReturnValue>().value()));
+        }
+
+        ReturnValue returnValue() const { return *result_; }
+
+    private:
+        std::unique_ptr<ReturnValue> result_;
+    };
+    template <typename... Args>
+    struct CallHelper<void, Args...> {
+        CallHelper(LuaScript& script, const std::string& function, Args&&... args)
+        {
+            StackContext context {};
+            auto type = lua_getglobal(script.state(), function.c_str());
+            if (type != LUA_TFUNCTION) {
+                throw std::runtime_error(format("'{}' is not callable (type: '{}')!", function,
+                    lua_typename(script.state(), type)));
+            }
+            script.push(args...);
+            // TODO: have message handler on stack for lua_pcall (last parameter)
+            auto result = lua_pcall(script.state(), sizeof...(Args), 1, 0);
+            if (result != LUA_OK) {
+                // TODO: only LUA_ERRRUN puts error message on stack top
+                throw std::runtime_error(format("Unable to call '{}'. Result: '{}'. Error: '{}'",
+                    function, result, script.top<std::string>().value_or("?")));
+            }
+        }
+
+        void returnValue() const { }
+    };
+    template <typename... ReturnValues, typename... Args>
+    struct CallHelper<std::tuple<ReturnValues...>, Args...> {
+        CallHelper(LuaScript& script, const std::string& function, Args&&... args)
+        {
+            StackContext context {};
+            auto type = lua_getglobal(script.state(), function.c_str());
+            if (type != LUA_TFUNCTION) {
+                throw std::runtime_error(format("'{}' is not callable (type: '{}')!", function,
+                    lua_typename(script.state(), type)));
+            }
+            script.push(args...);
+            // TODO: have message handler on stack for lua_pcall (last parameter)
+            auto result = lua_pcall(script.state(), sizeof...(Args), sizeof...(ReturnValues), 0);
+            if (result != LUA_OK) {
+                // TODO: only LUA_ERRRUN puts error message on stack top
+                throw std::runtime_error(format("Unable to call '{}'. Result: '{}'. Error: '{}'",
+                    function, result, script.top<std::string>().value_or("?")));
+            }
+            result_ = std::make_unique<std::tuple<ReturnValues...>>(popReturnValues(script));
+        }
+
+        auto returnValue() const { return *result_; }
+
+    protected:
+        auto popReturnValues(LuaScript& script)
+        {
+            // TODO: improve error handling (currently throws exception if wrong return type)
+            return std::make_tuple(script.pop<ReturnValues>().value()...);
+        }
+
+    private:
+        std::unique_ptr<std::tuple<ReturnValues...>> result_;
     };
 
 private:
