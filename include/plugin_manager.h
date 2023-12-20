@@ -7,8 +7,11 @@
 #include <functional>
 #include <variant>
 
+#include "c/plugin.h"
+#include "cpp/plugin.h"
 #include "detail/compiler_info.h"
 #include "detail/template_helpers.h"
+#include "lua/plugin.h"
 #include "plugin.h"
 
 namespace ppplugin {
@@ -52,8 +55,12 @@ public:
 
     /**
      * Load a C++ plugin from given library path.
-     * The plugin has to be returned by the given function wrapped in a std::shared_ptr
-     * and the given function has to accept all given additional arguments.
+     * This plugin can call functions from the shared library that were exported
+     * using BOOST_DLL_ALIAS or have manually as extern declared function pointers.
+     *
+     * @attention The returned object has to be kept alive until all objects
+     *            created by the plugin are fully destroyed.
+     *            Failure to do so will result in a SEGFAULT.
      */
     template <typename... Args>
     CppPlugin loadCppPlugin(
@@ -61,6 +68,11 @@ public:
     {
         return CppPlugin { plugin_library_path };
     }
+	/**
+	 * Load a C plugin from given library path.
+     * This plugin can call any C function or C++ functions that were marked
+     * as 'extern "C"'.
+	 */
     template <typename... Args>
     CPlugin loadCPlugin(
         const std::filesystem::path& plugin_library_path)

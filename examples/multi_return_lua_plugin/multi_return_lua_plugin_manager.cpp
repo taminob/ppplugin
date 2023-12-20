@@ -1,4 +1,3 @@
-#include "lua_script.h"
 #include "plugin_manager.h"
 
 #include <filesystem>

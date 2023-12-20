@@ -1,4 +1,3 @@
-#include "lua_script.h"
 #include "plugin_manager.h"
 
 #include <filesystem>
@@ -19,7 +18,7 @@ int main(int argc, char* argv[])
         } else {
             plugin_dir = std::filesystem::path { argv[1] };
         }
-        ppplugin::GenericPluginManager<ppplugin::LuaScript> manager;
+        ppplugin::GenericPluginManager<ppplugin::LuaPlugin> manager;
         std::vector<std::thread> threads;
 
         // recursively traverse filesystem to find scripts
@@ -33,7 +32,7 @@ int main(int argc, char* argv[])
             if (path.extension() == ".lua") {
                 auto plugin = manager.loadLuaPlugin(path);
                 if (plugin) {
-                    threads.emplace_back([plugin=std::move(plugin)]() mutable {
+                    threads.emplace_back([plugin = std::move(plugin)]() mutable {
                         plugin.call<void>("initialize");
                         plugin.call<void>("loop", "2");
                     });
