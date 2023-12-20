@@ -4,10 +4,8 @@
 #include "detail/scope_guard.h"
 #include <iostream>
 
-#if !BOOST_OS_WINDOWS
-#include <signal.h>
-#endif // BOOST_OS_WINDOWS
 #include <csetjmp>
+#include <csignal>
 #include <mutex>
 
 namespace ppplugin::detail::segfault_handling {
@@ -18,15 +16,12 @@ namespace helpers {
     template <typename Func>
     ScopeGuard setSignalHandler(int signal, Func&& func, bool restore_handler)
     {
-        struct sigaction catch_segfaults { };
-        struct sigaction previous_handler { };
         std::cout << ("register action...\n");
-        catch_segfaults.sa_handler = func;
-        sigaction(signal, &catch_segfaults, nullptr);
-
-        if (restore_handler) {
+        auto previous_handler = std::signal(signal, func);
+        if (previous_handler != SIG_ERR && restore_handler) {
             return ScopeGuard { [signal, previous_handler]() {
-                sigaction(signal, &previous_handler, nullptr);
+                // ignore return value; nothing we can do here
+                std::ignore = std::signal(signal, previous_handler);
             } };
         }
         return ScopeGuard { []() {} };
