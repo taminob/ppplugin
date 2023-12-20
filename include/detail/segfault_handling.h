@@ -5,7 +5,7 @@
 #include <iostream>
 
 #if !BOOST_OS_WINDOWS
-#include <csignal>
+#include <signal.h>
 #endif // BOOST_OS_WINDOWS
 #include <csetjmp>
 #include <mutex>
@@ -19,13 +19,14 @@ namespace helpers {
     ScopeGuard setSignalHandler(int signal, Func&& func, bool restore_handler)
     {
         struct sigaction catch_segfaults { };
+        struct sigaction previous_handler { };
         std::cout << ("register action...\n");
         catch_segfaults.sa_handler = func;
         sigaction(signal, &catch_segfaults, nullptr);
 
         if (restore_handler) {
-            return ScopeGuard { [signal]() {
-                sigaction(signal, nullptr, nullptr);
+            return ScopeGuard { [signal, previous_handler]() {
+                sigaction(signal, &previous_handler, nullptr);
             } };
         }
         return ScopeGuard { []() {} };
