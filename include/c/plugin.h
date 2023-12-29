@@ -12,22 +12,6 @@ public:
     {
     }
 
-    template <typename T>
-    struct CopyIfReference {
-        template <typename = std::enable_if<std::is_reference_v<T>>>
-        explicit CopyIfReference(std::remove_reference<T> by_value)
-            : value { by_value }
-        {
-        }
-        template <typename = std::enable_if<!std::is_reference_v<T>>>
-        explicit CopyIfReference(T&& by_reference)
-            : value { by_reference }
-        {
-        }
-
-        T value;
-    };
-
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] auto call(const std::string& function_name, Args&&... args)
     {
