@@ -35,6 +35,10 @@ public:
             }
         }
     }
+    Expected(const Expected&) = default;
+    Expected(Expected&&) noexcept = default;
+    Expected& operator=(const Expected&) = default;
+    Expected& operator=(Expected&&) noexcept = default;
 
     [[nodiscard]] bool hasValue() const { return has_value_; }
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
