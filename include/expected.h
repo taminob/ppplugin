@@ -66,6 +66,10 @@ public:
     E& uncheckedError();
     const E& uncheckedError() const;
 
+#if __cplusplus >= 202101L
+    explicit operator std::expected<T, E>() const;
+#endif // __cplusplus
+
     template <typename TL, typename EL, typename TR, typename ER>
     friend bool operator==(const Expected<TL, EL>& lhs, const Expected<TR, ER>& rhs);
 
@@ -325,6 +329,17 @@ const E& Expected<T, E>::uncheckedError() const
 {
     return e;
 }
+
+#if __cplusplus >= 202101L
+template <typename T, typename E>
+Expected<T, E>::operator std::expected<T, E>() const
+{
+    if (has_value_) {
+        return t;
+    }
+    return e;
+}
+#endif // __cplusplus
 
 template <typename TL, typename EL, typename TR, typename ER>
 bool operator==(const Expected<TL, EL>& lhs, const Expected<TR, ER>& rhs)
