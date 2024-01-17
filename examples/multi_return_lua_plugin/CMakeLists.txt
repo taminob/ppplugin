@@ -1,8 +1,8 @@
-add_executable(multi_return_lua_plugin_manager multi_return_lua_plugin_manager.cpp)
+add_executable(multi_return_lua_plugin_manager
+               multi_return_lua_plugin_manager.cpp)
 target_include_directories(multi_return_lua_plugin_manager
                            PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(multi_return_lua_plugin_manager ${LIBRARY_TARGET_SHARED}
-                      Boost::filesystem lua)
+target_link_libraries(multi_return_lua_plugin_manager ${LIBRARY_TARGET_SHARED})
 
 add_custom_command(
   TARGET multi_return_lua_plugin_manager

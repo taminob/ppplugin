@@ -14,9 +14,9 @@ public:
         std::ignore = loadCppPlugin(cpp_shared_library);
     }
     virtual ~CppPlugin() = default;
-    CppPlugin(const CppPlugin&) = delete;
+    CppPlugin(const CppPlugin&) = default;
     CppPlugin(CppPlugin&&) = default;
-    CppPlugin& operator=(const CppPlugin&) = delete;
+    CppPlugin& operator=(const CppPlugin&) = default;
     CppPlugin& operator=(CppPlugin&&) = default;
 
     [[nodiscard]] auto& raw() { return plugin_; }

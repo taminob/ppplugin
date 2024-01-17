@@ -1,4 +1,3 @@
-// g++ examples/simple_plugin.cpp -shared -o simple_plugin.so -I examples -lboost_program_options -lboost_filesystem -fPIC
 #include "simple_plugin.h"
 
 #include <boost/dll.hpp>

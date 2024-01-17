@@ -80,7 +80,7 @@ TEST(Expected, valueReference)
 
     ASSERT_TRUE(v.value().has_value());
     // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
-    v.value().value().get() = 5;
+    v.valueRef().value().get() = 5;
 
     EXPECT_EQ(v.value(), 5);
 }

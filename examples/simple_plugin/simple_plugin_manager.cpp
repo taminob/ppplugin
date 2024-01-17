@@ -1,4 +1,3 @@
-// g++ examples/simple_plugin_manager.cpp -I examples -lboost_program_options -lboost_filesystem
 #include <filesystem>
 #include <thread>
 
@@ -29,12 +28,11 @@ int main(int argc, char* argv[])
     // setup manager - has to stay alive for as long as you want to use the
     // plugins
     ppplugin::GenericPluginManager<SimplePluginInterface> manager;
-    // load plugin library and check for errors
-    auto plugin_library = manager.loadCppPlugin(std::filesystem::path { library_path });
-    if (!plugin_library) {
-        printError("simple_plugin_a", plugin_library.loadingError());
-        return 1;
-    }
+    // load plugin library and exit on error
+    auto plugin_library = manager.loadCppPlugin(std::filesystem::path { library_path }).valueOrElse([](const auto& error) -> ppplugin::CppPlugin {
+        printError("simple_plugin_a", error);
+        std::exit(1); // NOLINT(concurrency-mt-unsafe)
+    });
     auto plugin_a = plugin_library.call<std::shared_ptr<SimplePluginA>>("create_a");
     auto plugin_b = plugin_library.call<std::shared_ptr<SimplePluginInterface>>("create_b");
     if (!plugin_b) {

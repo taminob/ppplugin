@@ -15,13 +15,20 @@ int main(int argc, char* argv[])
         auto cpp_lib_path = executable_dir / "libcpp_plugin.so";
         auto c_lib_path = executable_dir / "libc_plugin.so";
         auto lua_lib_path = executable_dir / "lua_plugin.lua";
-
+        auto non_existant_lib_path = executable_dir / "does_not_exist";
 
         ppplugin::PluginManager manager;
         std::vector<ppplugin::Plugin> plugins;
-        plugins.push_back(manager.loadCppPlugin(cpp_lib_path));
-        plugins.push_back(manager.loadCPlugin(c_lib_path));
-        plugins.push_back(manager.loadLuaPlugin(lua_lib_path));
+        if (auto plugin = manager.loadCppPlugin(cpp_lib_path)) {
+            plugins.push_back(std::move(*plugin));
+        }
+        if (auto plugin = manager.loadCPlugin(c_lib_path)) {
+            plugins.push_back(std::move(*plugin));
+        }
+        if (auto plugin = manager.loadLuaPlugin(lua_lib_path)) {
+            plugins.push_back(std::move(*plugin));
+        }
+        plugins.push_back(ppplugin::NoopPlugin {});
         for (auto& plugin : plugins) {
             plugin.call<void>("initialize");
         }
@@ -29,7 +36,7 @@ int main(int argc, char* argv[])
             for (auto& plugin : plugins) {
                 // explicit cast to int to avoid passing by reference
                 plugin.call<void>("loop", static_cast<int>(counter));
-                //std::ignore = plugin.call<>("loop", counter);
+                // std::ignore = plugin.call<>("loop", counter);
             }
             std::this_thread::sleep_for(std::chrono::milliseconds { 500 });
         }

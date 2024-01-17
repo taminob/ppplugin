@@ -30,9 +30,8 @@ int main(int argc, char* argv[])
             const auto& path = entry.path();
             // only load files ending with ".lua" and execute in separate thread
             if (path.extension() == ".lua") {
-                auto plugin = manager.loadLuaPlugin(path);
-                if (plugin) {
-                    threads.emplace_back([plugin = std::move(plugin)]() mutable {
+                if (auto plugin = manager.loadLuaPlugin(path)) {
+                    threads.emplace_back([plugin = std::move(*plugin)]() mutable {
                         plugin.call<void>("initialize");
                         plugin.call<void>("loop", "2");
                     });

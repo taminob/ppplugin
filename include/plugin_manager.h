@@ -9,8 +9,8 @@
 
 #include "c/plugin.h"
 #include "cpp/plugin.h"
-#include "detail/compiler_info.h"
 #include "detail/template_helpers.h"
+#include "expected.h"
 #include "lua/plugin.h"
 #include "plugin.h"
 
@@ -33,20 +33,19 @@ public:
     GenericPluginManager& operator=(GenericPluginManager&&) noexcept = default;
 
     /**
-     *
+     * Possible errors that could occur when loading a plugin.
      */
     enum class PluginLoadingError {
         none,
         notFound,
         loadingFailed,
-        symbolNotFound,
         unknown
     };
 
     /**
      * Load Lua script from given path.
      */
-    LuaPlugin loadLuaPlugin(
+    Expected<LuaPlugin, PluginLoadingError> loadLuaPlugin(
         const std::filesystem::path& plugin_library_path)
     {
         LuaPlugin new_plugin { plugin_library_path };
@@ -63,18 +62,18 @@ public:
      *            Failure to do so will result in a SEGFAULT.
      */
     template <typename... Args>
-    CppPlugin loadCppPlugin(
+    Expected<CppPlugin, PluginLoadingError> loadCppPlugin(
         const std::filesystem::path& plugin_library_path)
     {
         return CppPlugin { plugin_library_path };
     }
-	/**
-	 * Load a C plugin from given library path.
+    /**
+     * Load a C plugin from given library path.
      * This plugin can call any C function or C++ functions that were marked
      * as 'extern "C"'.
-	 */
+     */
     template <typename... Args>
-    CPlugin loadCPlugin(
+    Expected<CPlugin, PluginLoadingError> loadCPlugin(
         const std::filesystem::path& plugin_library_path)
     {
         return CPlugin { plugin_library_path };

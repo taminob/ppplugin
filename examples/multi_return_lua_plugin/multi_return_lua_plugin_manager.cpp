@@ -21,10 +21,12 @@ int main(int argc, char* argv[])
         plugin_path /= "plugin.lua";
 
         ppplugin::PluginManager manager;
-        auto plugin = manager.loadLuaPlugin(plugin_path);
-        if (plugin) {
-            auto [a, b, c] = plugin.call<std::tuple<int, int, int>>("values", 10);
+        if (auto plugin = manager.loadLuaPlugin(plugin_path)) {
+            auto [a, b, c] = plugin->call<std::tuple<int, int, int>>("values", 10);
             std::cout << "a, b, c: " << a << ", " << b << ", " << c << std::endl;
+        } else {
+            std::cerr << "Unable to load plugin '" << plugin_path << "'\n";
+            return 1;
         }
     } catch (const std::exception& exception) {
         std::cerr << "A fatal error occurred: '" << exception.what() << "'\n";

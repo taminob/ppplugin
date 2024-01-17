@@ -11,10 +11,11 @@ int main(int argc, char* argv[])
     auto library = executable_dir / "libconfigurable_plugin.so";
     ppplugin::GenericPluginManager<ConfigurablePluginInterface> manager;
     PluginConfiguration config_1 { std::chrono::milliseconds { 600 }, "1" };
-    auto plugin = manager.loadCppPlugin(library);
-    if (!plugin) {
-        return 1;
-    }
+    auto plugin = manager.loadCppPlugin(library).valueOrElse([&library]() {
+        std::cerr << "Unable to load '" << library << "'\n";
+        std::exit(1); // NOLINT(concurrency-mt-unsafe)
+        return ppplugin::CppPlugin{""};
+    });
     auto a_1 = plugin.call<std::shared_ptr<ConfigurablePluginInterface>>("create_a", config_1);
     PluginConfiguration config_2 { std::chrono::milliseconds { 200 }, "2" };
     auto a_2 = plugin.call<std::shared_ptr<ConfigurablePluginA>>("create_a", config_2);

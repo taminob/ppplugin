@@ -19,7 +19,7 @@ option(PPPLUGIN_ENABLE_UNDEFINED_SANITIZE
 option(PPPLUGIN_ENABLE_UNREACHABLE_SANITIZE
        "Enable compilation with unreachable sanitize flags" OFF)
 
-find_package(Boost 1.68.0 REQUIRED COMPONENTS program_options filesystem)
+find_package(Boost 1.61.0 REQUIRED COMPONENTS headers filesystem)
 find_package(Lua 5.2 REQUIRED)
 # TODO: check if necessary
 set(THREADS_PREFER_PTHREAD_FLAG ON)
