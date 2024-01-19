@@ -1,6 +1,7 @@
 #ifndef PPPLUGIN_EXPECTED_H
 #define PPPLUGIN_EXPECTED_H
 
+#include <cassert>
 #include <optional>
 #if __cplusplus >= 202101L
 #include <expected>
@@ -16,6 +17,14 @@ public:
     using Value = T;
     using Error = E;
 
+#ifdef PPPLUGIN_CPP17_COMPATIBILITY
+    template <typename X = T, typename = std::enable_if_t<std::is_default_constructible_v<X>>>
+#endif // PPPLUGIN_CPP17_COMPATIBILITY
+    Expected()
+#ifndef PPPLUGIN_CPP17_COMPATIBILITY
+        requires std::is_default_constructible_v<T>
+#endif // PPPLUGIN_CPP17_COMPATIBILITY
+    ;
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
     Expected(T&& value);
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
@@ -25,49 +34,56 @@ public:
     Expected(Expected&&) noexcept = default;
     Expected& operator=(const Expected&) = default;
     Expected& operator=(Expected&&) noexcept = default;
+    template <typename U>
+    Expected& operator=(U&& rhs);
 
     [[nodiscard]] bool hasValue() const;
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
     operator bool() const;
 
-    std::optional<T> value() const&;
-    std::optional<T> value() const&&;
-    std::optional<std::reference_wrapper<T>> valueRef();
-    std::optional<std::reference_wrapper<const T>> valueRef() const;
+    [[nodiscard]] std::optional<T> value() const&;
+    [[nodiscard]] std::optional<T> value() const&&;
+    [[nodiscard]] std::optional<std::reference_wrapper<T>> valueRef();
+    [[nodiscard]] std::optional<std::reference_wrapper<const T>> valueRef() const;
     template <typename U>
-    T valueOr(U&& default_value) const&;
+    [[nodiscard]] T valueOr(U&& default_value) const&;
     template <typename U>
-    T valueOr(U&& default_value) const&&;
+    [[nodiscard]] T valueOr(U&& default_value) const&&;
     template <typename F>
-    T valueOrElse(F&& func) const&;
+    [[nodiscard]] T valueOrElse(F&& func) const&;
     template <typename F>
-    T valueOrElse(F&& func) const&&;
+    [[nodiscard]] T valueOrElse(F&& func) const&&;
 
-    std::optional<E> error() const;
-    std::optional<std::reference_wrapper<E>> errorRef();
-    std::optional<std::reference_wrapper<const E>> errorRef() const;
+    [[nodiscard]] std::optional<E> error() const;
+    [[nodiscard]] std::optional<std::reference_wrapper<E>> errorRef();
+    [[nodiscard]] std::optional<std::reference_wrapper<const E>> errorRef() const;
     template <typename U>
-    E errorOr(U&& default_value) const&;
+    [[nodiscard]] E errorOr(U&& default_value) const&;
     template <typename U>
-    E errorOr(U&& default_value) const&&;
+    [[nodiscard]] E errorOr(U&& default_value) const&&;
     template <typename F>
-    E errorOrElse(F&& func) const&;
+    [[nodiscard]] E errorOrElse(F&& func) const&;
     template <typename F>
-    E errorOrElse(F&& func) const&&;
+    [[nodiscard]] E errorOrElse(F&& func) const&&;
+
+    template <typename F>
+    [[nodiscard]] auto andThen(F&& func) const&;
+    template <typename F>
+    [[nodiscard]] auto andThen(F&& func) const&&;
 
     struct BadExpectedAccess : public std::exception { };
-    T& operator*();
+    [[nodiscard]] T& operator*();
     const T& operator*() const;
-    T* operator->();
+    [[nodiscard]] T* operator->();
     const T* operator->() const;
 
-    T& uncheckedValue();
-    const T& uncheckedValue() const;
-    E& uncheckedError();
-    const E& uncheckedError() const;
+    [[nodiscard]] T& uncheckedValue();
+    [[nodiscard]] const T& uncheckedValue() const;
+    [[nodiscard]] E& uncheckedError();
+    [[nodiscard]] const E& uncheckedError() const;
 
 #if __cplusplus >= 202101L
-    explicit operator std::expected<T, E>() const;
+    [[nodiscard]] explicit operator std::expected<T, E>() const;
 #endif // __cplusplus
 
     template <typename TL, typename EL, typename TR, typename ER>
@@ -81,15 +97,88 @@ private:
     bool has_value_;
 };
 
-// NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
+template <typename E>
+class Expected<void, E> {
+public:
+    using Value = void;
+    using Error = E;
 
+    Expected() = default;
+    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
+    Expected(E&& error);
+    ~Expected() = default;
+    Expected(const Expected&) = default;
+    Expected(Expected&&) noexcept = default;
+    Expected& operator=(const Expected&) = default;
+    Expected& operator=(Expected&&) noexcept = default;
+
+    [[nodiscard]] bool hasValue() const;
+    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
+    operator bool() const;
+
+    void value() const&;
+    void value() const&&;
+    void valueRef();
+    void valueRef() const;
+    void valueOr() const&;
+    void valueOr() const&&;
+    template <typename F>
+    void valueOrElse(F&& func) const;
+
+    [[nodiscard]] std::optional<E> error() const;
+    [[nodiscard]] std::optional<std::reference_wrapper<E>> errorRef();
+    [[nodiscard]] std::optional<std::reference_wrapper<const E>> errorRef() const;
+    template <typename U>
+    [[nodiscard]] E errorOr(U&& default_value) const&;
+    template <typename U>
+    [[nodiscard]] E errorOr(U&& default_value) const&&;
+    template <typename F>
+    [[nodiscard]] E errorOrElse(F&& func) const;
+
+    template <typename F>
+    [[nodiscard]] auto andThen(F&& func) const&;
+    template <typename F>
+    [[nodiscard]] auto andThen(F&& func) const&&;
+
+    void operator*() const;
+
+    void uncheckedValue();
+    void uncheckedValue() const;
+    [[nodiscard]] E& uncheckedError();
+    [[nodiscard]] const E& uncheckedError() const;
+
+#if __cplusplus >= 202101L
+    explicit operator std::expected<void, E>() const;
+#endif // __cplusplus
+
+    template <typename EL, typename ER>
+    friend bool operator==(const Expected<void, EL>& lhs, const Expected<void, ER>& rhs);
+
+private:
+    std::optional<E> error_;
+};
+
+template <typename T, typename E>
+#ifdef PPPLUGIN_CPP17_COMPATIBILITY
+template <typename, typename>
+#endif // PPPLUGIN_CPP17_COMPATIBILITY
+Expected<T, E>::Expected()
+#ifndef PPPLUGIN_CPP17_COMPATIBILITY
+    requires std::is_default_constructible_v<T>
+#endif // PPPLUGIN_CPP17_COMPATIBILITY
+    : t {}
+    , has_value_ { true }
+{
+    static_assert(std::is_default_constructible_v<T>,
+        "Value type must be default constructible for a default constructor of Expected");
+}
+// NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
 template <typename T, typename E>
 Expected<T, E>::Expected(T&& value)
     : t { std::forward<T>(value) }
     , has_value_ { true }
 {
 }
-// NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
 template <typename T, typename E>
 Expected<T, E>::Expected(E&& error)
     : e { std::forward<E>(error) }
@@ -109,6 +198,23 @@ Expected<T, E>::~Expected()
         }
     }
 }
+template <typename T, typename E>
+template <typename U>
+Expected<T, E>& Expected<T, E>::operator=(U&& rhs)
+{
+    if constexpr (std::is_convertible_v<U, T>) {
+        has_value_ = true;
+        t = static_cast<T>(rhs);
+    } else if constexpr (std::is_convertible_v<U, E>) {
+        has_value_ = false;
+        e = static_cast<E>(rhs);
+    } else {
+        static_assert(!sizeof(U),
+            "Type assigned to Expected must be convertible to either its Value or its Error");
+    }
+    return *this;
+}
+
 template <typename T, typename E>
 [[nodiscard]] bool Expected<T, E>::hasValue() const
 {
@@ -277,6 +383,40 @@ E Expected<T, E>::errorOrElse(F&& func) const&&
 }
 
 template <typename T, typename E>
+template <typename F>
+auto Expected<T, E>::andThen(F&& func) const&
+{
+    if (!has_value_) {
+        return e;
+    }
+    if constexpr (std::is_invocable_v<F, T>) {
+        return func(t);
+    } else if constexpr (std::is_invocable_v<F>) {
+        return func();
+    } else {
+        static_assert(std::is_invocable_v<F>,
+            "Given function has to be invocable!");
+    }
+}
+template <typename T, typename E>
+template <typename F>
+auto Expected<T, E>::andThen(F&& func) const&&
+{
+    if (!has_value_) {
+        return Expected<void, E> { std::move(e) };
+    }
+    if constexpr (std::is_invocable_v<F, T>) {
+
+        return func(std::move(t));
+    } else if constexpr (std::is_invocable_v<F>) {
+        return func();
+    } else {
+        static_assert(std::is_invocable_v<F>,
+            "Given function has to be invocable!");
+    }
+}
+
+template <typename T, typename E>
 T& Expected<T, E>::operator*()
 {
     if (!has_value_) {
@@ -352,7 +492,144 @@ bool operator==(const Expected<TL, EL>& lhs, const Expected<TR, ER>& rhs)
     }
     return lhs->e == rhs->e;
 }
-
 // NOLINTEND(cppcoreguidelines-pro-type-union-access)
+template <typename E>
+Expected<void, E>::Expected(E&& error)
+    : error_ { error }
+{
+}
+
+template <typename E>
+[[nodiscard]] bool Expected<void, E>::hasValue() const
+{
+    return !error_;
+}
+template <typename E>
+// NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
+Expected<void, E>::operator bool() const
+{
+    return hasValue();
+}
+
+template <typename E>
+void Expected<void, E>::value() const& { }
+template <typename E>
+void Expected<void, E>::value() const&& { }
+template <typename E>
+void Expected<void, E>::valueRef() { }
+template <typename E>
+void Expected<void, E>::valueRef() const { }
+template <typename E>
+void Expected<void, E>::valueOr() const& { }
+template <typename E>
+void Expected<void, E>::valueOr() const&& { }
+template <typename E>
+template <typename F>
+void Expected<void, E>::valueOrElse(F&& func) const
+{
+    if (error_) {
+        func();
+    }
+}
+
+template <typename E>
+std::optional<E> Expected<void, E>::error() const
+{
+    return error_;
+}
+template <typename E>
+std::optional<std::reference_wrapper<E>> Expected<void, E>::errorRef()
+{
+    if (error_) {
+        return *error_;
+    }
+    return std::nullopt;
+}
+template <typename E>
+std::optional<std::reference_wrapper<const E>> Expected<void, E>::errorRef() const
+{
+    if (error_) {
+        return *error_;
+    }
+    return std::nullopt;
+}
+template <typename E>
+template <typename U>
+E Expected<void, E>::errorOr(U&& default_value) const&
+{
+    return error_.value_or(std::forward<U>(default_value));
+}
+template <typename E>
+template <typename U>
+E Expected<void, E>::errorOr(U&& default_value) const&&
+{
+    return error_.value_or(std::forward<U>(default_value));
+}
+template <typename E>
+template <typename F>
+E Expected<void, E>::errorOrElse(F&& func) const
+{
+    if (error_) {
+        return *error_;
+    }
+    return static_cast<E>(func());
+}
+
+template <typename E>
+template <typename F>
+auto Expected<void, E>::andThen(F&& func) const&
+{
+    if (error_) {
+        return *error_;
+    }
+    return func();
+}
+template <typename E>
+template <typename F>
+auto Expected<void, E>::andThen(F&& func) const&&
+{
+    if (error_) {
+        return std::move(*error_);
+    }
+    return func();
+}
+template <typename E>
+void Expected<void, E>::operator*() const
+{
+    assert(!error_);
+}
+
+template <typename E>
+void Expected<void, E>::uncheckedValue() const
+{
+    assert(!error_);
+}
+template <typename E>
+E& Expected<void, E>::uncheckedError()
+{
+    return *error_;
+}
+template <typename E>
+const E& Expected<void, E>::uncheckedError() const
+{
+    return *error_;
+}
+
+#if __cplusplus >= 202101L
+template <typename E>
+explicit Expected<void, E>::operator std::expected<void, E>() const
+{
+    if (error_) {
+        return std::expected<void, E> { *error_ };
+    }
+    return std::expected<void, E> {};
+}
+#endif // __cplusplus
+
+template <typename EL, typename ER>
+bool operator==(const Expected<void, EL>& lhs, const Expected<void, ER>& rhs)
+{
+    return lhs.error == rhs.error;
+}
 } // namespace ppplugin
 #endif // PPPLUGIN_EXPECTED_H
