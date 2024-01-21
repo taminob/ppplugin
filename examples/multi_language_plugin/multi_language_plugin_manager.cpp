@@ -30,13 +30,12 @@ int main(int argc, char* argv[])
         }
         plugins.push_back(ppplugin::NoopPlugin {});
         for (auto& plugin : plugins) {
-            plugin.call<void>("initialize");
+            std::ignore = plugin.call<void>("initialize");
         }
         for (int counter {}; counter < std::numeric_limits<int>::max(); ++counter) {
             for (auto& plugin : plugins) {
                 // explicit cast to int to avoid passing by reference
-                plugin.call<void>("loop", static_cast<int>(counter));
-                // std::ignore = plugin.call<>("loop", counter);
+                std::ignore = plugin.call<void>("loop", static_cast<int>(counter));
             }
             std::this_thread::sleep_for(std::chrono::milliseconds { 500 });
         }

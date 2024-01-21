@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 
         ppplugin::PluginManager manager;
         if (auto plugin = manager.loadLuaPlugin(plugin_path)) {
-            auto [a, b, c] = plugin->call<std::tuple<int, int, int>>("values", 10);
+            auto [a, b, c] = plugin->call<std::tuple<int, int, int>>("values", 10).valueOr(std::make_tuple(-1, -1, -1));
             std::cout << "a, b, c: " << a << ", " << b << ", " << c << std::endl;
         } else {
             std::cerr << "Unable to load plugin '" << plugin_path << "'\n";

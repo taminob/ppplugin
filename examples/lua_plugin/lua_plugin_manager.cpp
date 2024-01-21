@@ -32,8 +32,8 @@ int main(int argc, char* argv[])
             if (path.extension() == ".lua") {
                 if (auto plugin = manager.loadLuaPlugin(path)) {
                     threads.emplace_back([plugin = std::move(*plugin)]() mutable {
-                        plugin.call<void>("initialize");
-                        plugin.call<void>("loop", "2");
+                        std::ignore = plugin.call<void>("initialize");
+                        std::ignore = plugin.call<void>("loop", "2");
                     });
                 }
             }

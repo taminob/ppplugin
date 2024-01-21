@@ -4,47 +4,70 @@
 #include "plugin_manager.h"
 #include "simple_plugin.h"
 
-template <typename ErrorType>
-void printError(const std::string& plugin_name,
-    ErrorType error)
+void printError(std::string_view function_name, const ppplugin::CallError& error)
 {
-    std::string_view error_string = error == ErrorType::notFound ? "not found"
-        : error == ErrorType::loadingFailed
-        ? "loading failed"
-        : error == ErrorType::none ? "no error"
-                                   : "other error";
+    std::string_view error_string = error == ppplugin::CallError::Code::symbolNotFound ? "not found"
+        : error == ppplugin::CallError::Code::notLoaded                                ? "not loaded"
+        : error == ppplugin::CallError::Code::unknown                                  ? "unknown error"
+                                                                                       : "other error";
+    std::cerr << "Unable to call '" << function_name << "' ('" << error_string
+              << "')!" << std::endl;
+}
+
+void printError(std::string_view plugin_name, ppplugin::LoadError error)
+{
+    using ppplugin::LoadError;
+    std::string_view error_string = error == LoadError::fileNotFound ? "not found"
+        : error == LoadError::fileInvalid                            ? "invalid"
+        : error == LoadError::unknown                                ? "unknown error"
+                                                                     : "other error";
     std::cerr << "Unable to load '" << plugin_name << "' ('" << error_string
               << "')!" << std::endl;
 }
 
+template <typename ClassType>
+std::thread initializeAndLoop(ppplugin::CppPlugin& plugin, const std::string& function_name)
+{
+    auto plugin_a = plugin.call<std::shared_ptr<ClassType>>(function_name);
+    if (plugin_a) {
+        auto& plugin = *plugin_a;
+        plugin->initialize();
+        return std::thread { [plugin]() {
+            plugin->loop();
+        } };
+    }
+    return std::thread { [function_name, error = *plugin_a.error()]() {
+        printError(function_name, error);
+    } };
+}
+
 int main(int argc, char* argv[])
 {
-    // TODO: add top-level try-catch block
-    if (argc < 1) {
-        return -1;
-    }
-    auto executable_dir = std::filesystem::path { argv[0] }.parent_path();
-    auto library_path = executable_dir / "libsimple_plugin.so";
-    // setup manager - has to stay alive for as long as you want to use the
-    // plugins
-    ppplugin::GenericPluginManager<SimplePluginInterface> manager;
-    // load plugin library and exit on error
-    auto plugin_library = manager.loadCppPlugin(std::filesystem::path { library_path }).valueOrElse([](const auto& error) -> ppplugin::CppPlugin {
-        printError("simple_plugin_a", error);
-        std::exit(1); // NOLINT(concurrency-mt-unsafe)
-    });
-    auto plugin_a = plugin_library.call<std::shared_ptr<SimplePluginA>>("create_a");
-    auto plugin_b = plugin_library.call<std::shared_ptr<SimplePluginInterface>>("create_b");
-    if (!plugin_b) {
-        std::cerr << "Unable to call 'create_b'" << std::endl;
+    try {
+        if (argc < 1) {
+            return -1;
+        }
+        auto executable_dir = std::filesystem::path { argv[0] }.parent_path();
+        auto library_path = executable_dir / "libsimple_plugin.so";
+        // setup manager - has to stay alive for as long as you want to use the
+        // plugins
+        ppplugin::GenericPluginManager<SimplePluginInterface> manager;
+        // load plugin library and exit on error
+        auto plugin_library = manager.loadCppPlugin(std::filesystem::path { library_path }).valueOrElse([](const auto& error) -> ppplugin::CppPlugin {
+            printError("simple_plugin_a", error);
+            std::exit(1); // NOLINT(concurrency-mt-unsafe)
+        });
+
+        auto thread_a = initializeAndLoop<SimplePluginA>(plugin_library, "create_a");
+        auto thread_b = initializeAndLoop<SimplePluginInterface>(plugin_library, "create_b");
+        thread_a.join();
+        thread_b.join();
+    } catch (const std::exception& exception) {
+        std::cerr << "A fatal error occurred: '" << exception.what() << "'\n";
+        return 1;
+    } catch (...) {
+        std::cerr << "An unknown fatal error occurred!";
         return 1;
     }
-
-    plugin_a->initialize();
-    plugin_b->initialize();
-
-    std::thread thread_a([plugin = plugin_a]() { plugin->loop(); });
-    std::thread thread_b([plugin = plugin_b]() { plugin->loop(); });
-    thread_a.join();
-    thread_b.join();
+    return 0;
 }
