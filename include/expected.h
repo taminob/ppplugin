@@ -13,6 +13,10 @@ template <typename T, typename E>
 class Expected {
     static_assert(!std::is_same_v<T, E>,
         "Value and Error cannot have the same type for Expected!");
+    static_assert(!std::is_reference_v<T>,
+        "Value of Expected cannot be a reference!");
+    static_assert(!std::is_reference_v<E>,
+        "Error of Expected cannot be a reference!");
 
 public:
     using Value = T;
@@ -31,6 +35,9 @@ public:
     constexpr Expected(T&& value);
     constexpr Expected(const E& error);
     constexpr Expected(E&& error);
+    template <typename U,
+        typename = std::enable_if_t<std::is_convertible_v<U, T> || std::is_convertible_v<U, T>>>
+    constexpr Expected(U&& value_or_error);
     ~Expected() = default;
     constexpr Expected(const Expected&) = default;
     constexpr Expected(Expected&&) noexcept = default;
@@ -118,8 +125,13 @@ public:
     using Error = E;
 
     constexpr Expected() = default;
-    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
+    // NOLINTBEGIN(google-explicit-constructor,hicpp-explicit-conversions)
+    constexpr Expected(const E& error);
     constexpr Expected(E&& error);
+    template<typename U,
+        typename = std::enable_if_t<std::is_convertible_v<U, E>>>
+    constexpr Expected(U&& error);
+    // NOLINTEND(google-explicit-constructor,hicpp-explicit-conversions)
     ~Expected() = default;
     constexpr Expected(const Expected&) = default;
     constexpr Expected(Expected&&) noexcept = default;
@@ -127,8 +139,7 @@ public:
     constexpr Expected& operator=(Expected&&) noexcept = default;
 
     [[nodiscard]] constexpr bool hasValue() const;
-    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    constexpr operator bool() const;
+    constexpr explicit operator bool() const;
 
     constexpr void value() const&;
     constexpr void value() const&&;
@@ -201,9 +212,17 @@ constexpr Expected<T, E>::Expected(E&& error)
 {
 }
 template <typename T, typename E>
+template <typename U, typename>
+constexpr Expected<T, E>::Expected(U&& value_or_error)
+    : value_ { std::is_convertible_v<U, T>
+            ? decltype(value_) { static_cast<T>(std::forward<U>(value_or_error)) }
+            : decltype(value_) { static_cast<E>(std::forward<U>(value_or_error)) } }
+{
+}
+template <typename T, typename E>
 template <typename U, typename V, typename>
 constexpr Expected<T, E>::Expected(const Expected<U, V>& rhs)
-    : value_ { std::holds_alternative<U>(rhs.value_) // rhs.hasValue()
+    : value_ { rhs.hasValue()
             ? decltype(value_) { static_cast<T>(rhs.uncheckedValue()) }
             : decltype(value_) { static_cast<E>(rhs.uncheckedError()) } }
 {
@@ -436,15 +455,15 @@ constexpr auto Expected<T, E>::andThen(F&& func) const&
     if constexpr (std::is_invocable_v<F, T>) {
         using ReturnType = Expected<std::invoke_result_t<F, T>, E>;
         if (!hasValue()) {
-            return ReturnType { uncheckedError() };
+            return static_cast<ReturnType>(uncheckedError());
         }
-        return ReturnType { func(uncheckedValue()) };
+        return static_cast<ReturnType>(func(uncheckedValue()));
     } else if constexpr (std::is_invocable_v<F>) {
         using ReturnType = Expected<std::invoke_result_t<F>, E>;
         if (!hasValue()) {
-            return ReturnType { uncheckedError() };
+            return static_cast<ReturnType>(uncheckedError());
         }
-        return ReturnType { func() };
+        return static_cast<ReturnType>(func());
     } else {
         static_assert(std::is_invocable_v<F>,
             "Given function has to be invocable!");
@@ -457,15 +476,25 @@ constexpr auto Expected<T, E>::andThen(F&& func) const&&
     if constexpr (std::is_invocable_v<F, T>) {
         using ReturnType = Expected<std::invoke_result_t<F, T>, E>;
         if (!hasValue()) {
-            return ReturnType { std::move(*this).uncheckedError() };
+            return static_cast<ReturnType>(std::move(*this).uncheckedError());
         }
-        return ReturnType { func(std::move(*this).uncheckedValue()) };
+        if constexpr (std::is_void_v<std::invoke_result_t<F, T>>) {
+            func(std::move(*this).uncheckedValue());
+            return ReturnType {};
+        } else {
+            return static_cast<ReturnType>(func(std::move(*this).uncheckedValue()));
+        }
     } else if constexpr (std::is_invocable_v<F>) {
         using ReturnType = Expected<std::invoke_result_t<F>, E>;
         if (!hasValue()) {
-            return ReturnType { std::move(*this).uncheckedError() };
+            return static_cast<ReturnType>(std::move(*this).uncheckedError());
         }
-        return ReturnType { func() };
+        if constexpr (std::is_void_v<std::invoke_result_t<F, T>>) {
+            func();
+            return ReturnType {};
+        } else {
+            return static_cast<ReturnType>(func());
+        }
     } else {
         static_assert(std::is_invocable_v<F>,
             "Given function has to be invocable!");
@@ -516,8 +545,19 @@ constexpr bool operator!=(const Expected<TL, EL>& lhs, const Expected<TR, ER>& r
 }
 
 template <typename E>
-constexpr Expected<void, E>::Expected(E&& error)
+constexpr Expected<void, E>::Expected(const E& error)
     : error_ { error }
+{
+}
+template <typename E>
+constexpr Expected<void, E>::Expected(E&& error)
+    : error_ { std::move(error) }
+{
+}
+template <typename E>
+template <typename U, typename>
+constexpr Expected<void, E>::Expected(U&& error)
+    : error_ { static_cast<E>(std::forward<U>(error)) }
 {
 }
 

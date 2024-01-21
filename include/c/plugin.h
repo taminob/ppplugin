@@ -2,6 +2,7 @@
 #define PPPLUGIN_C_PLUGIN_H
 
 #include "detail/boost_dll_loader.h"
+#include "errors.h"
 
 namespace ppplugin {
 class CPlugin {
@@ -14,7 +15,7 @@ public:
     }
 
     template <typename ReturnValue, typename... Args>
-    [[nodiscard]] auto call(const std::string& function_name, Args&&... args)
+    [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args)
     {
         static_assert(!std::is_reference_v<ReturnValue>,
             "C does not support references for its return value!");

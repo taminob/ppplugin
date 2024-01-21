@@ -8,6 +8,7 @@
 #include <variant>
 
 #include "c/plugin.h"
+#include "errors.h"
 #include "cpp/plugin.h"
 #include "detail/template_helpers.h"
 #include "expected.h"
@@ -33,19 +34,9 @@ public:
     GenericPluginManager& operator=(GenericPluginManager&&) noexcept = default;
 
     /**
-     * Possible errors that could occur when loading a plugin.
-     */
-    enum class PluginLoadingError {
-        none,
-        notFound,
-        loadingFailed,
-        unknown
-    };
-
-    /**
      * Load Lua script from given path.
      */
-    Expected<LuaPlugin, PluginLoadingError> loadLuaPlugin(
+    Expected<LuaPlugin, LoadError> loadLuaPlugin(
         const std::filesystem::path& plugin_library_path)
     {
         LuaPlugin new_plugin { plugin_library_path };
@@ -62,7 +53,7 @@ public:
      *            Failure to do so will result in a SEGFAULT.
      */
     template <typename... Args>
-    Expected<CppPlugin, PluginLoadingError> loadCppPlugin(
+    Expected<CppPlugin, LoadError> loadCppPlugin(
         const std::filesystem::path& plugin_library_path)
     {
         return CppPlugin { plugin_library_path };
@@ -73,7 +64,7 @@ public:
      * as 'extern "C"'.
      */
     template <typename... Args>
-    Expected<CPlugin, PluginLoadingError> loadCPlugin(
+    Expected<CPlugin, LoadError> loadCPlugin(
         const std::filesystem::path& plugin_library_path)
     {
         return CPlugin { plugin_library_path };

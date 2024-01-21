@@ -3,6 +3,7 @@
 
 #include "c/plugin.h"
 #include "cpp/plugin.h"
+#include "errors.h"
 #include "lua/plugin.h"
 #include "noop_plugin.h"
 
@@ -27,7 +28,7 @@ concept IsPlugin = requires(P plugin) {
     };
     {
         plugin.template call<void>(std::declval<std::string>())
-    } -> std::same_as<void>;
+    } -> std::same_as<CallResult<void>>;
 };
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
 
@@ -44,18 +45,16 @@ public:
     GenericPlugin(P&& plugin); // NOLINT(google-explicit-constructor,hicpp-explicit-conversions)
 
     virtual ~GenericPlugin() = default;
-    GenericPlugin(const GenericPlugin&) = delete;
+    GenericPlugin(const GenericPlugin&) = default;
     GenericPlugin(GenericPlugin&&) noexcept = default;
-    GenericPlugin& operator=(const GenericPlugin&) = delete;
+    GenericPlugin& operator=(const GenericPlugin&) = default;
     GenericPlugin& operator=(GenericPlugin&&) noexcept = default;
 
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
     operator bool() const;
 
-    template <typename... Args>
-    void call(const std::string& function_name, Args&&... args);
     template <typename ReturnValue, typename... Args>
-    [[nodiscard]] ReturnValue call(const std::string& function_name, Args&&... args);
+    [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
     template <typename P>
     std::optional<std::reference_wrapper<P>> plugin();
@@ -81,7 +80,8 @@ GenericPlugin<Plugins...>::operator bool() const
 
 template <typename... Plugins>
 template <typename ReturnValue, typename... Args>
-ReturnValue GenericPlugin<Plugins...>::call(const std::string& function_name, Args&&... args)
+CallResult<ReturnValue> GenericPlugin<Plugins...>::call(
+    const std::string& function_name, Args&&... args)
 {
     return std::visit(
         [&function_name, &args...](auto& plugin) {

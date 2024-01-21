@@ -1,6 +1,7 @@
 #ifndef PPPLUGIN_LUA_PLUGIN_H
 #define PPPLUGIN_LUA_PLUGIN_H
 
+#include "errors.h"
 #include "lua/lua_script.h"
 
 #include <string>
@@ -36,7 +37,7 @@ public:
      * - std::tuple
      */
     template <typename ReturnValue, typename... Args>
-    [[nodiscard]] ReturnValue call(const std::string& function_name, Args&&... args)
+    [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args)
     {
         return plugin_.call<ReturnValue>(function_name, std::forward<Args>(args)...);
     }

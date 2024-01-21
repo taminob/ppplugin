@@ -1,45 +1,68 @@
 #ifndef PPPLUGIN_DETAIL_BOOST_DLL_LOADER_H
 #define PPPLUGIN_DETAIL_BOOST_DLL_LOADER_H
 
+#include "errors.h"
+#include "expected.h"
+
 #include <boost/dll.hpp>
 
 #include <filesystem>
 #include <optional>
 
 namespace ppplugin::detail::boost_dll {
-inline void* getSymbol(const boost::dll::shared_library& library, const std::string& function_name, bool pointer)
+inline CallResult<void*> getSymbol(const boost::dll::shared_library& library, const std::string& function_name, bool pointer)
 {
     if (!library.is_loaded()) {
-        throw std::runtime_error("plugin not loaded");
+        return { CallError::Code::notLoaded };
     }
     // TODO: check ABI compatibility (same compiler + major version)?
     if (!library.has(function_name)) {
-        throw std::runtime_error("symbol not found"); // TODO
+        return { CallError::Code::symbolNotFound };
     }
     // TODO: invalid number of arguments can cause segfault
-    if (pointer) {
-        return library.get<void*>(function_name);
+    try {
+        if (pointer) {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            if (auto* symbol = reinterpret_cast<void*>(library.get<void*>(function_name))) {
+                return symbol;
+            }
+        } else {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            if (auto* symbol = reinterpret_cast<void*>(library.get<void()>(function_name))) {
+                return symbol;
+            }
+        }
+    } catch (const std::exception& exception) {
+        return CallError { CallError::Code::unknown, exception.what() };
     }
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-    return reinterpret_cast<void*>(library.get<void()>(function_name));
+    return { CallError::Code::unknown };
 }
 
 template <typename ReturnValue, bool isPointer, typename... Args>
-[[nodiscard]] auto call(const boost::dll::shared_library& library, const std::string& function_name, Args&&... args)
+[[nodiscard]] CallResult<ReturnValue> call(const boost::dll::shared_library& library, const std::string& function_name, Args&&... args)
 {
     if constexpr (isPointer) {
         using FunctionPointerType = ReturnValue (*)(Args...);
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto function = reinterpret_cast<FunctionPointerType>(getSymbol(library, function_name, true));
-        if (!function) {
-            throw std::runtime_error("symbol type invalid");
-        }
-        return function(std::forward<Args>(args)...);
+        return getSymbol(library, function_name, true).andThen([&](void* symbol_address) {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            auto function = reinterpret_cast<FunctionPointerType>(symbol_address);
+            if constexpr (std::is_void_v<ReturnValue>) {
+                function(std::forward<Args>(args)...);
+            } else {
+                return function(std::forward<Args>(args)...);
+            }
+        });
     } else {
         using FunctionType = ReturnValue(Args...);
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        auto function = *reinterpret_cast<FunctionType*>(getSymbol(library, function_name, false));
-        return function(std::forward<Args>(args)...);
+        return getSymbol(library, function_name, false).andThen([&](void* symbol_address) {
+            // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+            auto function = *reinterpret_cast<FunctionType*>(symbol_address);
+            if constexpr (std::is_void_v<ReturnValue>) {
+                function(std::forward<Args>(args)...);
+            } else {
+                return function(std::forward<Args>(args)...);
+            }
+        });
     }
 }
 
