@@ -4,4 +4,9 @@ Checks: >
         -google-build-using-namespace,
         -readability-identifier-length,
         -readability-named-parameter,
-        -readability-magic-numbers
+        -readability-magic-numbers,
+        -cert-oop54-cpp,
+        -performance-unnecessary-copy-initialization,
+        -bugprone-easily-swappable-parameters,
+        -bugprone-unchecked-optional-access,
+        -hicpp-noexcept-move
