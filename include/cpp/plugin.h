@@ -34,7 +34,7 @@ public:
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args)
     {
-        return detail::boost_dll::call<ReturnValue, true>(
+        return detail::boost_dll::call<true, ReturnValue>(
             plugin_, function_name, std::forward<Args>(args)...);
     }
 

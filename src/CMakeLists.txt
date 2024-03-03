@@ -1,7 +1,7 @@
 set(LIBRARY_SOURCES ppplugin.cpp)
 
 set(LIBRARY_PUBLIC_HEADERS "plugin.h" "plugin_manager.h")
-set(LIBRARY_SOURCES "ppplugin.cpp")
+set(LIBRARY_SOURCES "ppplugin.cpp" "boost_dll_loader.cpp")
 
 set(LIBRARY_TARGET_OBJECT "${LIBRARY_NAME}_object")
 

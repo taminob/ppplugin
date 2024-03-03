@@ -23,7 +23,7 @@ public:
             "C does not support references for its arguments! "
             "Consider passing the argument with an explicit cast to the desired type.");
 
-        return detail::boost_dll::call<ReturnValue, false>(
+        return detail::boost_dll::call<false, ReturnValue>(
             plugin_, function_name, std::forward<Args>(args)...);
     }
 

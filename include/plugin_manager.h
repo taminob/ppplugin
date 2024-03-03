@@ -1,12 +1,6 @@
 #ifndef PPPLUGIN_PLUGIN_MANAGER_H
 #define PPPLUGIN_PLUGIN_MANAGER_H
 
-#include <boost/dll.hpp>
-
-#include <filesystem>
-#include <functional>
-#include <variant>
-
 #include "c/plugin.h"
 #include "errors.h"
 #include "cpp/plugin.h"
@@ -14,6 +8,13 @@
 #include "expected.h"
 #include "lua/plugin.h"
 #include "plugin.h"
+
+
+#include <boost/dll.hpp>
+
+#include <filesystem>
+#include <functional>
+#include <variant>
 
 namespace ppplugin {
 template <typename... Plugins>
