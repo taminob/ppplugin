@@ -161,6 +161,14 @@ public:
         Unpack<Pack<Types...>>>::Type;
 };
 
+template <typename ActualType, template <typename...> typename ExpectedType>
+struct IsSpecialization : std::false_type { };
+template <template <typename...> typename ExpectedType, typename... Ts>
+struct IsSpecialization<ExpectedType<Ts...>, ExpectedType> : std::true_type { };
+
+template <typename T>
+using IsStdTuple = IsSpecialization<T, std::tuple>;
+
 } // namespace ppplugin::detail::templates
 
 #endif // PPPLUGIN_DETAIL_TEMPLATE_HELPERS_H

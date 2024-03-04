@@ -11,7 +11,7 @@ namespace ppplugin {
 class LuaPlugin {
 public:
     explicit LuaPlugin(const std::filesystem::path& lua_script_path)
-        : plugin_ { lua_script_path }
+        : script_ { lua_script_path }
     {
     }
     virtual ~LuaPlugin() = default;
@@ -20,8 +20,8 @@ public:
     LuaPlugin& operator=(const LuaPlugin&) = delete;
     LuaPlugin& operator=(LuaPlugin&&) = default;
 
-    [[nodiscard]] auto& raw() { return plugin_; }
-    [[nodiscard]] const auto& raw() const { return plugin_; }
+    [[nodiscard]] auto& raw() { return script_; }
+    [[nodiscard]] const auto& raw() const { return script_; }
 
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
     operator bool() const { return true; }
@@ -39,11 +39,11 @@ public:
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args)
     {
-        return plugin_.call<ReturnValue>(function_name, std::forward<Args>(args)...);
+        return script_.call<ReturnValue>(function_name, std::forward<Args>(args)...);
     }
 
 private:
-    LuaScript plugin_;
+    LuaScript script_;
 };
 
 } // namespace ppplugin
