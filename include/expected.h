@@ -35,9 +35,6 @@ public:
     constexpr Expected(T&& value);
     constexpr Expected(const E& error);
     constexpr Expected(E&& error);
-    template <typename U,
-        typename = std::enable_if_t<std::is_convertible_v<U, T> || std::is_convertible_v<U, T>>>
-    constexpr Expected(U&& value_or_error);
     ~Expected() = default;
     constexpr Expected(const Expected&) = default;
     constexpr Expected(Expected&&) noexcept = default;
@@ -128,9 +125,6 @@ public:
     // NOLINTBEGIN(google-explicit-constructor,hicpp-explicit-conversions)
     constexpr Expected(const E& error);
     constexpr Expected(E&& error);
-    template<typename U,
-        typename = std::enable_if_t<std::is_convertible_v<U, E>>>
-    constexpr Expected(U&& error);
     // NOLINTEND(google-explicit-constructor,hicpp-explicit-conversions)
     ~Expected() = default;
     constexpr Expected(const Expected&) = default;
@@ -209,14 +203,6 @@ constexpr Expected<T, E>::Expected(const E& error)
 template <typename T, typename E>
 constexpr Expected<T, E>::Expected(E&& error)
     : value_ { std::move(error) }
-{
-}
-template <typename T, typename E>
-template <typename U, typename>
-constexpr Expected<T, E>::Expected(U&& value_or_error)
-    : value_ { std::is_convertible_v<U, T>
-            ? decltype(value_) { static_cast<T>(std::forward<U>(value_or_error)) }
-            : decltype(value_) { static_cast<E>(std::forward<U>(value_or_error)) } }
 {
 }
 template <typename T, typename E>
@@ -552,12 +538,6 @@ constexpr Expected<void, E>::Expected(const E& error)
 template <typename E>
 constexpr Expected<void, E>::Expected(E&& error)
     : error_ { std::move(error) }
-{
-}
-template <typename E>
-template <typename U, typename>
-constexpr Expected<void, E>::Expected(U&& error)
-    : error_ { static_cast<E>(std::forward<U>(error)) }
 {
 }
 
