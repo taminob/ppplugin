@@ -59,17 +59,17 @@ public:
     constexpr explicit operator bool() const;
 
     [[nodiscard]] constexpr std::optional<T> value() const&;
-    [[nodiscard]] constexpr std::optional<T> value() const&&;
+    [[nodiscard]] constexpr std::optional<T> value() &&;
     [[nodiscard]] constexpr std::optional<std::reference_wrapper<T>> valueRef();
     [[nodiscard]] constexpr std::optional<std::reference_wrapper<const T>> valueRef() const;
     template <typename U>
     [[nodiscard]] constexpr T valueOr(U&& default_value) const&;
     template <typename U>
-    [[nodiscard]] constexpr T valueOr(U&& default_value) const&&;
+    [[nodiscard]] constexpr T valueOr(U&& default_value) &&;
     template <typename F>
     [[nodiscard]] constexpr T valueOrElse(F&& func) const&;
     template <typename F>
-    [[nodiscard]] constexpr T valueOrElse(F&& func) const&&;
+    [[nodiscard]] constexpr T valueOrElse(F&& func) &&;
 
     [[nodiscard]] constexpr std::optional<E> error() const;
     [[nodiscard]] constexpr std::optional<std::reference_wrapper<E>> errorRef();
@@ -77,16 +77,16 @@ public:
     template <typename U>
     [[nodiscard]] constexpr E errorOr(U&& default_value) const&;
     template <typename U>
-    [[nodiscard]] constexpr E errorOr(U&& default_value) const&&;
+    [[nodiscard]] constexpr E errorOr(U&& default_value) &&;
     template <typename F>
     [[nodiscard]] constexpr E errorOrElse(F&& func) const&;
     template <typename F>
-    [[nodiscard]] constexpr E errorOrElse(F&& func) const&&;
+    [[nodiscard]] constexpr E errorOrElse(F&& func) &&;
 
     template <typename F>
     [[nodiscard]] constexpr auto andThen(F&& func) const&;
     template <typename F>
-    [[nodiscard]] constexpr auto andThen(F&& func) const&&;
+    [[nodiscard]] constexpr auto andThen(F&& func) &&;
 
     [[nodiscard]] constexpr T& operator*();
     [[nodiscard]] constexpr const T& operator*() const;
@@ -136,11 +136,11 @@ public:
     constexpr explicit operator bool() const;
 
     constexpr void value() const&;
-    constexpr void value() const&&;
+    constexpr void value() &&;
     constexpr void valueRef();
     constexpr void valueRef() const;
     constexpr void valueOr() const&;
-    constexpr void valueOr() const&&;
+    constexpr void valueOr() &&;
     template <typename F>
     constexpr void valueOrElse(F&& func) const;
 
@@ -150,14 +150,14 @@ public:
     template <typename U>
     [[nodiscard]] constexpr E errorOr(U&& default_value) const&;
     template <typename U>
-    [[nodiscard]] constexpr E errorOr(U&& default_value) const&&;
+    [[nodiscard]] constexpr E errorOr(U&& default_value) &&;
     template <typename F>
     [[nodiscard]] constexpr E errorOrElse(F&& func) const;
 
     template <typename F>
     [[nodiscard]] constexpr auto andThen(F&& func) const&;
     template <typename F>
-    [[nodiscard]] constexpr auto andThen(F&& func) const&&;
+    [[nodiscard]] constexpr auto andThen(F&& func) &&;
 
     constexpr void operator*() const;
 
@@ -284,7 +284,7 @@ constexpr std::optional<T> Expected<T, E>::value() const&
     return std::nullopt;
 }
 template <typename T, typename E>
-constexpr std::optional<T> Expected<T, E>::value() const&&
+constexpr std::optional<T> Expected<T, E>::value() &&
 {
     if (hasValue()) {
         return std::move(uncheckedValue());
@@ -318,7 +318,7 @@ constexpr T Expected<T, E>::valueOr(U&& default_value) const&
 }
 template <typename T, typename E>
 template <typename U>
-constexpr T Expected<T, E>::valueOr(U&& default_value) const&&
+constexpr T Expected<T, E>::valueOr(U&& default_value) &&
 {
     if (hasValue()) {
         return std::move(*this).uncheckedValue();
@@ -343,7 +343,7 @@ constexpr T Expected<T, E>::valueOrElse(F&& func) const&
 }
 template <typename T, typename E>
 template <typename F>
-constexpr T Expected<T, E>::valueOrElse(F&& func) const&&
+constexpr T Expected<T, E>::valueOrElse(F&& func) &&
 {
     if (hasValue()) {
         return std::move(uncheckedValue());
@@ -393,7 +393,7 @@ constexpr E Expected<T, E>::errorOr(U&& default_value) const&
 }
 template <typename T, typename E>
 template <typename U>
-constexpr E Expected<T, E>::errorOr(U&& default_value) const&&
+constexpr E Expected<T, E>::errorOr(U&& default_value) &&
 {
     if (!hasValue()) {
         return std::move(uncheckedError());
@@ -418,7 +418,7 @@ constexpr E Expected<T, E>::errorOrElse(F&& func) const&
 }
 template <typename T, typename E>
 template <typename F>
-constexpr E Expected<T, E>::errorOrElse(F&& func) const&&
+constexpr E Expected<T, E>::errorOrElse(F&& func) &&
 {
     if (!hasValue()) {
         return std::move(uncheckedError());
@@ -456,7 +456,7 @@ constexpr auto Expected<T, E>::andThen(F&& func) const&
 }
 template <typename T, typename E>
 template <typename F>
-constexpr auto Expected<T, E>::andThen(F&& func) const&&
+constexpr auto Expected<T, E>::andThen(F&& func) &&
 {
     if constexpr (std::is_invocable_v<F, T>) {
         using ReturnType = Expected<std::invoke_result_t<F, T>, E>;
@@ -556,7 +556,7 @@ constexpr Expected<void, E>::operator bool() const
 template <typename E>
 constexpr void Expected<void, E>::value() const& { }
 template <typename E>
-constexpr void Expected<void, E>::value() const&& { }
+constexpr void Expected<void, E>::value() && { }
 template <typename E>
 constexpr void Expected<void, E>::valueRef() { }
 template <typename E>
@@ -564,7 +564,7 @@ constexpr void Expected<void, E>::valueRef() const { }
 template <typename E>
 constexpr void Expected<void, E>::valueOr() const& { }
 template <typename E>
-constexpr void Expected<void, E>::valueOr() const&& { }
+constexpr void Expected<void, E>::valueOr() && { }
 template <typename E>
 template <typename F>
 constexpr void Expected<void, E>::valueOrElse(F&& func) const
@@ -610,7 +610,7 @@ constexpr E Expected<void, E>::errorOr(U&& default_value) const&
 }
 template <typename E>
 template <typename U>
-constexpr E Expected<void, E>::errorOr(U&& default_value) const&&
+constexpr E Expected<void, E>::errorOr(U&& default_value) &&
 {
     return error_.value_or(std::forward<U>(default_value));
 }
@@ -635,7 +635,7 @@ constexpr auto Expected<void, E>::andThen(F&& func) const&
 }
 template <typename E>
 template <typename F>
-constexpr auto Expected<void, E>::andThen(F&& func) const&&
+constexpr auto Expected<void, E>::andThen(F&& func) &&
 {
     if (error_) {
         return std::move(*error_);
