@@ -333,9 +333,9 @@ constexpr T Expected<T, E>::valueOrElse(F&& func) const&
         return uncheckedValue();
     }
     if constexpr (std::is_invocable_v<F, E>) {
-        return static_cast<T>(func(uncheckedError()));
+        return static_cast<T>(std::forward<F>(func)(uncheckedError()));
     } else if constexpr (std::is_invocable_v<F>) {
-        return static_cast<T>(func());
+        return static_cast<T>(std::forward<F>(func)());
     } else {
         static_assert(std::is_invocable_v<F>,
             "Given function has to be invocable!");
@@ -349,9 +349,9 @@ constexpr T Expected<T, E>::valueOrElse(F&& func) const&&
         return std::move(uncheckedValue());
     }
     if constexpr (std::is_invocable_v<F, E>) {
-        return static_cast<T>(func(std::move(*this).uncheckedError()));
+        return static_cast<T>(std::forward<F>(func)(std::move(*this).uncheckedError()));
     } else if constexpr (std::is_invocable_v<F>) {
-        return static_cast<T>(func());
+        return static_cast<T>(std::forward<F>(func)());
     } else {
         static_assert(std::is_invocable_v<F>,
             "Given function has to be invocable!");
@@ -408,9 +408,9 @@ constexpr E Expected<T, E>::errorOrElse(F&& func) const&
         return uncheckedError();
     }
     if constexpr (std::is_invocable_v<F, T>) {
-        return static_cast<E>(func(uncheckedValue()));
+        return static_cast<E>(std::forward<F>(func)(uncheckedValue()));
     } else if constexpr (std::is_invocable_v<F>) {
-        return static_cast<E>(func());
+        return static_cast<E>(std::forward<F>(func)());
     } else {
         static_assert(std::is_invocable_v<F>,
             "Given function has to be invocable!");
@@ -424,9 +424,9 @@ constexpr E Expected<T, E>::errorOrElse(F&& func) const&&
         return std::move(uncheckedError());
     }
     if constexpr (std::is_invocable_v<F, T>) {
-        return static_cast<E>(func(std::move(uncheckedValue())));
+        return static_cast<E>(std::forward<F>(func)(std::move(uncheckedValue())));
     } else if constexpr (std::is_invocable_v<F>) {
-        return static_cast<E>(func());
+        return static_cast<E>(std::forward<F>(func)());
     } else {
         static_assert(std::is_invocable_v<F>,
             "Given function has to be invocable!");
@@ -435,7 +435,6 @@ constexpr E Expected<T, E>::errorOrElse(F&& func) const&&
 
 template <typename T, typename E>
 template <typename F>
-// constexpr Expected<typename Expected<T, E>::template AndThenFunctionResult<F>, E> Expected<T, E>::andThen(F&& func) const&
 constexpr auto Expected<T, E>::andThen(F&& func) const&
 {
     if constexpr (std::is_invocable_v<F, T>) {
@@ -443,13 +442,13 @@ constexpr auto Expected<T, E>::andThen(F&& func) const&
         if (!hasValue()) {
             return static_cast<ReturnType>(uncheckedError());
         }
-        return static_cast<ReturnType>(func(uncheckedValue()));
+        return static_cast<ReturnType>(std::forward<F>(func)(uncheckedValue()));
     } else if constexpr (std::is_invocable_v<F>) {
         using ReturnType = Expected<std::invoke_result_t<F>, E>;
         if (!hasValue()) {
             return static_cast<ReturnType>(uncheckedError());
         }
-        return static_cast<ReturnType>(func());
+        return static_cast<ReturnType>(std::forward<F>(func)());
     } else {
         static_assert(std::is_invocable_v<F>,
             "Given function has to be invocable!");
@@ -465,10 +464,11 @@ constexpr auto Expected<T, E>::andThen(F&& func) const&&
             return static_cast<ReturnType>(std::move(*this).uncheckedError());
         }
         if constexpr (std::is_void_v<std::invoke_result_t<F, T>>) {
-            func(std::move(*this).uncheckedValue());
+            std::forward<F>(func)(std::move(*this).uncheckedValue());
             return ReturnType {};
         } else {
-            return static_cast<ReturnType>(func(std::move(*this).uncheckedValue()));
+            return static_cast<ReturnType>(std::forward<F>(func)(
+                std::move(*this).uncheckedValue()));
         }
     } else if constexpr (std::is_invocable_v<F>) {
         using ReturnType = Expected<std::invoke_result_t<F>, E>;
@@ -476,10 +476,10 @@ constexpr auto Expected<T, E>::andThen(F&& func) const&&
             return static_cast<ReturnType>(std::move(*this).uncheckedError());
         }
         if constexpr (std::is_void_v<std::invoke_result_t<F, T>>) {
-            func();
+            std::forward<F>(func)();
             return ReturnType {};
         } else {
-            return static_cast<ReturnType>(func());
+            return static_cast<ReturnType>(std::forward<F>(func)());
         }
     } else {
         static_assert(std::is_invocable_v<F>,
@@ -571,9 +571,9 @@ constexpr void Expected<void, E>::valueOrElse(F&& func) const
 {
     if (error_) {
         if constexpr (std::is_invocable_v<F, E>) {
-            func(*error_);
+            std::forward<F>(func)(*error_);
         } else if constexpr (std::is_invocable_v<F>) {
-            func();
+            std::forward<F>(func)();
         } else {
             static_assert(std::is_invocable_v<F>,
                 "Given function has to be invocable!");
@@ -621,7 +621,7 @@ constexpr E Expected<void, E>::errorOrElse(F&& func) const
     if (error_) {
         return *error_;
     }
-    return static_cast<E>(func());
+    return static_cast<E>(std::forward<F>(func)());
 }
 
 template <typename E>
@@ -631,7 +631,7 @@ constexpr auto Expected<void, E>::andThen(F&& func) const&
     if (error_) {
         return *error_;
     }
-    return func();
+    return std::forward<F>(func)();
 }
 template <typename E>
 template <typename F>
@@ -640,7 +640,7 @@ constexpr auto Expected<void, E>::andThen(F&& func) const&&
     if (error_) {
         return std::move(*error_);
     }
-    return func();
+    return std::forward<F>(func)();
 }
 template <typename E>
 constexpr void Expected<void, E>::operator*() const
