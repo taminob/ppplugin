@@ -41,7 +41,7 @@ public:
 
     GenericPlugin() = default;
     template <typename P,
-        typename = std::enable_if_t<(std::is_base_of_v<Plugins, P> || ...)>>
+        std::enable_if_t<(std::is_base_of_v<Plugins, std::remove_cvref_t<P>> || ...), bool> = true>
     GenericPlugin(P&& plugin); // NOLINT(google-explicit-constructor,hicpp-explicit-conversions)
 
     virtual ~GenericPlugin() = default;
@@ -63,10 +63,12 @@ private:
     detail::templates::UniqueVariant<Plugins...> plugin_;
 };
 
-using Plugin = GenericPlugin<CPlugin, CppPlugin, LuaPlugin, NoopPlugin>;
+using Plugin = GenericPlugin<CPlugin, CppPlugin, LuaPlugin, PythonPlugin, NoopPlugin>;
 
 template <typename... Plugins>
-template <typename P, typename>
+template <typename P,
+    std::enable_if_t<(std::is_base_of_v<Plugins, std::remove_cvref_t<P>> || ...), bool>>
+// NOLINTNEXTLINE(bugprone-forwarding-reference-overload); enable_if condition prevents hiding copy/move ctors
 GenericPlugin<Plugins...>::GenericPlugin(P&& plugin)
     : plugin_(std::forward<P>(plugin))
 {
@@ -81,12 +83,16 @@ GenericPlugin<Plugins...>::operator bool() const
 template <typename... Plugins>
 template <typename ReturnValue, typename... Args>
 CallResult<ReturnValue> GenericPlugin<Plugins...>::call(
-    const std::string& function_name, Args&&... args)
+    const std::string& function_name, Args&&... args) // NOLINT(cppcoreguidelines-missing-std-forward)
 {
     return std::visit(
-        [&function_name, &args...](auto& plugin) {
-            return plugin.template call<ReturnValue>(
-                function_name, std::forward<Args>(args)...);
+        // C++17 compatible trick to forward parameter pack in lambda capture using tuple
+        [&function_name, args = std::make_tuple(std::forward<Args>(args)...)](auto& plugin) mutable -> CallResult<ReturnValue> {
+            return std::apply([&plugin, &function_name](auto&&... args) {
+                return plugin.template call<ReturnValue>(
+                    function_name, std::forward<Args>(args)...);
+            },
+                std::move(args));
         },
         plugin_);
 }
