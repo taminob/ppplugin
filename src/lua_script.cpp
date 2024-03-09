@@ -6,16 +6,23 @@ extern "C" {
 }
 
 namespace ppplugin {
-LuaScript::LuaScript(const std::filesystem::path& script_path, bool auto_run)
+Expected<LuaScript, LoadError> LuaScript::load(const std::filesystem::path& script_path, bool auto_run)
+{
+    LuaScript new_script;
+    if (auto error = new_script.loadFile(script_path, auto_run)) {
+        return *error;
+    }
+    return new_script;
+}
+
+LuaScript::LuaScript()
 {
     luaL_openlibs(state_.state());
     state_.registerPanicHandler([](lua_State* state) -> int {
         auto error = LuaState::wrap(state).top<std::string>();
+        // TODO: don't throw because will cross library boundaries
         throw std::runtime_error(format("Lua PANIC: '{}'!", error.value_or("?")));
     });
-    if (!load(script_path, auto_run)) {
-        throw std::runtime_error("Error loading script!");
-    }
     // TODO: setup lua_setwarnf
 }
 
@@ -24,18 +31,18 @@ bool LuaScript::run()
     return lua_pcall(state_.state(), 0, LUA_MULTRET, 0) == LUA_OK;
 }
 
-bool LuaScript::load(const std::filesystem::path& lua_file, bool auto_run)
+std::optional<LoadError> LuaScript::loadFile(const std::filesystem::path& lua_file, bool auto_run)
 {
     if (!std::filesystem::exists(lua_file)) {
-        return false;
+        return LoadError::fileNotFound;
     }
     if (luaL_loadfile(state_.state(), lua_file.c_str()) != LUA_OK) {
-        return false;
+        return LoadError::fileInvalid;
     }
-    if (auto_run) {
-        return run();
+    if (auto_run && !run()) {
+        return LoadError::unknown;
     }
-    return true;
+    return std::nullopt;
 }
 
 std::string LuaScript::errorToString(int error_code)

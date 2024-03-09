@@ -5,16 +5,21 @@
 #include "lua/lua_script.h"
 
 #include <string>
-#include <string_view>
 
 namespace ppplugin {
 class LuaPlugin {
 public:
-    explicit LuaPlugin(const std::filesystem::path& lua_script_path)
-        : script_ { lua_script_path }
+    static Expected<LuaPlugin, LoadError> load(
+        const std::filesystem::path& plugin_library_path, bool auto_run = true)
     {
+        return LuaScript::load(plugin_library_path, auto_run)
+            .andThen([](auto script) {
+                LuaPlugin new_plugin { std::move(script) };
+                return new_plugin;
+            });
     }
-    virtual ~LuaPlugin() = default;
+
+    ~LuaPlugin() = default;
     LuaPlugin(const LuaPlugin&) = delete;
     LuaPlugin(LuaPlugin&&) = default;
     LuaPlugin& operator=(const LuaPlugin&) = delete;
@@ -40,6 +45,12 @@ public:
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args)
     {
         return script_.call<ReturnValue>(function_name, std::forward<Args>(args)...);
+    }
+
+private:
+    explicit LuaPlugin(LuaScript&& script)
+        : script_ { std::move(script) }
+    {
     }
 
 private:

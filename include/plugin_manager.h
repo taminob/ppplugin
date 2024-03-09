@@ -40,8 +40,16 @@ public:
     Expected<LuaPlugin, LoadError> loadLuaPlugin(
         const std::filesystem::path& plugin_library_path)
     {
-        LuaPlugin new_plugin { plugin_library_path };
-        return new_plugin;
+        return LuaPlugin::load(plugin_library_path);
+    }
+
+    /**
+     * Load Python script from given path.
+     */
+    Expected<PythonPlugin, LoadError> loadPythonPlugin(
+        const std::filesystem::path& plugin_library_path)
+    {
+        return PythonPlugin::load(plugin_library_path);
     }
 
     /**
@@ -53,30 +61,27 @@ public:
      *            created by the plugin are fully destroyed.
      *            Failure to do so will result in a SEGFAULT.
      */
-    template <typename... Args>
     Expected<CppPlugin, LoadError> loadCppPlugin(
         const std::filesystem::path& plugin_library_path)
     {
-        return CppPlugin { plugin_library_path };
+        return CppPlugin::load(plugin_library_path);
     }
     /**
      * Load a C plugin from given library path.
      * This plugin can call any C function or C++ functions that were marked
      * as 'extern "C"'.
      */
-    template <typename... Args>
     Expected<CPlugin, LoadError> loadCPlugin(
         const std::filesystem::path& plugin_library_path)
     {
-        return CPlugin { plugin_library_path };
+        return CPlugin::load(plugin_library_path);
     }
 
 private:
     using PluginVariant = typename detail::templates::WrapParameterPack<std::variant, std::shared_ptr, Plugins...>::Type;
     // store for each plugin its shared library to avoid that the lib will be
     // unloaded; this might cause segfaults when accessing the plugin
-    using PluginLibrary = std::pair<PluginVariant, std::optional<boost::dll::shared_library>>;
-    std::vector<PluginLibrary> plugins_;
+    std::vector<PluginVariant> plugins_;
 
     /**
      * Auto-reload plugins on change on disk.

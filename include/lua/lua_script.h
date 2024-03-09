@@ -6,7 +6,6 @@
 #include "lua_state.h"
 
 #include <filesystem>
-#include <functional>
 #include <optional>
 #include <string>
 
@@ -20,9 +19,9 @@ public:
      *                 if set to false, functions cannot be called since they haven't been
      *                 discovered yet (required execution)
      */
-    explicit LuaScript(const std::filesystem::path& script_path, bool auto_run = true);
+    static Expected<LuaScript, LoadError> load(const std::filesystem::path& script_path, bool auto_run = true);
 
-    virtual ~LuaScript() = default;
+    ~LuaScript() = default;
     LuaScript(const LuaScript&) = delete;
     LuaScript(LuaScript&&) noexcept = default;
     LuaScript& operator=(const LuaScript&) = delete;
@@ -40,10 +39,12 @@ public:
         return { CallError::Code::symbolNotFound };
     }
 
-protected:
+private:
+    LuaScript();
+
     bool run();
 
-    bool load(const std::filesystem::path& lua_file, bool auto_run);
+    std::optional<LoadError> loadFile(const std::filesystem::path& lua_file, bool auto_run);
 
     static void pcall();
 
@@ -51,14 +52,17 @@ protected:
     void push(Args&&... args)
     {
         if constexpr (sizeof...(Args) > 0) {
-            state_.push(args...);
+            state_.push(std::forward<Args>(args)...);
         }
     }
 
+    /**
+     * Can be used to define global variables or functions for usage in Lua script.
+     */
     template <typename T>
     void setGlobal(const std::string& variable_name, T&& value)
     {
-        push(value);
+        push(std::forward<T>(value));
         state_.markGlobal(variable_name);
     }
 

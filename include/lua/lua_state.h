@@ -26,6 +26,10 @@ class LuaState {
 public:
     LuaState();
 
+    /**
+     * Wrap given state in a LuaState and allow access to methods,
+     * but do not claim ownership of the state.
+     */
     static LuaState wrap(lua_State* state) { return LuaState(state); }
 
     [[nodiscard]] lua_State* state() { return state_.get(); }

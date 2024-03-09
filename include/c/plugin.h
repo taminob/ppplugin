@@ -7,11 +7,15 @@
 namespace ppplugin {
 class CPlugin {
 public:
-    explicit CPlugin(const std::filesystem::path& c_shared_library)
+    static Expected<CPlugin, LoadError> load(
+        const std::filesystem::path& plugin_library_path)
     {
-        if (auto shared_library = detail::boost_dll::loadSharedLibrary(c_shared_library)) {
-            plugin_ = *shared_library;
+        if (auto shared_library = detail::boost_dll::loadSharedLibrary(plugin_library_path)) {
+            CPlugin new_plugin;
+            new_plugin.plugin_ = *shared_library;
+            return new_plugin;
         }
+        return LoadError::unknown;
     }
 
     template <typename ReturnValue, typename... Args>
@@ -26,6 +30,9 @@ public:
         return detail::boost_dll::call<false, ReturnValue>(
             plugin_, function_name, std::forward<Args>(args)...);
     }
+
+private:
+    CPlugin() = default;
 
 private:
     boost::dll::shared_library plugin_;

@@ -12,14 +12,18 @@
 namespace ppplugin {
 class CppPlugin {
 public:
-    explicit CppPlugin(const std::filesystem::path& cpp_shared_library)
+    static Expected<CppPlugin, LoadError> load(
+        const std::filesystem::path& plugin_library_path)
     {
-        if (auto shared_library = detail::boost_dll::loadSharedLibrary(cpp_shared_library)) {
-            plugin_ = *shared_library;
+        if (auto shared_library = detail::boost_dll::loadSharedLibrary(plugin_library_path)) {
+            CppPlugin new_plugin;
+            new_plugin.plugin_ = *shared_library;
+            return new_plugin;
         }
-        // TODO: error handling
+        return LoadError::unknown;
     }
-    virtual ~CppPlugin() = default;
+
+    ~CppPlugin() = default;
     CppPlugin(const CppPlugin&) = default;
     CppPlugin(CppPlugin&&) = default;
     CppPlugin& operator=(const CppPlugin&) = default;
@@ -37,6 +41,9 @@ public:
         return detail::boost_dll::call<true, ReturnValue>(
             plugin_, function_name, std::forward<Args>(args)...);
     }
+
+private:
+    CppPlugin() = default;
 
 private:
     boost::dll::shared_library plugin_;
