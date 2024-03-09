@@ -12,7 +12,12 @@
 namespace ppplugin {
 class PythonPlugin {
 public:
-    static Expected<PythonPlugin, LoadError> load(const std::filesystem::path& python_script_path, bool auto_run = true);
+    /**
+     * Load python file from given path.
+     *
+     * @param main_module If true, execute file as __main__ module
+     */
+    static Expected<PythonPlugin, LoadError> load(const std::filesystem::path& python_script_path, bool is_main_module = true);
 
     ~PythonPlugin() = default;
     PythonPlugin(const PythonPlugin&) = default;
@@ -24,12 +29,12 @@ public:
     CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
 private:
-    PythonPlugin();
+    explicit PythonPlugin(bool is_main_module);
 
     static std::string lastPythonError();
 
 private:
-    boost::python::object object_;
+    boost::python::object module_;
 };
 
 template <typename ReturnValue, typename... Args>
@@ -38,7 +43,7 @@ CallResult<ReturnValue> PythonPlugin::call(const std::string& function_name, Arg
     using FunctionDetails = detail::templates::FunctionDetails<ReturnValue(Args...)>;
 
     try {
-        auto result = object_[function_name.c_str()](std::forward<Args>(args)...);
+        auto result = module_[function_name.c_str()](std::forward<Args>(args)...);
 
         if constexpr (detail::templates::returnTypeCount<FunctionDetails>() > 0) {
             return { boost::python::extract<ReturnValue>(result) };

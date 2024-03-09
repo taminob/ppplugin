@@ -1,21 +1,25 @@
 #include "python/plugin.h"
 
 namespace ppplugin {
-PythonPlugin::PythonPlugin()
+PythonPlugin::PythonPlugin(bool is_main_module)
 {
     Py_Initialize();
-    auto main_module = boost::python::import("__main__");
-    object_ = main_module.attr("__dict__");
+    if (is_main_module) {
+        auto main_module = boost::python::import("__main__");
+        module_ = main_module.attr("__dict__");
+    } else {
+        module_ = boost::python::dict {};
+    }
 }
 
-Expected<PythonPlugin, LoadError> PythonPlugin::load(const std::filesystem::path& python_script_path, bool /*auto_run*/)
+Expected<PythonPlugin, LoadError> PythonPlugin::load(const std::filesystem::path& python_script_path, bool main_module)
 {
     if (!std::filesystem::exists(python_script_path)) {
         return LoadError::fileNotFound;
     }
-    PythonPlugin new_plugin;
+    PythonPlugin new_plugin { main_module };
     std::ignore = boost::python::exec_file(python_script_path.c_str(),
-        new_plugin.object_, new_plugin.object_);
+        new_plugin.module_, new_plugin.module_);
     return new_plugin;
 }
 
