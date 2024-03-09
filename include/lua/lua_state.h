@@ -211,9 +211,9 @@ auto LuaState::top()
 template <typename T>
 auto LuaState::topFunction()
 {
-    using FunctionDetails = detail::templates::FunctionDetails<std::function<T>>;
+    using FunctionDetails = detail::templates::FunctionDetails<T>;
 
-    auto popped_function = [this, function_id = topPointer()](auto&&... args)
+    auto top_function = [this, function_id = topPointer()](auto&&... args)
         -> CallResult<typename FunctionDetails::ReturnType> {
         if (function_id != topPointer()) {
             return CallError { CallError::Code::unknown,
@@ -244,9 +244,9 @@ auto LuaState::topFunction()
         }
     };
     if (isFunction()) {
-        return std::optional { popped_function };
+        return std::optional { top_function };
     }
-    return std::optional<decltype(popped_function)> { std::nullopt };
+    return std::optional<decltype(top_function)> { std::nullopt };
 }
 
 } // namespace ppplugin

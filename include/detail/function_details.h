@@ -10,7 +10,7 @@ template <typename T>
 struct FunctionDetails;
 
 template <typename R, typename... Ts>
-struct FunctionDetails<std::function<R(Ts...)>> {
+struct FunctionDetails<R(Ts...)> {
     using ReturnType = R;
     static constexpr auto ARGUMENT_COUNT = sizeof...(Ts);
     template <std::size_t index>
