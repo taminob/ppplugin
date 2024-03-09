@@ -17,7 +17,7 @@ public:
      *
      * @param main_module If true, execute file as __main__ module
      */
-    static Expected<PythonPlugin, LoadError> load(const std::filesystem::path& python_script_path, bool is_main_module = true);
+    [[nodiscard]] static Expected<PythonPlugin, LoadError> load(const std::filesystem::path& python_script_path, bool is_main_module = true);
 
     ~PythonPlugin() = default;
     PythonPlugin(const PythonPlugin&) = default;
@@ -26,12 +26,23 @@ public:
     PythonPlugin& operator=(PythonPlugin&&) noexcept = default;
 
     template <typename ReturnValue, typename... Args>
-    CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
+    [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
 private:
     explicit PythonPlugin(bool is_main_module);
 
-    static std::string lastPythonError();
+    class PythonException {
+    public:
+        PythonException() = default;
+        [[nodiscard]] static std::optional<PythonException> latest();
+
+        [[nodiscard]] std::string toString() const;
+
+    private:
+        std::optional<std::string> type_;
+        std::optional<std::string> value_;
+        std::optional<std::string> traceback_;
+    };
 
 private:
     boost::python::object module_;
@@ -51,7 +62,10 @@ CallResult<ReturnValue> PythonPlugin::call(const std::string& function_name, Arg
             return CallResult<void> {};
         }
     } catch (const boost::python::error_already_set& exception) {
-        return { CallError(CallError::Code::unknown, lastPythonError()) };
+        if (auto exception = PythonException::latest()) {
+            return { CallError(CallError::Code::unknown, exception->toString()) };
+        }
+        return { CallError(CallError::Code::unknown) };
     }
 }
 } // namespace ppplugin
