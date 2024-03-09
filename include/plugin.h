@@ -6,6 +6,7 @@
 #include "errors.h"
 #include "lua/plugin.h"
 #include "noop_plugin.h"
+#include "python/plugin.h"
 
 #include "detail/template_helpers.h"
 

@@ -1,7 +1,8 @@
 set(LIBRARY_SOURCES ppplugin.cpp)
 
 set(LIBRARY_PUBLIC_HEADERS "plugin.h" "plugin_manager.h")
-set(LIBRARY_SOURCES "ppplugin.cpp" "boost_dll_loader.cpp" "lua_state.cpp" "lua_script.cpp")
+set(LIBRARY_SOURCES "ppplugin.cpp" "boost_dll_loader.cpp" "lua_state.cpp"
+                    "lua_script.cpp" "python_plugin.cpp")
 
 set(LIBRARY_TARGET_OBJECT "${LIBRARY_NAME}_object")
 
@@ -9,7 +10,8 @@ add_library(${LIBRARY_TARGET_OBJECT} OBJECT ${LIBRARY_SOURCES})
 set_target_properties(
   ${LIBRARY_TARGET_OBJECT} PROPERTIES PUBLIC_HEADER "${LIBRARY_PUBLIC_HEADERS}"
                                       POSITION_INDEPENDENT_CODE 1)
-target_link_libraries(${LIBRARY_NAME}_object PUBLIC Boost::filesystem lua)
+target_link_libraries(${LIBRARY_NAME}_object
+                      PUBLIC Boost::filesystem Boost::python Python::Python lua)
 
 target_include_directories(${LIBRARY_TARGET_OBJECT}
                            PUBLIC ${CMAKE_SOURCE_DIR}/include)

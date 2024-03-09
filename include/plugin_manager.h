@@ -2,13 +2,13 @@
 #define PPPLUGIN_PLUGIN_MANAGER_H
 
 #include "c/plugin.h"
-#include "errors.h"
 #include "cpp/plugin.h"
 #include "detail/template_helpers.h"
+#include "errors.h"
 #include "expected.h"
 #include "lua/plugin.h"
 #include "plugin.h"
-
+#include "python/plugin.h"
 
 #include <boost/dll.hpp>
 
