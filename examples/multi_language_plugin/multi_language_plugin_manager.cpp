@@ -15,6 +15,7 @@ int main(int argc, char* argv[])
         auto cpp_lib_path = executable_dir / "libcpp_plugin.so";
         auto c_lib_path = executable_dir / "libc_plugin.so";
         auto lua_lib_path = executable_dir / "lua_plugin.lua";
+        auto python_lib_path = executable_dir / "python_plugin.py";
         auto non_existant_lib_path = executable_dir / "does_not_exist";
 
         ppplugin::PluginManager manager;
@@ -28,14 +29,28 @@ int main(int argc, char* argv[])
         if (auto plugin = manager.loadLuaPlugin(lua_lib_path)) {
             plugins.push_back(std::move(*plugin));
         }
-        plugins.push_back(ppplugin::NoopPlugin {});
+        if (auto plugin = manager.loadPythonPlugin(python_lib_path)) {
+            plugins.push_back(std::move(*plugin));
+        }
+        plugins.push_back(manager.loadCPlugin(non_existant_lib_path)
+                              .andThen([](const auto& plugin) {
+                                  // convert to generic plugin
+                                  return ppplugin::Plugin { plugin };
+                              })
+                              // silently fail and use no-op plugin instead
+                              .valueOr(ppplugin::NoopPlugin {}));
         for (auto& plugin : plugins) {
-            std::ignore = plugin.call<void>("initialize");
+            plugin.call<void>("initialize").valueOrElse([](const ppplugin::CallError& error) {
+                std::cerr << "Initialize Error: " << error.what() << '\n';
+            });
         }
         for (int counter {}; counter < std::numeric_limits<int>::max(); ++counter) {
             for (auto& plugin : plugins) {
                 // explicit cast to int to avoid passing by reference
-                std::ignore = plugin.call<void>("loop", static_cast<int>(counter));
+                plugin.call<void>("loop", static_cast<int>(counter))
+                    .valueOrElse([](const ppplugin::CallError& error) {
+                        std::cerr << "Loop Error: " << error.what() << '\n';
+                    });
             }
             std::this_thread::sleep_for(std::chrono::milliseconds { 500 });
         }
