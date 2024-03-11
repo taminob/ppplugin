@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 
-project(ppplugin)
+project(
+  ppplugin
+  VERSION 0.0.0
+  DESCRIPTION "Library for uniform C++ interface to multi-language plugins"
+  LANGUAGES C CXX)
 
 option(PPPLUGIN_ENABLE_EXAMPLES "Enable compilation of examples" OFF)
 option(PPPLUGIN_ENABLE_CPP17_COMPATIBILITY
@@ -22,7 +26,7 @@ option(PPPLUGIN_ENABLE_UNREACHABLE_SANITIZE
 find_package(Boost 1.61.0 REQUIRED COMPONENTS headers filesystem python)
 find_package(Python 3.0 REQUIRED COMPONENTS Development)
 find_package(Lua 5.2 REQUIRED)
-# TODO: check if necessary
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
@@ -32,17 +36,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 set(LIBRARY_NAME "ppplugin")
-set(LIBRARY_VERSION "0.1.0")
-
 set(LIBRARY_TARGET_STATIC "${LIBRARY_NAME}_static")
 set(LIBRARY_TARGET_SHARED "${LIBRARY_NAME}_shared")
 
 # enable generation of compile_commands.json file
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# find includes in corresponding build directories TODO: check if necessary
+# find includes in source and build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-include_directories(BEFORE ${CMAKE_CURRENT_SOURCE_DIR})
 
 set(OPTIMIZE_FLAGS "-O2")
 set(DEBUG_FLAGS "-g3")
@@ -50,17 +51,18 @@ set(DEBUG_FLAGS "-g3")
 if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})
   find_package(fmt 8.1.0 REQUIRED)
   set(CMAKE_CXX_STANDARD 17)
+  # TODO: generate C++17 compatible header files instead
   add_definitions("-DPPPLUGIN_CPP17_COMPATIBILITY")
-  link_libraries(fmt::fmt)
+  target_link_libraries(${LIBRARY_TARGET_SHARED} fmt::fmt)
+  target_link_libraries(${LIBRARY_TARGET_STATIC} fmt::fmt)
 else()
   set(CMAKE_CXX_STANDARD 20)
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# TODO: check if necessary, especially -pthread
 set(CMAKE_CXX_FLAGS
-    "-ffast-math -Wall -Wextra -Wno-psabi -pedantic-errors -Werror \
+    "-ffast-math -Wall -Wextra -Wpedantic -pedantic-errors -Werror \
      ${CMAKE_CXX_FLAGS}")
 set(CMAKE_CXX_FLAGS_DEBUG "${DEBUG_FLAGS}")
 set(CMAKE_CXX_FLAGS_RELEASE "${OPTIMIZE_FLAGS}")
@@ -69,11 +71,11 @@ set(CMAKE_CXX_FLAGS_MINSIZEREL "-Os")
 
 if(${PPPLUGIN_ENABLE_COVERAGE})
   set(CMAKE_CXX_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_CXX_FLAGS}")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fprofile-arcs -ftest-coverage")
+  set(CMAKE_C_FLAGS "-fprofile-arcs -ftest-coverage ${CMAKE_C_FLAGS} ")
   set(CMAKE_SHARED_LINKER_FLAGS
-      "${CMAKE_SHARED_LINKER_FLAGS} -lgcov -fprofile-arcs -ftest-coverage")
+      "-lgcov -fprofile-arcs -ftest-coverage ${CMAKE_SHARED_LINKER_FLAGS}")
   set(CMAKE_EXE_LINKER_FLAGS
-      "${CMAKE_EXE_LINKER_FLAGS} -lgcov -fprofile-arcs -ftest-coverage")
+      "-lgcov -fprofile-arcs -ftest-coverage ${CMAKE_EXE_LINKER_FLAGS}")
 endif()
 
 if(${PPPLUGIN_ENABLE_ADDRESS_SANITIZE})
@@ -89,10 +91,30 @@ if(${PPPLUGIN_ENABLE_UNREACHABLE_SANITIZE})
   set(CMAKE_CXX_FLAGS "-fsanitize=unreachable ${CMAKE_CXX_FLAGS}")
 endif()
 
+# generate and install cmake files for find_package
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
+set(CONFIG_CMAKE_FILENAME "${PROJECT_NAME}-config.cmake")
+set(TARGETS_CMAKE_FILENAME "${PROJECT_NAME}-targets.cmake")
+set(VERSION_CMAKE_FILENAME "${PROJECT_NAME}-version.cmake")
+set(GENERATED_CMAKE_FILES_OUTPUT_DIR "${CMAKE_BINARY_DIR}/cmake/")
+set(INSTALLED_CMAKE_FILES_DESTINATION_DIR
+    "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
+configure_package_config_file(
+  "cmake/${CONFIG_CMAKE_FILENAME}.in"
+  "${GENERATED_CMAKE_FILES_OUTPUT_DIR}/${CONFIG_CMAKE_FILENAME}"
+  INSTALL_DESTINATION "${INSTALLED_CMAKE_FILES_DESTINATION_DIR}")
+write_basic_package_version_file(
+  "${GENERATED_CMAKE_FILES_OUTPUT_DIR}/${VERSION_CMAKE_FILENAME}"
+  VERSION ${ppplugin_VERSION}
+  COMPATIBILITY SameMajorVersion)
+install(FILES "${GENERATED_CMAKE_FILES_OUTPUT_DIR}/${CONFIG_CMAKE_FILENAME}"
+              "${GENERATED_CMAKE_FILES_OUTPUT_DIR}/${VERSION_CMAKE_FILENAME}"
+        DESTINATION "${INSTALLED_CMAKE_FILES_DESTINATION_DIR}")
+
 message(STATUS "Compiling in ${CMAKE_BUILD_TYPE} mode")
 
 add_subdirectory(src)
-
 if(${PPPLUGIN_ENABLE_EXAMPLES})
   add_subdirectory(examples)
 endif()

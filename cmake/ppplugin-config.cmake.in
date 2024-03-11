@@ -1,0 +1,23 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(Boost @Boost_VERSION_MAJOR@)
+find_dependency(Python @Python_VERSION_MAJOR@)
+find_dependency(Lua @LUA_VERSION_MAJOR@)
+
+check_required_components("@PROJECT_NAME@")
+
+set(PPPLUGIN_INCLUDE_DIR ${PACKAGE_PREFIX_DIR}/include)
+set(PPPLUGIN_LIBRARY_DIR ${PACKAGE_PREFIX_DIR}/lib)
+
+if(NOT TARGET @PROJECT_NAME@::ppplugin)
+  include(${CMAKE_CURRENT_LIST_DIR}/@TARGETS_CMAKE_FILENAME@)
+
+  if(@BUILD_SHARED_LIBS@)
+    add_library(@PROJECT_NAME@::ppplugin ALIAS
+                @PROJECT_NAME@::@LIBRARY_TARGET_SHARED@)
+  else()
+    add_library(@PROJECT_NAME@::ppplugin ALIAS
+                @PROJECT_NAME@::@LIBRARY_TARGET_STATIC@)
+  endif()
+endif()
