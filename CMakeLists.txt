@@ -6,6 +6,7 @@ project(
   DESCRIPTION "Library for uniform C++ interface to multi-language plugins"
   LANGUAGES C CXX)
 
+option(PPPLUGIN_SHARED "Compile library as shared library" OFF)
 option(PPPLUGIN_ENABLE_EXAMPLES "Enable compilation of examples" OFF)
 option(PPPLUGIN_ENABLE_CPP17_COMPATIBILITY
        "Enable compilation with unreachable sanitize flags" OFF)
@@ -35,9 +36,17 @@ if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+if(${PPPLUGIN_SHARED})
+  set(BUILD_SHARED_LIBS ON)
+endif()
+
 set(LIBRARY_NAME "ppplugin")
-set(LIBRARY_TARGET_STATIC "${LIBRARY_NAME}_static")
-set(LIBRARY_TARGET_SHARED "${LIBRARY_NAME}_shared")
+set(LIBRARY_TARGET ${LIBRARY_NAME})
+if(${BUILD_SHARED_LIBS})
+  set(LIBRARY_TYPE "shared")
+else()
+  set(LIBRARY_TYPE "static")
+endif()
 
 # enable generation of compile_commands.json file
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -95,7 +104,9 @@ endif()
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
 set(CONFIG_CMAKE_FILENAME "${PROJECT_NAME}-config.cmake")
-set(TARGETS_CMAKE_FILENAME "${PROJECT_NAME}-targets.cmake")
+set(TARGETS_SHARED_CMAKE_FILENAME "${PROJECT_NAME}-shared-targets.cmake")
+set(TARGETS_STATIC_CMAKE_FILENAME "${PROJECT_NAME}-static-targets.cmake")
+set(TARGETS_CMAKE_FILENAME "${PROJECT_NAME}-${LIBRARY_TYPE}-targets.cmake")
 set(VERSION_CMAKE_FILENAME "${PROJECT_NAME}-version.cmake")
 set(GENERATED_CMAKE_FILES_OUTPUT_DIR "${CMAKE_BINARY_DIR}/cmake/")
 set(INSTALLED_CMAKE_FILES_DESTINATION_DIR
@@ -112,7 +123,8 @@ install(FILES "${GENERATED_CMAKE_FILES_OUTPUT_DIR}/${CONFIG_CMAKE_FILENAME}"
               "${GENERATED_CMAKE_FILES_OUTPUT_DIR}/${VERSION_CMAKE_FILENAME}"
         DESTINATION "${INSTALLED_CMAKE_FILES_DESTINATION_DIR}")
 
-message(STATUS "Compiling in ${CMAKE_BUILD_TYPE} mode")
+message(
+  STATUS "Compiling in ${CMAKE_BUILD_TYPE} mode as ${LIBRARY_TYPE} library")
 
 add_subdirectory(src)
 if(${PPPLUGIN_ENABLE_EXAMPLES})
