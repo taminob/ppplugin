@@ -212,6 +212,7 @@ template <typename T>
 auto LuaState::topFunction()
 {
     using FunctionDetails = detail::templates::FunctionDetails<T>;
+    constexpr auto RETURN_TYPE_COUNT = detail::templates::returnTypeCount<FunctionDetails>();
 
     auto top_function = [this, function_id = topPointer()](auto&&... args)
         -> CallResult<typename FunctionDetails::ReturnType> {
@@ -222,7 +223,7 @@ auto LuaState::topFunction()
         if constexpr (sizeof...(args) > 0) {
             push(std::forward<decltype(args)>(args)...);
         }
-        auto error = pcall(sizeof...(args), detail::templates::returnTypeCount<FunctionDetails>());
+        auto error = pcall(sizeof...(args), RETURN_TYPE_COUNT);
         // TODO
         if (error != 0) {
             return CallError {
@@ -233,8 +234,14 @@ auto LuaState::topFunction()
             };
         }
 
-        if constexpr (detail::templates::returnTypeCount<FunctionDetails>() > 1) {
+        if constexpr (RETURN_TYPE_COUNT > 1) {
             if (auto result = PopTuple<typename FunctionDetails::ReturnType>::pop(*this)) {
+                return CallResult<typename FunctionDetails::ReturnType> { *result };
+            }
+            return CallError { CallError::Code::unknown,
+                "Wrong return type" };
+        } else if constexpr (RETURN_TYPE_COUNT == 1) {
+            if (auto result = pop<typename FunctionDetails::ReturnType>()) {
                 return CallResult<typename FunctionDetails::ReturnType> { *result };
             }
             return CallError { CallError::Code::unknown,
