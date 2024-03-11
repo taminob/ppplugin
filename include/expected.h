@@ -41,7 +41,8 @@ public:
     template <typename U, typename V,
         typename = std::enable_if_t<std::is_convertible_v<U, T> && std::is_convertible_v<V, E>>>
     constexpr Expected(const Expected<U, V>& rhs);
-    template <typename U, typename V>
+    template <typename U, typename V,
+        typename = std::enable_if_t<std::is_nothrow_convertible_v<U, T> && std::is_nothrow_convertible_v<V, E>>>
     constexpr Expected(Expected<U, V>&& rhs) noexcept;
     constexpr Expected& operator=(const Expected&) = default;
     constexpr Expected& operator=(Expected&&) noexcept = default;
@@ -216,7 +217,7 @@ constexpr Expected<T, E>::Expected(const Expected<U, V>& rhs)
         "Incompatible types for Expected construction");
 }
 template <typename T, typename E>
-template <typename U, typename V>
+template <typename U, typename V, typename>
 constexpr Expected<T, E>::Expected(Expected<U, V>&& rhs) noexcept
     : value_ { rhs.hasValue()
             ? decltype(value_) { static_cast<T&&>(std::move(rhs).uncheckedValue()) }
