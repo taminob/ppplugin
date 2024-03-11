@@ -3,7 +3,7 @@
 
 #include "detail/template_helpers.h"
 
-#include <functional>
+#include <tuple>
 
 namespace ppplugin::detail::templates {
 template <typename T>
@@ -28,11 +28,11 @@ constexpr std::size_t returnTypeCount()
 {
     if constexpr (detail::templates::IsStdTuple<typename FunctionDetails::ReturnType>::value) {
         return std::tuple_size_v<typename FunctionDetails::ReturnType>;
-    }
-    if constexpr (std::is_void_v<typename FunctionDetails::ReturnType>) {
+    } else if constexpr (std::is_void_v<typename FunctionDetails::ReturnType>) {
         return 0;
+    } else {
+        return 1;
     }
-    return 1;
 }
 } // namespace ppplugin::detail::templates
 
