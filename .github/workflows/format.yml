@@ -1,6 +1,9 @@
 name: "C++/CMake Format"
 
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
 
 jobs:
   format:

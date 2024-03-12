@@ -1,11 +1,18 @@
 name: "C++ Build"
 
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
 
 jobs:
   build:
-    name: "gcc build"
+    name: "gcc/clang build"
     runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        cpp17_compatibility: [ "ON", "OFF" ]
+        cpp_compiler: [ "g++", "clang++" ]
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -14,14 +21,27 @@ jobs:
             sudo apt-get -y --no-install-recommends install \
               cmake='3.22.*' \
               gcc-11='11.*' \
-              libboost-program-options-dev='1.74.*' \
-              libfmt-dev='8.*'
+              clang='1:14.*' \
+              libboost-filesystem-dev='1.74.*' \
+              libboost-python-dev='1.74.*' \
+              liblua5.4-dev='5.*' \
+              libfmt-dev='8.*' \
+              libgmock-dev='1.11.*' \
+              libgtest-dev='1.11.*'
       - name: Execute cmake
         run: |
-          mkdir -pv build
-          cd build
-          cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+            CXX=/usr/bin/${{ matrix.cpp_compiler }} \
+              cmake . -B build \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DPPPLUGIN_SHARED=ON \
+              -DPPPLUGIN_ENABLE_EXAMPLES=ON \
+              -DPPPLUGIN_ENABLE_TESTS=ON \
+              -DPPPLUGIN_ENABLE_CPP17_COMPATIBILITY=${{ matrix.cpp17_compatibility }}
       - name: Execute make
         run: |
           cd build
           make -j
+      - name: Install
+        run: |
+          cd build
+          make install

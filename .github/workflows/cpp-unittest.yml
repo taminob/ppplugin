@@ -1,13 +1,17 @@
 name: "C++ Unittests"
 
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
 
 jobs:
   unittest:
     name: "unittests"
     runs-on: ubuntu-22.04
-    matrix:
-      cpp17_compatibility: [ "ON", "OFF" ]
+    strategy:
+      matrix:
+        cpp17_compatibility: [ "ON", "OFF" ]
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
@@ -19,7 +23,10 @@ jobs:
               clang='1:14.*' \
               libboost-filesystem-dev='1.74.*' \
               libboost-python-dev='1.74.*' \
-              libfmt-dev='8.*'
+              liblua5.4-dev='5.*' \
+              libfmt-dev='8.*' \
+              libgmock-dev='1.11.*' \
+              libgtest-dev='1.11.*'
       - name: Execute cmake
         run: |
             CXX=/usr/bin/${{ matrix.cpp_compiler }} \

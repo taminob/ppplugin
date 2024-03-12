@@ -1,6 +1,9 @@
 name: "CMake Lint"
 
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
 
 jobs:
   lint:

@@ -1,6 +1,9 @@
 name: "C++ Lint"
 
-on: [push, pull_request]
+on:
+  push:
+    paths-ignore:
+      - 'README.md'
 
 jobs:
   lint:
@@ -13,9 +16,14 @@ jobs:
             sudo apt-get update -y
             sudo apt-get -y --no-install-recommends install \
               cmake='3.22.*' \
+              gcc-11='11.*' \
               clang-tidy='1:14.*' \
-              libboost-program-options-dev='1.74.*' \
-              libfmt-dev='8.*'
+              libboost-filesystem-dev='1.74.*' \
+              libboost-python-dev='1.74.*' \
+              liblua5.4-dev='5.*' \
+              libfmt-dev='8.*' \
+              libgmock-dev='1.11.*' \
+              libgtest-dev='1.11.*'
       - name: Generate compile_commands.json
         run: |
           mkdir -pv build
