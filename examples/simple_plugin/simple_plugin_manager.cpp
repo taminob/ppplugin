@@ -11,7 +11,7 @@ void printError(std::string_view function_name, const ppplugin::CallError& error
         : error == ppplugin::CallError::Code::unknown                                  ? "unknown error"
                                                                                        : "other error";
     std::cerr << "Unable to call '" << function_name << "' ('" << error_string
-              << "')!" << std::endl;
+              << "')!\n";
 }
 
 void printError(std::string_view plugin_name, ppplugin::LoadError error)
@@ -22,7 +22,7 @@ void printError(std::string_view plugin_name, ppplugin::LoadError error)
         : error == LoadError::unknown                                ? "unknown error"
                                                                      : "other error";
     std::cerr << "Unable to load '" << plugin_name << "' ('" << error_string
-              << "')!" << std::endl;
+              << "')!\n";
 }
 
 template <typename ClassType>
@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
         std::cerr << "A fatal error occurred: '" << exception.what() << "'\n";
         return 1;
     } catch (...) {
-        std::cerr << "An unknown fatal error occurred!";
+        std::cerr << "An unknown fatal error occurred!\n";
         return 1;
     }
     return 0;

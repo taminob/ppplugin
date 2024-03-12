@@ -36,7 +36,7 @@ int main(int argc, char* argv[])
         std::cerr << "A fatal error occurred: '" << exception.what() << "'\n";
         return 1;
     } catch (...) {
-        std::cerr << "An unknown fatal error occurred!";
+        std::cerr << "An unknown fatal error occurred!\n";
         return 1;
     }
     return 0;
