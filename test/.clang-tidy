@@ -9,4 +9,5 @@ Checks: >
         -performance-unnecessary-copy-initialization,
         -bugprone-easily-swappable-parameters,
         -bugprone-unchecked-optional-access,
-        -hicpp-noexcept-move
+        -hicpp-noexcept-move,
+        -cppcoreguidelines-noexcept-move-operations

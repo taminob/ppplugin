@@ -13,7 +13,7 @@ Checks: >
         concurrency-*,
         cppcoreguidelines-*,-cppcoreguidelines-avoid-magic-numbers,
         modernize-*,-modernize-use-trailing-return-type,-modernize-use-emplace,
-        performance-*,
+        performance-*,-performance-noexcept-move-constructor,
         portability-*,
         readability-*,-readability-redundant-access-specifiers
 
