@@ -1,0 +1,45 @@
+name: "C++ Unittests"
+
+on: [push, pull_request]
+
+jobs:
+  unittest:
+    name: "unittests"
+    runs-on: ubuntu-22.04
+    matrix:
+      cpp17_compatibility: [ "ON", "OFF" ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+            sudo apt-get update -y
+            sudo apt-get -y --no-install-recommends install \
+              cmake='3.22.*' \
+              gcc-11='11.*' \
+              clang='1:14.*' \
+              libboost-filesystem-dev='1.74.*' \
+              libboost-python-dev='1.74.*' \
+              libfmt-dev='8.*'
+      - name: Execute cmake
+        run: |
+            CXX=/usr/bin/${{ matrix.cpp_compiler }} \
+              cmake . -B build \
+              -DCMAKE_BUILD_TYPE=Debug \
+              -DPPPLUGIN_ENABLE_TESTS=ON \
+              -DPPPLUGIN_ENABLE_COVERAGE=ON \
+              -DPPPLUGIN_ENABLE_CPP17_COMPATIBILITY=${{ matrix.cpp17_compatibility }}
+      - name: Execute make
+        run: |
+          cd build
+          make -j
+      - name: Execute tests
+        run: |
+          cd build
+          lcov -c -i -d . -o baseline_coverage
+          test/tests || echo $?
+          lcov -c -d . -o total_coverage
+          lcov -a baseline_coverage -a total_coverage -o measured_coverage
+          lcov -r measured_coverage "/usr*" -o coverage_without_system_files
+          lcov -r coverage_without_system_files "*/test/*" -o coverage_without_system_and_test_files
+          genhtml --output-directory coverage --legend coverage_without_system_and_test_files
+          lcov --list coverage_without_system_and_test_files
