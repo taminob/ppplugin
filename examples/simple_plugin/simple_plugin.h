@@ -1,5 +1,5 @@
-#ifndef PPPLUGIN__EXAMPLES__SIMPLE_PLUGIN_H
-#define PPPLUGIN__EXAMPLES__SIMPLE_PLUGIN_H
+#ifndef PPPLUGIN_EXAMPLES_SIMPLE_PLUGIN_H
+#define PPPLUGIN_EXAMPLES_SIMPLE_PLUGIN_H
 
 #include <iostream>
 #include <memory>
@@ -21,7 +21,7 @@ protected:
     template <typename T>
     void print(T&& arg)
     {
-        std::cout << arg << std::flush;
+        std::cout << std::forward<T>(arg) << std::flush;
     }
     static void sleep(std::chrono::milliseconds duration)
     {
@@ -44,4 +44,4 @@ private:
     int i_ { 0 };
 };
 
-#endif // PPPLUGIN__EXAMPLES__SIMPLE_PLUGIN_H
+#endif // PPPLUGIN_EXAMPLES_SIMPLE_PLUGIN_H
