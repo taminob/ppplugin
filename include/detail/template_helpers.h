@@ -61,7 +61,7 @@ public:
 template <template <typename...> typename OuterType, typename... Types>
 using UniqueT = typename Unique<OuterType, Types...>::Type;
 
-template<typename... Types>
+template <typename... Types>
 using UniqueVariant = UniqueT<std::variant, Types...>;
 
 /**
@@ -148,6 +148,8 @@ class WrapParameterPack {
         : UnpackHelper<Tuple<Ts1..., Wrapper<T>>, Ts2...> { };
     /**
      * Unpack given "T" with nested "Tuple"s into flat "Tuple".
+     *
+     * E.g. "Tuple<T1, Tuple<T2, Tuple<...>>>" to "Tuple<T1, T2, T3>"
      */
     template <typename T>
     using Unpack = typename UnpackHelper<Tuple<>, T>::Type;
