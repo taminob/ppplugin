@@ -8,45 +8,71 @@ on:
 jobs:
   unittest:
     name: "unittests"
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         cpp17_compatibility: [ "ON", "OFF" ]
     steps:
       - uses: actions/checkout@v3
+      - uses: jirutka/setup-alpine@v1
+        with:
+          branch: edge
+          extra-repositories: |
+              http://dl-cdn.alpinelinux.org/alpine/edge/testing
       - name: Install dependencies
         run: |
-            sudo apt-get update -y
-            sudo apt-get -y --no-install-recommends install \
-              cmake='3.22.*' \
-              gcc-11='11.*' \
-              clang='1:14.*' \
-              libboost-filesystem-dev='1.74.*' \
-              libboost-python-dev='1.74.*' \
-              liblua5.4-dev='5.*' \
-              libfmt-dev='8.*' \
-              libgmock-dev='1.11.*' \
-              libgtest-dev='1.11.*'
-      - name: Execute cmake
+            apk update
+            apk add \
+              cmake \
+              ninja-build \
+              g++ \
+              boost-dev \
+              boost-filesystem \
+              boost-python3 \
+              lua-dev \
+              lua5.2-dev \
+              python3-dev \
+              fmt-dev \
+              gtest-dev \
+              lcov gzip
+        shell: alpine.sh --root {0}
+      - name: Prepare
         run: |
-            CXX=/usr/bin/${{ matrix.cpp_compiler }} \
-              cmake . -B build \
+            cmake . -B build -G Ninja \
+              -DCMAKE_MAKE_PROGRAM=/usr/lib/ninja-build/bin/ninja \
               -DCMAKE_BUILD_TYPE=Debug \
               -DPPPLUGIN_ENABLE_TESTS=ON \
               -DPPPLUGIN_ENABLE_COVERAGE=ON \
               -DPPPLUGIN_ENABLE_CPP17_COMPATIBILITY=${{ matrix.cpp17_compatibility }}
-      - name: Execute make
+        shell: alpine.sh {0}
+      - name: Build
         run: |
-          cd build
-          make -j
+          cmake --build build -j
+        shell: alpine.sh {0}
       - name: Execute tests
         run: |
-          cd build
-          lcov -c -i -d . -o baseline_coverage
-          test/tests || echo $?
-          lcov -c -d . -o total_coverage
-          lcov -a baseline_coverage -a total_coverage -o measured_coverage
-          lcov -r measured_coverage "/usr*" -o coverage_without_system_files
-          lcov -r coverage_without_system_files "*/test/*" -o coverage_without_system_and_test_files
-          genhtml --output-directory coverage --legend coverage_without_system_and_test_files
+          lcov --capture --initial \
+            --directory . \
+            --ignore-errors mismatch \
+            --output-file baseline_coverage 
+          build/test/tests || echo $?
+          lcov --capture \
+            --directory . \
+            --ignore-errors mismatch \
+            --output-file total_coverage
+          lcov \
+            --add-tracefile baseline_coverage \
+            --add-tracefile total_coverage \
+            --ignore-errors mismatch \
+            --output-file measured_coverage
+          lcov --remove measured_coverage "/usr*" \
+            --ignore-errors mismatch \
+            --output-file coverage_without_system_files
+          lcov --remove coverage_without_system_files "*/test/*" \
+            --ignore-errors mismatch \
+            --output-file coverage_without_system_and_test_files
+          genhtml \
+            --output-directory coverage \
+            --legend coverage_without_system_and_test_files
           lcov --list coverage_without_system_and_test_files
+        shell: alpine.sh {0}

@@ -8,27 +8,36 @@ on:
 jobs:
   lint:
     name: "clang-tidy"
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: jirutka/setup-alpine@v1
+        with:
+          branch: v3.19
       - name: Install dependencies
         run: |
-            sudo apt-get update -y
-            sudo apt-get -y --no-install-recommends install \
-              cmake='3.22.*' \
-              gcc-11='11.*' \
-              clang-tidy='1:14.*' \
-              libboost-filesystem-dev='1.74.*' \
-              libboost-python-dev='1.74.*' \
-              liblua5.4-dev='5.*' \
-              libfmt-dev='8.*' \
-              libgmock-dev='1.11.*' \
-              libgtest-dev='1.11.*'
+            apk update
+            apk add \
+              cmake \
+              ninja-build \
+              g++ \
+              boost-dev \
+              boost-filesystem \
+              boost-python3 \
+              lua5.2-dev \
+              python3-dev \
+              fmt-dev \
+              gtest-dev \
+              clang-extra-tools
+        shell: alpine.sh --root {0}
       - name: Generate compile_commands.json
         run: |
-          mkdir -pv build
-          cd build
-          cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+            cmake . -B build -G Ninja \
+              -DCMAKE_MAKE_PROGRAM=/usr/lib/ninja-build/bin/ninja \
+              -DPPPLUGIN_ENABLE_EXAMPLES=ON \
+              -DPPPLUGIN_ENABLE_TESTS=ON \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        shell: alpine.sh {0}
       # Check all source and header C++ files;
       # ignore files in the build directory or in hidden directories
       - name: Execute clang-tidy
@@ -36,3 +45,4 @@ jobs:
           \( -type f -a \( -iname '*.cpp' -o -iname '*.h' \) \)
           -exec echo "Linting '{}'..." \;
           -exec clang-tidy -p build --warnings-as-errors='*' {} +
+        shell: alpine.sh {0}
