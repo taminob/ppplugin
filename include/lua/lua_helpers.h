@@ -9,7 +9,7 @@
 namespace ppplugin {
 class LuaState;
 
-template<typename>
+template <typename>
 struct PopTuple;
 
 template <typename... Ts>

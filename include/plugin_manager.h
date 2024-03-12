@@ -13,8 +13,7 @@
 #include <boost/dll.hpp>
 
 #include <filesystem>
-#include <functional>
-#include <variant>
+#include <vector>
 
 namespace ppplugin {
 template <typename... Plugins>

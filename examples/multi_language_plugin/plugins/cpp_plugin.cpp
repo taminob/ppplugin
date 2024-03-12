@@ -9,10 +9,10 @@ void initialize()
 // necessary to circumvent different C++ name mangling schemes
 BOOST_DLL_AUTO_ALIAS(initialize);
 // this would be the alternative:
-//namespace prevent_conflict {
-//extern "C" const void* initialize;
-//const void* initialize = reinterpret_cast<void*>(&::initialize);
-//} // namespace prevent_conflict
+// namespace prevent_conflict {
+// extern "C" const void* initialize;
+// const void* initialize = reinterpret_cast<void*>(&::initialize);
+// } // namespace prevent_conflict
 
 class A {
 public:
