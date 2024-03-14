@@ -1,5 +1,5 @@
 #include "expected.h"
-#include "test/test_types.h"
+#include "test_types.h"
 #include "test_helper.h"
 
 #include <gmock/gmock.h>

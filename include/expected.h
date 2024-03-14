@@ -41,8 +41,15 @@ public:
     template <typename U, typename V,
         typename = std::enable_if_t<std::is_convertible_v<U, T> && std::is_convertible_v<V, E>>>
     constexpr Expected(const Expected<U, V>& rhs);
-    template <typename U, typename V,
-        typename = std::enable_if_t<std::is_nothrow_convertible_v<U, T> && std::is_nothrow_convertible_v<V, E>>>
+    template <typename U, typename V
+#ifdef PPPLUGIN_CPP17_COMPATIBILITY
+        ,
+        typename = std::enable_if_t<std::is_convertible_v<U, T> && std::is_convertible_v<V, E>>
+#else
+        ,
+        typename = std::enable_if_t<std::is_nothrow_convertible_v<U, T> && std::is_nothrow_convertible_v<V, E>>
+#endif // PPPLUGIN_CPP17_COMPATIBILITY
+        >
     constexpr Expected(Expected<U, V>&& rhs) noexcept;
     constexpr Expected& operator=(const Expected&) = default;
     constexpr Expected& operator=(Expected&&) noexcept = default;

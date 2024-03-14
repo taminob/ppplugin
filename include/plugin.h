@@ -42,10 +42,10 @@ public:
 
     GenericPlugin() = default;
     template <typename P,
-        std::enable_if_t<(std::is_base_of_v<Plugins, std::remove_cvref_t<P>> || ...), bool> = true>
+        std::enable_if_t<(std::is_base_of_v<Plugins, std::remove_cv_t<std::remove_reference_t<P>>> || ...), bool> = true>
     GenericPlugin(P&& plugin); // NOLINT(google-explicit-constructor,hicpp-explicit-conversions)
 
-    virtual ~GenericPlugin() = default;
+    ~GenericPlugin() = default;
     GenericPlugin(const GenericPlugin&) = default;
     GenericPlugin(GenericPlugin&&) noexcept = default;
     GenericPlugin& operator=(const GenericPlugin&) = default;
@@ -68,7 +68,7 @@ using Plugin = GenericPlugin<CPlugin, CppPlugin, LuaPlugin, PythonPlugin, NoopPl
 
 template <typename... Plugins>
 template <typename P,
-    std::enable_if_t<(std::is_base_of_v<Plugins, std::remove_cvref_t<P>> || ...), bool>>
+    std::enable_if_t<(std::is_base_of_v<Plugins, std::remove_cv_t<std::remove_reference_t<P>>> || ...), bool>>
 // NOLINTNEXTLINE(bugprone-forwarding-reference-overload); enable_if condition prevents hiding copy/move ctors
 GenericPlugin<Plugins...>::GenericPlugin(P&& plugin)
     : plugin_(std::forward<P>(plugin))

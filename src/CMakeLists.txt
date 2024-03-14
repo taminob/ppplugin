@@ -10,6 +10,9 @@ target_link_libraries(
   PUBLIC Boost::python
   PUBLIC Python::Python
   PRIVATE ${LUA_LIBRARIES})
+if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})
+  target_link_libraries(${LIBRARY_TARGET} PUBLIC fmt::fmt)
+endif()
 target_include_directories(
   ${LIBRARY_TARGET}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>

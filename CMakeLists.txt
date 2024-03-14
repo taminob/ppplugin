@@ -62,8 +62,6 @@ if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})
   set(CMAKE_CXX_STANDARD 17)
   # TODO: generate C++17 compatible header files instead
   add_definitions("-DPPPLUGIN_CPP17_COMPATIBILITY")
-  target_link_libraries(${LIBRARY_TARGET_SHARED} fmt::fmt)
-  target_link_libraries(${LIBRARY_TARGET_STATIC} fmt::fmt)
 else()
   set(CMAKE_CXX_STANDARD 20)
 endif()
