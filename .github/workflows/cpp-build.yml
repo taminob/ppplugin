@@ -34,11 +34,15 @@ jobs:
               fmt-dev \
               gtest-dev
         shell: alpine.sh --root {0}
+      - name: Fixup environment
+        run: |
+          ln -s liblua-5.2.so.0 /usr/lib/liblua-5.2.so
+          ln -s /usr/lib/ninja-build/bin/ninja /usr/bin/ninja
+        shell: alpine.sh --root {0}
       - name: Prepare
         run: |
             CXX=/usr/bin/${{ matrix.cpp_compiler }} \
               cmake . -B build -G Ninja \
-              -DCMAKE_MAKE_PROGRAM=/usr/lib/ninja-build/bin/ninja \
               -DCMAKE_BUILD_TYPE=Debug \
               -DPPPLUGIN_SHARED=ON \
               -DPPPLUGIN_ENABLE_EXAMPLES=ON \

@@ -29,17 +29,20 @@ jobs:
               boost-dev \
               boost-filesystem \
               boost-python3 \
-              lua-dev \
               lua5.2-dev \
               python3-dev \
               fmt-dev \
               gtest-dev \
               lcov gzip
         shell: alpine.sh --root {0}
+      - name: Fixup environment
+        run: |
+          ln -s liblua-5.2.so.0 /usr/lib/liblua-5.2.so
+          ln -s /usr/lib/ninja-build/bin/ninja /usr/bin/ninja
+        shell: alpine.sh --root {0}
       - name: Prepare
         run: |
             cmake . -B build -G Ninja \
-              -DCMAKE_MAKE_PROGRAM=/usr/lib/ninja-build/bin/ninja \
               -DCMAKE_BUILD_TYPE=Debug \
               -DPPPLUGIN_ENABLE_TESTS=ON \
               -DPPPLUGIN_ENABLE_COVERAGE=ON \

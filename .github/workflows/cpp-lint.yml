@@ -30,10 +30,14 @@ jobs:
               gtest-dev \
               clang-extra-tools
         shell: alpine.sh --root {0}
+      - name: Fixup environment
+        run: |
+          ln -s liblua-5.2.so.0 /usr/lib/liblua-5.2.so
+          ln -s /usr/lib/ninja-build/bin/ninja /usr/bin/ninja
+        shell: alpine.sh --root {0}
       - name: Generate compile_commands.json
         run: |
             cmake . -B build -G Ninja \
-              -DCMAKE_MAKE_PROGRAM=/usr/lib/ninja-build/bin/ninja \
               -DPPPLUGIN_ENABLE_EXAMPLES=ON \
               -DPPPLUGIN_ENABLE_TESTS=ON \
               -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
