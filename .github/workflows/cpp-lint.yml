@@ -48,5 +48,5 @@ jobs:
         run: find . \( \( -path './build' -o -path '*/.*' \) -prune \) -o
           \( -type f -a \( -iname '*.cpp' -o -iname '*.h' \) \)
           -exec echo "Linting '{}'..." \;
-          -exec clang-tidy -p build --warnings-as-errors='*' {} +
+          -exec run-clang-tidy -p build -warnings-as-errors='*' {} +
         shell: alpine.sh {0}
