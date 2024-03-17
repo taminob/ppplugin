@@ -1,15 +1,23 @@
+#include <cstdlib>
+#include <exception>
 #include <filesystem>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <string_view>
 #include <thread>
 
+#include "cpp/plugin.h"
+#include "errors.h"
 #include "plugin_manager.h"
 #include "simple_plugin.h"
 
 void printError(std::string_view function_name, const ppplugin::CallError& error)
 {
-    std::string_view error_string = error == ppplugin::CallError::Code::symbolNotFound ? "not found"
-        : error == ppplugin::CallError::Code::notLoaded                                ? "not loaded"
-        : error == ppplugin::CallError::Code::unknown                                  ? "unknown error"
-                                                                                       : "other error";
+    const std::string_view error_string = error == ppplugin::CallError::Code::symbolNotFound ? "not found"
+        : error == ppplugin::CallError::Code::notLoaded                                      ? "not loaded"
+        : error == ppplugin::CallError::Code::unknown                                        ? "unknown error"
+                                                                                             : "other error";
     std::cerr << "Unable to call '" << function_name << "' ('" << error_string
               << "')!\n";
 }
@@ -17,10 +25,10 @@ void printError(std::string_view function_name, const ppplugin::CallError& error
 void printError(std::string_view plugin_name, ppplugin::LoadError error)
 {
     using ppplugin::LoadError;
-    std::string_view error_string = error == LoadError::fileNotFound ? "not found"
-        : error == LoadError::fileInvalid                            ? "invalid"
-        : error == LoadError::unknown                                ? "unknown error"
-                                                                     : "other error";
+    const std::string_view error_string = error == LoadError::fileNotFound ? "not found"
+        : error == LoadError::fileInvalid                                  ? "invalid"
+        : error == LoadError::unknown                                      ? "unknown error"
+                                                                           : "other error";
     std::cerr << "Unable to load '" << plugin_name << "' ('" << error_string
               << "')!\n";
 }
@@ -36,6 +44,7 @@ std::thread initializeAndLoop(ppplugin::CppPlugin& plugin, const std::string& fu
             plugin->loop();
         } };
     }
+    // NOLINTNEXTLINE(bugprone-unchecked-optional-access); checked in previous if
     return std::thread { [function_name, error = *plugin_a.error()]() {
         printError(function_name, error);
     } };

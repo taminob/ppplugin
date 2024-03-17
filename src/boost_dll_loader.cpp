@@ -1,10 +1,13 @@
 #include "errors.h"
-#include "expected.h"
 
-#include <boost/dll.hpp>
-
+#include <exception>
 #include <filesystem>
 #include <optional>
+#include <string>
+
+#include <boost/dll/shared_library.hpp>
+#include <boost/dll/shared_library_load_mode.hpp>
+#include <boost/filesystem/path.hpp>
 
 namespace {
 std::optional<ppplugin::CallError> isCallable(const boost::dll::shared_library& library, const std::string& function_name)

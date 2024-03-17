@@ -1,8 +1,13 @@
 #include "lua/lua_state.h"
 
+#include <cstddef>
+#include <optional>
+#include <string>
+#include <string_view>
+
 extern "C" {
 #include <lauxlib.h>
-#include <lualib.h>
+#include <lua.h>
 }
 
 // TODO: move to cmake?

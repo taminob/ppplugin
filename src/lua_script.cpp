@@ -1,7 +1,17 @@
 #include "lua/lua_script.h"
+#include "detail/compatibility_utils.h"
+#include "errors.h"
+#include "expected.h"
+#include "lua/lua_state.h"
+
+#include <filesystem>
+#include <optional>
+#include <stdexcept>
+#include <string>
 
 extern "C" {
 #include <lauxlib.h>
+#include <lua.h>
 #include <lualib.h>
 }
 

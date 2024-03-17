@@ -1,5 +1,8 @@
 #include "detail/scope_guard.h"
 
+#include <functional>
+#include <utility>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -10,7 +13,7 @@ TEST(ScopeGuard, regularUsage)
     testing::MockFunction<std::function<void()>> f;
     EXPECT_CALL(f, Call()).Times(1);
 
-    ScopeGuard guard { f.AsStdFunction() };
+    const ScopeGuard guard { f.AsStdFunction() };
 }
 
 TEST(ScopeGuard, cancel)
