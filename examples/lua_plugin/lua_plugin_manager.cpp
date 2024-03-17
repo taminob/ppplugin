@@ -1,8 +1,13 @@
+#include "lua/plugin.h"
 #include "plugin_manager.h"
 
+#include <exception>
 #include <filesystem>
 #include <iostream>
 #include <thread>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 int main(int argc, char* argv[])
 {
@@ -22,7 +27,7 @@ int main(int argc, char* argv[])
         std::vector<std::thread> threads;
 
         // recursively traverse filesystem to find scripts
-        std::filesystem::recursive_directory_iterator dir_iterator { plugin_dir };
+        const std::filesystem::recursive_directory_iterator dir_iterator { plugin_dir };
         for (const auto& entry : dir_iterator) {
             if (!entry.is_regular_file()) {
                 continue;

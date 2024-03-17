@@ -2,6 +2,13 @@
 #include "test_helper.h"
 #include "test_types.h"
 
+#include <functional>
+#include <optional>
+#include <string>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -9,50 +16,50 @@ using namespace ppplugin;
 
 TEST(Expected, valueConstruction)
 {
-    [[maybe_unused]] Expected<int, bool> v1 { 0 };
-    [[maybe_unused]] Expected<bool, int> v2 { false };
-    [[maybe_unused]] Expected<test::NonDefaultConstructible, int> v3 {
+    [[maybe_unused]] const Expected<int, bool> v1 { 0 };
+    [[maybe_unused]] const Expected<bool, int> v2 { false };
+    [[maybe_unused]] const Expected<test::NonDefaultConstructible, int> v3 {
         test::NonDefaultConstructible { 1, 2, 3 }
     };
-    [[maybe_unused]] Expected<test::NonCopyable, int> v4 { test::NonCopyable {} };
+    [[maybe_unused]] const Expected<test::NonCopyable, int> v4 { test::NonCopyable {} };
 }
 
 TEST(Expected, valueNonTrivialDestruction)
 {
     testing::MockFunction<std::function<void()>> f;
     EXPECT_CALL(f, Call()).Times(1);
-    [[maybe_unused]] Expected<test::NonTrivialDestructible, bool> v {
+    [[maybe_unused]] const Expected<test::NonTrivialDestructible, bool> v {
         test::NonTrivialDestructible { f.AsStdFunction() }
     };
 }
 
 TEST(Expected, valueTrivialDestruction)
 {
-    [[maybe_unused]] Expected<int, test::NonTrivialDestructible> v { 1 };
+    [[maybe_unused]] const Expected<int, test::NonTrivialDestructible> v { 1 };
 }
 
 TEST(Expected, errorNonTrivialDestruction)
 {
     testing::MockFunction<std::function<void()>> f;
     EXPECT_CALL(f, Call()).Times(1);
-    [[maybe_unused]] Expected<bool, test::NonTrivialDestructible> e {
+    [[maybe_unused]] const Expected<bool, test::NonTrivialDestructible> e {
         test::NonTrivialDestructible { f.AsStdFunction() }
     };
 }
 
 TEST(Expected, errorTrivialDestruction)
 {
-    [[maybe_unused]] Expected<test::NonTrivialDestructible, bool> e { false };
+    [[maybe_unused]] const Expected<test::NonTrivialDestructible, bool> e { false };
 }
 
 TEST(Expected, trivialDestruction)
 {
-    [[maybe_unused]] Expected<int, bool> e { false };
+    [[maybe_unused]] const Expected<int, bool> e { false };
 }
 
 TEST(Expected, simpleCopyValueConstructor)
 {
-    Expected<test::CopyAndMovable, double> v { test::CopyAndMovable {} };
+    const Expected<test::CopyAndMovable, double> v { test::CopyAndMovable {} };
     auto copy_target { v };
     ASSERT_TRUE(v.hasValue());
     EXPECT_TRUE(copy_target.hasValue());
@@ -61,7 +68,7 @@ TEST(Expected, simpleCopyValueConstructor)
 
 TEST(Expected, simpleCopyErrorConstructor)
 {
-    Expected<int, test::CopyAndMovable> v { test::CopyAndMovable {} };
+    const Expected<int, test::CopyAndMovable> v { test::CopyAndMovable {} };
     auto copy_target { v };
     ASSERT_FALSE(v.hasValue());
     EXPECT_FALSE(copy_target.hasValue());
@@ -70,24 +77,24 @@ TEST(Expected, simpleCopyErrorConstructor)
 
 TEST(Expected, similarCopyValueConstructor)
 {
-    Expected<double, unsigned int> v { 1.0 };
-    Expected<float, double> copy_target { v };
+    const Expected<double, unsigned int> v { 1.0 };
+    const Expected<float, double> copy_target { v };
     ASSERT_TRUE(v.hasValue());
     EXPECT_TRUE(copy_target.hasValue());
 }
 
 TEST(Expected, similarCopyErrorConstructor)
 {
-    Expected<int, unsigned int> v { 32U };
-    Expected<float, double> copy_target { v };
+    const Expected<int, unsigned int> v { 32U };
+    const Expected<float, double> copy_target { v };
     ASSERT_FALSE(v.hasValue());
     EXPECT_FALSE(copy_target.hasValue());
 }
 
 TEST(Expected, simpleCopyValueAssignment)
 {
-    Expected<test::CopyAndMovable, double> v { test::CopyAndMovable {} };
-    decltype(v) copy_target;
+    const Expected<test::CopyAndMovable, double> v { test::CopyAndMovable {} };
+    std::remove_cv_t<decltype(v)> copy_target;
     copy_target = v;
     ASSERT_TRUE(v.hasValue());
     EXPECT_TRUE(copy_target.hasValue());
@@ -96,8 +103,8 @@ TEST(Expected, simpleCopyValueAssignment)
 
 TEST(Expected, simpleCopyErrorAssignment)
 {
-    Expected<int, test::CopyAndMovable> v { test::CopyAndMovable {} };
-    decltype(v) copy_target;
+    const Expected<int, test::CopyAndMovable> v { test::CopyAndMovable {} };
+    std::remove_cv_t<decltype(v)> copy_target;
     copy_target = v;
     ASSERT_FALSE(v.hasValue());
     EXPECT_FALSE(copy_target.hasValue());
@@ -106,7 +113,7 @@ TEST(Expected, simpleCopyErrorAssignment)
 
 TEST(Expected, similarCopyValueAssignment)
 {
-    Expected<bool, unsigned int> v { true };
+    const Expected<bool, unsigned int> v { true };
     Expected<int, double> copy_target;
     copy_target = v;
     ASSERT_TRUE(v.hasValue());
@@ -115,7 +122,7 @@ TEST(Expected, similarCopyValueAssignment)
 
 TEST(Expected, similarCopyErrorAssignment)
 {
-    Expected<int, const char*> v { "abc" };
+    const Expected<int, const char*> v { "abc" };
     Expected<double, std::string> copy_target;
     copy_target = v;
     ASSERT_FALSE(v.hasValue());
@@ -147,8 +154,8 @@ TEST(Expected, simpleMoveErrorConstructor)
 TEST(Expected, similarMoveValueConstructor)
 {
     Expected<void*, std::string> v { nullptr };
-    Expected<bool, const std::string> move_target { std::move(v) };
     ASSERT_TRUE(v.hasValue());
+    const Expected<bool, const std::string> move_target { std::move(v) };
     EXPECT_TRUE(move_target.hasValue());
 }
 
@@ -156,7 +163,7 @@ TEST(Expected, similarMoveErrorConstructor)
 {
     Expected<float, std::string> v { "abc" };
     ASSERT_FALSE(v.hasValue());
-    Expected<float, std::optional<std::string>> move_target { std::move(v) };
+    const Expected<float, std::optional<std::string>> move_target { std::move(v) };
     EXPECT_FALSE(move_target.hasValue());
 }
 
@@ -188,8 +195,8 @@ TEST(Expected, similarMoveValueAssignment)
 {
     Expected<bool, std::string> v { true };
     Expected<int, std::string> move_target;
-    move_target = std::move(v);
     ASSERT_TRUE(v.hasValue());
+    move_target = std::move(v);
     EXPECT_TRUE(move_target.hasValue());
 }
 
@@ -197,17 +204,17 @@ TEST(Expected, similarMoveErrorAssignment)
 {
     Expected<int, std::string> v { "abc" };
     Expected<float, std::string> move_target;
-    move_target = std::move(v);
     ASSERT_FALSE(v.hasValue());
+    move_target = std::move(v);
     EXPECT_FALSE(move_target.hasValue());
 }
 
 TEST(Expected, hasValue)
 {
-    Expected<int, bool> v { 10 };
+    const Expected<int, bool> v { 10 };
     EXPECT_TRUE(v.hasValue());
 
-    Expected<int, bool> e { true };
+    const Expected<int, bool> e { true };
     EXPECT_FALSE(e.hasValue());
 }
 
@@ -219,8 +226,8 @@ TEST(Expected, dereference)
 
 TEST(Expected, value)
 {
-    Expected<unsigned, double> v { 5U };
-    Expected<unsigned, double> e { 4.0 };
+    const Expected<unsigned, double> v { 5U };
+    const Expected<unsigned, double> e { 4.0 };
 
     EXPECT_TRUE(v.value().has_value());
     EXPECT_FALSE(e.value().has_value());

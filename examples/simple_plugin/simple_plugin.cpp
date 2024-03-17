@@ -1,8 +1,9 @@
 #include "simple_plugin.h"
 
-#include <boost/dll.hpp>
+#include <chrono>
+#include <memory>
 
-#include <iostream>
+#include <boost/dll/alias.hpp>
 
 BOOST_DLL_ALIAS(SimplePluginA::create, create_a);
 

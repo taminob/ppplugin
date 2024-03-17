@@ -6,7 +6,6 @@
 #include "errors.h"
 #include "lua_helpers.h"
 
-#include <filesystem>
 #include <functional>
 #include <optional>
 

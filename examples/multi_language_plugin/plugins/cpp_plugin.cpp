@@ -1,9 +1,9 @@
-#include <boost/dll.hpp>
+#include <boost/dll/alias.hpp>
 #include <iostream>
 
 void initialize()
 {
-    std::cout << "C++ initialize" << std::endl;
+    std::cout << "C++ initialize" << '\n';
 }
 
 // necessary to circumvent different C++ name mangling schemes
@@ -18,7 +18,7 @@ class A {
 public:
     static int loop(int value)
     {
-        std::cout << "C++: " << value++ << std::endl;
+        std::cout << "C++: " << value++ << '\n';
         return value;
     }
 };

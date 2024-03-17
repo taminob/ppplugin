@@ -1,9 +1,16 @@
+#include "errors.h"
+#include "noop_plugin.h"
+#include "plugin.h"
 #include "plugin_manager.h"
 
 #include <chrono>
+#include <exception>
+#include <filesystem>
 #include <iostream>
 #include <limits>
 #include <thread>
+#include <utility>
+#include <vector>
 
 int main(int argc, char* argv[])
 {

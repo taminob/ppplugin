@@ -1,5 +1,14 @@
 #include "configurable_plugin.h"
+#include "cpp/plugin.h"
 #include "plugin_manager.h"
+#include <atomic>
+#include <chrono>
+#include <cstdlib>
+#include <exception>
+#include <filesystem>
+#include <iostream>
+#include <memory>
+#include <thread>
 
 int main(int argc, char* argv[])
 {

@@ -1,5 +1,25 @@
 #include "python/plugin.h"
 
+#include "detail/compatibility_utils.h"
+#include "errors.h"
+#include "expected.h"
+
+#include <filesystem>
+#include <optional>
+#include <string>
+#include <tuple>
+
+#include <boost/python/dict.hpp>
+#include <boost/python/exec.hpp>
+#include <boost/python/extract.hpp>
+#include <boost/python/handle.hpp>
+#include <boost/python/import.hpp>
+#include <boost/python/str.hpp>
+
+#include <pyerrors.h>
+#include <pylifecycle.h>
+#include <pytypedefs.h>
+
 namespace ppplugin {
 PythonPlugin::PythonPlugin(bool is_main_module)
 {
@@ -37,8 +57,8 @@ std::optional<PythonPlugin::PythonException> PythonPlugin::PythonException::late
 
     PythonException result;
     auto object_to_string = [](PyObject* object) {
-        boost::python::handle<> handle { object };
-        boost::python::str string { handle };
+        const boost::python::handle<> handle { object };
+        const boost::python::str string { handle };
         return boost::python::extract<std::string> { string };
     };
     if (py_type != nullptr) {
@@ -51,7 +71,7 @@ std::optional<PythonPlugin::PythonException> PythonPlugin::PythonException::late
         auto traceback_module { boost::python::import("traceback") };
         auto format_traceback(traceback_module.attr("format_tb"));
 
-        boost::python::handle<> tb_handle { py_traceback };
+        const boost::python::handle<> tb_handle { py_traceback };
         auto tb_list { format_traceback(tb_handle) };
         auto tb_str { boost::python::str("\n").join(tb_list) };
         result.traceback_ = boost::python::extract<std::string> { tb_str };
