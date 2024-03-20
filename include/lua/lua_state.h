@@ -120,6 +120,11 @@ private:
     const void* topPointer();
 
     /**
+     * Check if top-most stack value is of type nil.
+     */
+    bool isNil();
+
+    /**
      * Pop top-most value if it is a function.
      *
      * @note Call of this function and the returned function must not have

@@ -14,7 +14,7 @@ extern "C" {
 namespace {
 constexpr auto MINIMUM_LUA_VERSION = 502;
 } // namespace
-static_assert(LUA_VERSION_NUM > MINIMUM_LUA_VERSION);
+static_assert(LUA_VERSION_NUM >= MINIMUM_LUA_VERSION);
 
 namespace ppplugin {
 LuaState::LuaState()
@@ -127,6 +127,11 @@ bool LuaState::isFunction()
     return lua_type(state(), -1) == LUA_TFUNCTION;
 }
 
+bool LuaState::isNil()
+{
+    return lua_type(state(), -1) == LUA_TNIL;
+}
+
 void LuaState::registerPanicHandler(LuaCFunction handler)
 {
     lua_atpanic(state(), handler);
@@ -145,7 +150,11 @@ void LuaState::markGlobal(const std::string& variable_name)
 
 bool LuaState::pushGlobal(const std::string& variable_name)
 {
-    auto type = lua_getglobal(state(), variable_name.c_str());
-    return type != LUA_TNONE;
+    lua_getglobal(state(), variable_name.c_str());
+    if (isNil()) {
+        discardTop();
+        return false;
+    }
+    return true;
 }
 } // namespace ppplugin
