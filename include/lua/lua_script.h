@@ -34,7 +34,7 @@ public:
             if (auto function = state_.top<ReturnValue(Args...)>()) {
                 return (*function)(std::forward<Args>(args)...);
             }
-            return { CallError::Code::unknown };
+            return CallError { CallError::Code::unknown, "Symbol does not match given type" };
         }
         return { CallError::Code::symbolNotFound };
     }
