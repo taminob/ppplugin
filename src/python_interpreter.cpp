@@ -77,11 +77,11 @@ PythonInterpreter::PythonInterpreter()
     main_module_.reset(PyImport_AddModule("__main__"));
 }
 
-bool PythonInterpreter::load(const std::string& file_name)
+std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)
 {
     std::unique_ptr<FILE, void (*)(FILE*)> file { std::fopen(file_name.c_str(), "r+"), [](FILE* file) { std::fclose(file); } };
     if (!file) {
-        return false;
+        return LoadError::fileNotReadable;
     }
     PythonGuard python_guard { state() };
     auto* globals = PyModule_GetDict(mainModule());
@@ -92,10 +92,10 @@ bool PythonInterpreter::load(const std::string& file_name)
     Py_DECREF(globals);
     if (result != nullptr) {
         Py_DECREF(result);
-        return true;
+        return std::nullopt;
     }
     // TODO: check python exception on error
-    return false;
+    return LoadError::unknown;
 }
 
 CallResult<PyObject*> PythonInterpreter::internalCall(const std::string& function_name, PyObject* args)

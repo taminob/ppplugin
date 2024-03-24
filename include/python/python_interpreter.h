@@ -13,7 +13,7 @@ class PythonInterpreter {
 public:
     PythonInterpreter();
 
-    bool load(const std::string& file_name);
+    std::optional<LoadError> load(const std::string& file_name);
     template <typename ReturnValue, typename... Args>
     CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
