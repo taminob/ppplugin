@@ -80,6 +80,7 @@ enum class LoadError {
     unknown,
     fileNotFound,
     fileInvalid,
+    fileNotReadable,
 };
 
 template <typename ReturnType>

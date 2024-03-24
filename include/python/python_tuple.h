@@ -21,7 +21,6 @@ private:
     PyObject* object() { return object_.pyObject(); }
 
     static PyObject* initTuple(int size);
-    static void deleteTuple(PyObject* object);
 
     template <typename T, typename... Args>
     void fillTuple(int start_index, T&& arg, Args&&... args);
@@ -48,7 +47,7 @@ template <typename... Args>
 PythonTuple::PythonTuple(Args&&... args)
     : object_ { initTuple(sizeof...(args)) }
 {
-    if (sizeof...(args) > 0) {
+    if constexpr (sizeof...(args) > 0) {
         fillTuple(0, std::forward<Args>(args)...);
     }
 }
