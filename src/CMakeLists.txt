@@ -1,7 +1,15 @@
 set(LIBRARY_SOURCES ppplugin.cpp)
 
-set(LIBRARY_SOURCES "ppplugin.cpp" "boost_dll_loader.cpp" "lua_state.cpp"
-                    "lua_script.cpp" "python_plugin.cpp")
+set(LIBRARY_SOURCES
+    "ppplugin.cpp"
+    "boost_dll_loader.cpp"
+    "lua_state.cpp"
+    "lua_script.cpp"
+    "python_plugin.cpp"
+    "python_interpreter.cpp"
+    "python_tuple.cpp"
+    "python_object.cpp"
+    "python_guard.cpp")
 
 add_library(${LIBRARY_TARGET} ${LIBRARY_SOURCES})
 target_link_libraries(
