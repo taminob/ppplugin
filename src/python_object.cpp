@@ -1,7 +1,7 @@
 #include "python/python_object.h"
-#include "python/python_guard.h"
 
 #include <Python.h>
+#include <pytypedefs.h>
 
 namespace ppplugin {
 PythonObject::PythonObject()
@@ -11,7 +11,7 @@ PythonObject::PythonObject()
 
 PythonObject::PythonObject(PyObject* object)
     : object_ { object, [](PyObject* object) {
-                   PythonGuard python_guard; // TODO: pass correct thread state?
+                   // TODO: must ensure GIL is held
                    Py_DECREF(object);
                } }
 {

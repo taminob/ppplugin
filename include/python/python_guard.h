@@ -5,7 +5,7 @@
 
 namespace ppplugin {
 struct PythonGuard final {
-    explicit PythonGuard(PyThreadState* state = nullptr);
+    explicit PythonGuard(PyThreadState* state);
     ~PythonGuard();
     PythonGuard(const PythonGuard&) = delete;
     PythonGuard(PythonGuard&&) = delete;
@@ -13,8 +13,7 @@ struct PythonGuard final {
     PythonGuard& operator=(PythonGuard&&) = delete;
 
 private:
-    int previous_gil_;
-    PyThreadState* previous_state_;
+    PyThreadState* state_;
 };
 } // namespace ppplugin
 

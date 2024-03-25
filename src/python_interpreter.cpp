@@ -10,7 +10,10 @@
 #include <pylifecycle.h>
 
 namespace {
-std::once_flag python_initialization_done;
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
+std::once_flag python_initialization_done; // this is fine because Python
+                                           // requires a once-per-process
+                                           // initialization
 [[maybe_unused]] std::vector<std::string> getDictKeys(PyObject* dict)
 {
     auto* keys = PyDict_Keys(dict);
@@ -37,44 +40,51 @@ std::once_flag python_initialization_done;
 
 namespace ppplugin {
 PythonInterpreter::PythonInterpreter()
-    : state_ { nullptr, [](auto* state) {
-                  auto previous_gil = PyGILState_Ensure();
-                  auto* previous_state = PyThreadState_Swap(state);
-                  Py_EndInterpreter(state);
-                  PyThreadState_Swap(previous_state);
-                  PyGILState_Release(previous_gil);
-              } }
-    , main_module_ { nullptr, [](auto* main_module) {
-                        auto previous_gil = PyGILState_Ensure();
+    : main_module_ { nullptr, [this](auto* main_module) {
+                        if (!state()) {
+                            // TODO: handle this failure
+                            return;
+                        }
+                        PythonGuard python_guard { state() };
                         Py_DECREF(main_module);
-                        PyGILState_Release(previous_gil);
                     } }
+    , state_ { nullptr, [](auto* state) {
+                  PythonGuard python_guard { state };
+                  Py_EndInterpreter(state);
+              } }
 {
     std::call_once(python_initialization_done, []() {
+        // TODO: use Py_InitializeFromConfig() with PyConfig_InitIsolatedConfig()
+        //       or Py_InitializeEx(0) to not register signal handlers
         Py_Initialize();
 #if PY_VERSION_HEX < 0x03090000
-        // create GIL, is handled by Py_Initialize() since Python 3.9
+        // create GIL, is handled by Py_Initialize() since Python 3.7;
+        // since Python 3.9, this function is deprecated
         PyEval_InitThreads();
 #endif // PY_VERSION_HEX
-        return PyEval_SaveThread(); // release GIL
+
+        // release GIL of main-interpreter
+        PyEval_ReleaseThread(PyThreadState_Get());
     });
-    PythonGuard python_guard;
-    // TODO: also works if all PythonGuards and the creation
-    //       of the sub-interpreter gets removed - find out why
+    // PythonGuard python_guard {  };
+    //  TODO: also works if all PythonGuards and the creation
+    //        of the sub-interpreter gets removed - find out why
 #if PY_VERSION_HEX >= 0x030c0000
     PyThreadState* state = nullptr;
     PyInterpreterConfig config = _PyInterpreterConfig_INIT;
     auto status = Py_NewInterpreterFromConfig(&state, &config);
-    // TODO: handle failure to create interpreter
     if (PyStatus_IsError(status) == 0) {
         state_.reset(state);
     } else {
+        // TODO: handle failure to create interpreter
         assert(false);
     }
 #else
     state_.reset(Py_NewInterpreter());
 #endif // PY_VERSION_HEX
     main_module_.reset(PyImport_AddModule("__main__"));
+    // release GIL of sub-interpreter
+    PyEval_ReleaseThread(state);
 }
 
 std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)
@@ -100,7 +110,8 @@ std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)
 
 CallResult<PyObject*> PythonInterpreter::internalCall(const std::string& function_name, PyObject* args)
 {
-    PythonGuard python_guard { state() };
+    // TODO: find uniform way to manage guards (here: already locked in PythonPlugin::call)
+    // PythonGuard python_guard { state() };
     auto* function = PyObject_GetAttrString(mainModule(), function_name.c_str());
     if ((function == nullptr) || (PyCallable_Check(function) == 0)) {
         Py_XDECREF(function);
