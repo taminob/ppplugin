@@ -54,9 +54,13 @@ PythonInterpreter::PythonInterpreter()
               } }
 {
     std::call_once(python_initialization_done, []() {
-        // TODO: use Py_InitializeFromConfig() with PyConfig_InitIsolatedConfig()
-        //       or Py_InitializeEx(0) to not register signal handlers
-        Py_Initialize();
+        PyConfig config {};
+        PyConfig_InitIsolatedConfig(&config);
+        auto init_status = Py_InitializeFromConfig(&config);
+        PyConfig_Clear(&config);
+        if (PyStatus_Exception(init_status) != 0) {
+            // TODO: handle failure of Python initialization
+        }
 #if PY_VERSION_HEX < 0x03090000
         // create GIL, is handled by Py_Initialize() since Python 3.7;
         // since Python 3.9, this function is deprecated
