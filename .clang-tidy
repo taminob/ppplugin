@@ -9,7 +9,7 @@ Checks: >
         misc-*,-misc-no-recursion,
         bugprone-*,
         boost-*,
-        cert-*,-cert-dcl16-c,
+        cert-*,-cert-dcl16-c,-cert-dcl51-cpp,-cert-dcl37-c,
         concurrency-*,
         cppcoreguidelines-*,-cppcoreguidelines-avoid-magic-numbers,
         modernize-*,-modernize-use-trailing-return-type,-modernize-use-emplace,
