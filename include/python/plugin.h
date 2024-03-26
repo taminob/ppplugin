@@ -30,19 +30,6 @@ public:
 private:
     PythonPlugin() = default;
 
-    class PythonException {
-    public:
-        PythonException() = default;
-        [[nodiscard]] static std::optional<PythonException> latest();
-
-        [[nodiscard]] std::string toString() const;
-
-    private:
-        std::optional<std::string> type_;
-        std::optional<std::string> value_;
-        std::optional<std::string> traceback_;
-    };
-
 private:
     PythonInterpreter interpreter_;
 };
