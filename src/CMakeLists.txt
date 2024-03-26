@@ -7,6 +7,7 @@ set(LIBRARY_SOURCES
     "lua_script.cpp"
     "python_plugin.cpp"
     "python_interpreter.cpp"
+    "python_exception.cpp"
     "python_tuple.cpp"
     "python_object.cpp"
     "python_guard.cpp")
