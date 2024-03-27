@@ -22,6 +22,11 @@ public:
 
     PyObject* pyObject() { return object(); }
 
+    explicit operator bool()
+    {
+        return object() != nullptr;
+    }
+
     template <typename T>
     std::optional<T> as();
 

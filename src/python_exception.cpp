@@ -12,28 +12,39 @@ namespace ppplugin {
 std::optional<PythonException> PythonException::latest()
 {
     // TODO: acquire GIL
+#if PY_VERSION_HEX >= 0x030c0000 // Python 3.12 or newer
+    PythonObject exception { PyErr_GetRaisedException() };
+    PythonObject type { PyException_GetTraceback(exception.pyObject()) };
+    PythonObject args_tuple { PyException_GetArgs(exception.pyObject()) };
+    PythonObject value { (PyTuple_Size(args_tuple.pyObject()) > 0) ? PyTuple_GetItem(args_tuple.pyObject(), 0)
+                                                                   : nullptr };
+    PythonObject traceback { PyException_GetTraceback(exception.pyObject()) };
+#else
     PyObject* py_type = nullptr;
     PyObject* py_value = nullptr;
     PyObject* py_traceback = nullptr;
-    // TODO: look at PyErr_GetRaisedException for >=3.12
     PyErr_Fetch(&py_type, &py_value, &py_traceback);
+    PythonObject type { py_type };
+    PythonObject value { py_value };
+    PythonObject traceback { py_traceback };
+#endif // PY_VERSION_HEX
 
-    if ((py_type == nullptr) && (py_value == nullptr) && (py_traceback == nullptr)) {
+    if (!type && !value && !traceback) {
         return std::nullopt;
     }
 
     PythonException result;
-    if (py_type != nullptr) {
-        result.type_ = PythonObject { py_type }.as<std::string>();
+    if (type) {
+        result.type_ = type.as<std::string>();
     }
-    if (py_value != nullptr) {
-        result.value_ = PythonObject { py_value }.as<std::string>();
+    if (value) {
+        result.value_ = value.as<std::string>();
     }
-    if (py_traceback != nullptr) {
-        auto* traceback_module { PyImport_AddModule("traceback") };
-        auto* format_traceback { PyObject_GetAttrString(traceback_module, "format_tb") };
+    if (traceback) {
+        PythonObject traceback_module { PyImport_AddModule("traceback") };
+        PythonObject format_traceback { PyObject_GetAttrString(traceback_module.pyObject(), "format_tb") };
 
-        auto output = PythonObject { PyObject_CallOneArg(format_traceback, py_traceback) };
+        auto output = PythonObject { PyObject_CallOneArg(format_traceback.pyObject(), traceback.pyObject()) };
         result.traceback_ = output.as<std::string>();
     }
     return result;

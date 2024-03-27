@@ -1,4 +1,5 @@
 #include "python/python_interpreter.h"
+#include "python/python_exception.h"
 #include "python/python_guard.h"
 
 #include <mutex>
@@ -118,8 +119,13 @@ CallResult<PyObject*> PythonInterpreter::internalCall(const std::string& functio
     if ((function == nullptr) || (PyCallable_Check(function) == 0)) {
         Py_XDECREF(function);
         if (PyErr_Occurred() != nullptr) {
-            // TODO: don't print, return instead
-            PyErr_Print();
+            if (auto exception = PythonException::latest()) {
+                return CallError {
+                    CallError::Code::symbolNotFound,
+                    exception->toString()
+                };
+            }
+            return CallError { CallError::Code::symbolNotFound };
         }
         return { CallError::Code::unknown };
     }
