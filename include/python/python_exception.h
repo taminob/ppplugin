@@ -12,6 +12,11 @@ public:
 
     [[nodiscard]] std::string toString() const;
 
+    explicit operator bool()
+    {
+        return type_ && value_ && traceback_;
+    }
+
 private:
     std::optional<std::string> type_;
     std::optional<std::string> value_;
