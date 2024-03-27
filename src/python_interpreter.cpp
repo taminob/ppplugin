@@ -61,7 +61,7 @@ PythonInterpreter::PythonInterpreter()
         if (PyStatus_Exception(init_status) != 0) {
             // TODO: handle failure of Python initialization
         }
-#if PY_VERSION_HEX < 0x03090000
+#if PY_VERSION_HEX < 0x03090000 // below Python 3.9
         // create GIL, is handled by Py_Initialize() since Python 3.7;
         // since Python 3.9, this function is deprecated
         PyEval_InitThreads();
@@ -70,25 +70,23 @@ PythonInterpreter::PythonInterpreter()
         // release GIL of main-interpreter
         PyEval_ReleaseThread(PyThreadState_Get());
     });
-    // PythonGuard python_guard {  };
-    //  TODO: also works if all PythonGuards and the creation
-    //        of the sub-interpreter gets removed - find out why
-#if PY_VERSION_HEX >= 0x030c0000
-    PyThreadState* state = nullptr;
+#if PY_VERSION_HEX >= 0x030c0000 // Python 3.12 or newer
+    PyThreadState* new_state = nullptr;
     PyInterpreterConfig config = _PyInterpreterConfig_INIT;
-    auto status = Py_NewInterpreterFromConfig(&state, &config);
+    auto status = Py_NewInterpreterFromConfig(&new_state, &config);
     if (PyStatus_IsError(status) == 0) {
-        state_.reset(state);
+        state_.reset(new_state);
     } else {
         // TODO: handle failure to create interpreter
         assert(false);
     }
 #else
+    // Python will exit application on error
     state_.reset(Py_NewInterpreter());
 #endif // PY_VERSION_HEX
     main_module_.reset(PyImport_AddModule("__main__"));
     // release GIL of sub-interpreter
-    PyEval_ReleaseThread(state);
+    PyEval_ReleaseThread(state());
 }
 
 std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)

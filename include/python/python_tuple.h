@@ -1,8 +1,8 @@
 #ifndef PPPLUGIN_PYTHON_TUPLE_H
 #define PPPLUGIN_PYTHON_TUPLE_H
 
-#include "python_object.h"
 #include "python_forward_defs.h"
+#include "python_object.h"
 
 #include <cstddef>
 #include <memory>
