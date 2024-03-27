@@ -1,5 +1,6 @@
 #include "python/python_object.h"
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <pytypedefs.h>
 

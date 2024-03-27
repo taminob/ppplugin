@@ -1,5 +1,6 @@
 #include "python/python_guard.h"
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <ceval.h>
 

@@ -6,6 +6,7 @@
 
 #include <filesystem>
 
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
 #include <pyerrors.h>
 #include <pylifecycle.h>
