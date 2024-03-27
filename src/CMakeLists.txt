@@ -16,7 +16,6 @@ add_library(${LIBRARY_TARGET} ${LIBRARY_SOURCES})
 target_link_libraries(
   ${LIBRARY_TARGET}
   PUBLIC Boost::filesystem
-  PUBLIC Boost::python
   PUBLIC Python::Python
   PRIVATE ${LUA_LIBRARIES})
 if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})

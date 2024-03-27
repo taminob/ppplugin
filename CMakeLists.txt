@@ -24,7 +24,7 @@ option(PPPLUGIN_ENABLE_UNDEFINED_SANITIZE
 option(PPPLUGIN_ENABLE_UNREACHABLE_SANITIZE
        "Enable compilation with unreachable sanitize flags" OFF)
 
-find_package(Boost 1.61.0 REQUIRED COMPONENTS headers filesystem python)
+find_package(Boost 1.61.0 REQUIRED COMPONENTS headers filesystem)
 find_package(Python 3.0 REQUIRED COMPONENTS Development)
 find_package(Lua 5.2 REQUIRED)
 
