@@ -71,6 +71,7 @@ PythonInterpreter::PythonInterpreter()
         // release GIL of main-interpreter
         PyEval_ReleaseThread(PyThreadState_Get());
     });
+    PyGILState_Ensure();
 #if PY_VERSION_HEX >= 0x030c0000 // Python 3.12 or newer
     PyThreadState* new_state = nullptr;
     PyInterpreterConfig config = _PyInterpreterConfig_INIT;
