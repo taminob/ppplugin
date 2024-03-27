@@ -24,7 +24,7 @@ private:
     PyThreadState* state() { return state_.get(); }
     PyObject* mainModule() { return main_module_.get(); }
 
-    CallResult<PyObject*> internalCall(const std::string& function_name, PyObject* args);
+    CallResult<PythonObject> internalCall(const std::string& function_name, PyObject* args);
 
 private:
     std::unique_ptr<PyObject, std::function<void(PyObject*)>> main_module_;
@@ -37,11 +37,11 @@ CallResult<ReturnValue> PythonInterpreter::call(const std::string& function_name
     PythonGuard python_guard { state() };
     PythonTuple args_tuple { std::forward<Args>(args)... };
 
-    return internalCall(function_name, args_tuple.pyObject()).andThen([](PyObject* result) {
+    return internalCall(function_name, args_tuple.pyObject()).andThen([](const PythonObject& result) {
         if constexpr (std::is_void_v<ReturnValue>) {
             return;
         } else {
-            return PythonObject { result }.as<ReturnValue>();
+            return result.as<ReturnValue>();
         }
     });
 }

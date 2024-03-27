@@ -112,14 +112,14 @@ std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)
     return LoadError::unknown;
 }
 
-CallResult<PyObject*> PythonInterpreter::internalCall(const std::string& function_name, PyObject* args)
+CallResult<PythonObject> PythonInterpreter::internalCall(const std::string& function_name, PyObject* args)
 {
     // TODO: find uniform way to manage guards (here: already locked in PythonPlugin::call)
     // PythonGuard python_guard { state() };
     auto* function = PyObject_GetAttrString(mainModule(), function_name.c_str());
     if ((function == nullptr) || (PyCallable_Check(function) == 0)) {
         Py_XDECREF(function);
-        if (PyErr_Occurred() != nullptr) {
+        if (PythonException::occurred()) {
             if (auto exception = PythonException::latest()) {
                 return CallError {
                     CallError::Code::symbolNotFound,
@@ -132,12 +132,19 @@ CallResult<PyObject*> PythonInterpreter::internalCall(const std::string& functio
     }
     PyObject* kwargs = nullptr;
     // TODO: checkout PyEval_SetTrace (?) or PyThreadState_SetAsyncExc to interrupt thread
-    auto* result = PyObject_Call(function, args, kwargs);
+    PythonObject result { PyObject_Call(function, args, kwargs) };
     // TODO: use PyObject_CallOneArg, PyObject_CallNoArgs, PyObject_CallObject?;
     //       see: https://docs.python.org/3/c-api/call.html
     //       or consider vectorcall: https://peps.python.org/pep-0590/
     Py_XDECREF(kwargs);
     Py_DECREF(function);
+    if (PythonException::occurred()) {
+        if (auto exception = PythonException::latest()) {
+            return CallError { CallError::Code::unknown,
+                exception->toString() };
+        }
+        return CallError { CallError::Code::unknown };
+    }
     return result;
 }
 
