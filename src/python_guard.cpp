@@ -1,7 +1,8 @@
 #include "python/python_guard.h"
+#include "python/python_forward_defs.h"
 
 #define PY_SSIZE_T_CLEAN
-#include <Python.h>
+#include <Python.h> // NOLINT(misc-include-cleaner)
 #include <ceval.h>
 
 namespace ppplugin {

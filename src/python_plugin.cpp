@@ -1,16 +1,8 @@
-#include "python/plugin.h"
-
-#include "detail/compatibility_utils.h"
 #include "errors.h"
 #include "expected.h"
+#include "python/plugin.h"
 
 #include <filesystem>
-
-#define PY_SSIZE_T_CLEAN
-#include <Python.h>
-#include <pyerrors.h>
-#include <pylifecycle.h>
-#include <pytypedefs.h>
 
 namespace ppplugin {
 Expected<PythonPlugin, LoadError> PythonPlugin::load(const std::filesystem::path& python_script_path)

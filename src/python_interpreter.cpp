@@ -1,14 +1,35 @@
 #include "python/python_interpreter.h"
+#include "errors.h"
 #include "python/python_exception.h"
+#include "python/python_forward_defs.h"
 #include "python/python_guard.h"
+#include "python/python_object.h"
 
+#include <cassert>
+#include <cstdio>
+#include <memory>
 #include <mutex>
+#include <optional>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #define PY_SSIZE_T_CLEAN
-#include <Python.h>
+#include <Python.h> // NOLINT(misc-include-cleaner)
+#include <abstract.h>
+#include <bytesobject.h>
+#include <ceval.h>
+#include <compile.h>
+#include <cpython/initconfig.h>
+#include <dictobject.h>
+#include <import.h>
+#include <listobject.h>
+#include <moduleobject.h>
+#include <object.h>
 #include <pylifecycle.h>
+#include <pystate.h>
+#include <pythonrun.h>
+#include <unicodeobject.h>
 
 namespace {
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)
@@ -46,11 +67,11 @@ PythonInterpreter::PythonInterpreter()
                             // TODO: handle this failure
                             return;
                         }
-                        PythonGuard python_guard { state() };
+                        PythonGuard const python_guard { state() };
                         Py_DECREF(main_module);
                     } }
     , state_ { nullptr, [](auto* state) {
-                  PythonGuard python_guard { state };
+                  PythonGuard const python_guard { state };
                   Py_EndInterpreter(state);
               } }
 {
@@ -93,15 +114,21 @@ PythonInterpreter::PythonInterpreter()
 
 std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)
 {
-    std::unique_ptr<FILE, void (*)(FILE*)> file { std::fopen(file_name.c_str(), "r+"), [](FILE* file) { std::fclose(file); } };
+    const std::unique_ptr<FILE, void (*)(FILE*)> file {
+        std::fopen(file_name.c_str(), "r+"),
+        [](FILE* file) {
+            // NOLINTNEXTLINE(cppcoreguidelines-owning-memory)
+            std::ignore = std::fclose(file);
+        }
+    };
     if (!file) {
         return LoadError::fileNotReadable;
     }
-    PythonGuard python_guard { state() };
+    PythonGuard const python_guard { state() };
     auto* globals = PyModule_GetDict(mainModule());
     assert(globals);
     auto* locals = globals;
-    int start { Py_file_input };
+    int const start { Py_file_input };
     auto* result = PyRun_File(file.get(), file_name.c_str(), start, globals, locals);
     Py_DECREF(globals);
     if (result != nullptr) {

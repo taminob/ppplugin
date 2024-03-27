@@ -25,6 +25,8 @@ private:
     template <typename T, typename... Args>
     void fillTuple(int start_index, T&& arg, Args&&... args);
 
+    // NOLINTBEGIN(bugprone-easily-swappable-parameters)
+    // NOLINTBEGIN(google-runtime-int)
     void setTupleItem(int index, double value);
     void setTupleItem(int index, unsigned int value);
     void setTupleItem(int index, int value);
@@ -37,6 +39,8 @@ private:
     void setTupleItem(int index, const std::string& value);
     void setTupleItem(int index, bool value);
     void setTupleItem(int index, std::nullptr_t);
+    // NOLINTEND(google-runtime-int)
+    // NOLINTEND(bugprone-easily-swappable-parameters)
     // TODO: also make adding function (via function pointer) possible?
 
 private:

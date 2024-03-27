@@ -2,10 +2,17 @@
 #include "detail/compatibility_utils.h"
 #include "python/python_object.h"
 
+#include <cassert>
 #include <optional>
+#include <string>
 
-#include <Python.h>
+#define PY_SSIZE_T_CLEAN
+#include <Python.h> // NOLINT(misc-include-cleaner)
+#include <abstract.h>
 #include <import.h>
+#include <listobject.h>
+#include <object.h>
+#include <pyerrors.h>
 #include <pytypedefs.h>
 
 namespace ppplugin {
