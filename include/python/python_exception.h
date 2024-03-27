@@ -9,6 +9,7 @@ class PythonException {
 public:
     PythonException() = default;
     [[nodiscard]] static std::optional<PythonException> latest();
+    [[nodiscard]] static bool occurred();
 
     [[nodiscard]] std::string toString() const;
 

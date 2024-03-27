@@ -30,6 +30,9 @@ public:
     template <typename T>
     std::optional<T> as();
 
+    template <typename T>
+    std::optional<T> to();
+
 private:
     PyObject* object() { return object_.get(); }
 
@@ -39,6 +42,8 @@ private:
     std::optional<double> asDouble();
     std::optional<bool> asBool();
     std::optional<std::string> asString();
+
+    std::optional<std::string> toString();
 
 private:
     std::unique_ptr<PyObject, void (*)(PyObject*)> object_;
@@ -57,6 +62,17 @@ std::optional<T> PythonObject::as()
         return asString();
     } else if constexpr (std::is_integral_v<T>) {
         return asLongLong();
+    } else {
+        static_assert(sizeof(T), "Cannot interpret PythonObject as given type!");
+    }
+    return std::nullopt;
+}
+
+template <typename T>
+std::optional<T> PythonObject::to()
+{
+    if constexpr (std::is_same_v<T, std::string>) {
+        return toString();
     } else {
         static_assert(sizeof(T), "Cannot interpret PythonObject as given type!");
     }

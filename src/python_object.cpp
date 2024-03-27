@@ -65,14 +65,25 @@ std::optional<bool> PythonObject::asBool()
 std::optional<std::string> PythonObject::asString()
 {
     if (PyUnicode_Check(object()) != 0) {
-        auto* utf8_object = PyUnicode_AsUTF8String(object());
-        if (utf8_object == nullptr) {
+        PythonObject utf8_object { PyUnicode_AsUTF8String(object()) };
+        if (!utf8_object) {
             return std::nullopt;
         }
-        std::string result { PyBytes_AsString(utf8_object) };
-        Py_DECREF(utf8_object);
+        std::string result { PyBytes_AsString(utf8_object.pyObject()) };
         return result;
     }
+    if (PyBytes_Check(object()) != 0) {
+        auto* result = PyBytes_AsString(object());
+        if (result == nullptr) {
+            return std::nullopt;
+        }
+        return std::string { result };
+    }
     return std::nullopt;
+}
+
+std::optional<std::string> PythonObject::toString()
+{
+    return PythonObject { PyObject_Str(object()) }.asString();
 }
 } // namespace ppplugin

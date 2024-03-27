@@ -11,19 +11,20 @@
 namespace ppplugin {
 std::optional<PythonException> PythonException::latest()
 {
-    // TODO: acquire GIL
+    // TODO: make sure GIL is acquired
 #if PY_VERSION_HEX >= 0x030c0000 // Python 3.12 or newer
     PythonObject exception { PyErr_GetRaisedException() };
-    PythonObject type { PyException_GetTraceback(exception.pyObject()) };
+    PythonObject type { PyObject_Type(exception.pyObject()) };
     PythonObject args_tuple { PyException_GetArgs(exception.pyObject()) };
-    PythonObject value { (PyTuple_Size(args_tuple.pyObject()) > 0) ? PyTuple_GetItem(args_tuple.pyObject(), 0)
+    PythonObject value { (PyTuple_Size(args_tuple.pyObject()) > 0) ? args_tuple
                                                                    : nullptr };
     PythonObject traceback { PyException_GetTraceback(exception.pyObject()) };
 #else
-    PyObject* py_type = nullptr;
-    PyObject* py_value = nullptr;
-    PyObject* py_traceback = nullptr;
+    PyObject* py_type {};
+    PyObject* py_value = {};
+    PyObject* py_traceback {};
     PyErr_Fetch(&py_type, &py_value, &py_traceback);
+    PyErr_NormalizeException(&py_type, &py_value, &py_traceback);
     PythonObject type { py_type };
     PythonObject value { py_value };
     PythonObject traceback { py_traceback };
@@ -35,22 +36,40 @@ std::optional<PythonException> PythonException::latest()
 
     PythonException result;
     if (type) {
-        result.type_ = type.as<std::string>();
+        result.type_ = type.to<std::string>();
     }
     if (value) {
-        result.value_ = value.as<std::string>();
+        result.value_ = value.to<std::string>();
     }
     if (traceback) {
-        PythonObject traceback_module { PyImport_AddModule("traceback") };
+        PythonObject traceback_module { PyImport_ImportModule("traceback") };
+        assert(traceback_module);
         PythonObject format_traceback { PyObject_GetAttrString(traceback_module.pyObject(), "format_tb") };
+        assert(format_traceback);
 
         auto output = PythonObject { PyObject_CallOneArg(format_traceback.pyObject(), traceback.pyObject()) };
-        result.traceback_ = output.as<std::string>();
+        if (PyList_Check(output.pyObject())) {
+            auto output_size = PyList_Size(output.pyObject());
+            std::string formatted_traceback;
+            for (int i = 0; i < output_size; ++i) {
+                formatted_traceback += PythonObject::wrap(PyList_GetItem(output.pyObject(), i)).to<std::string>().value_or("");
+            }
+            if (!formatted_traceback.empty()) {
+                result.traceback_ = formatted_traceback;
+            }
+        } else {
+            result.traceback_ = output.to<std::string>();
+        }
     }
     return result;
 }
 
-[[nodiscard]] std::string PythonException::toString() const
+bool PythonException::occurred()
+{
+    return PyErr_Occurred() != nullptr;
+}
+
+std::string PythonException::toString() const
 {
     auto result = format("'{}': '{}'", type_.value_or("<unknown>"), value_.value_or("<?>"));
     if (traceback_) {
