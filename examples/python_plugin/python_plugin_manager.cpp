@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
                 if (plugin) {
                     threads.emplace_back([plugin = std::move(*plugin), plugin_number = plugin_number++]() mutable {
                         // ignore calling errors
-                        std::ignore = plugin.call<void>("initialize", plugin_number);
+                        plugin.call<void>("initialize", plugin_number).valueOrElse([](ppplugin::CallError error) { std::cerr << error.what() << std::endl; });
                         std::ignore = plugin.call<void>("loop", std::to_string(plugin_number));
                     });
                 } else {

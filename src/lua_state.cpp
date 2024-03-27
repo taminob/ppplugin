@@ -77,7 +77,7 @@ void LuaState::pushOne(double value)
     lua_pushnumber(state(), value);
 }
 
-void LuaState::pushOne(int value)
+void LuaState::pushOne(long long value)
 {
     lua_pushinteger(state(), value);
 }

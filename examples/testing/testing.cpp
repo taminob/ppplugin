@@ -1,16 +1,18 @@
-#include "lua/plugin.h"
 #include "plugin_manager.h"
+#include "python/plugin.h"
+#include "python/python_interpreter.h"
 
 #include <exception>
 #include <filesystem>
+#include <functional>
 #include <iostream>
 #include <thread>
-#include <tuple>
 #include <utility>
 #include <vector>
 
 int main(int argc, char* argv[])
 {
+    std::vector<std::thread> threads;
     try {
         if (argc < 1) {
             return -1;
@@ -23,9 +25,11 @@ int main(int argc, char* argv[])
         } else {
             plugin_dir = std::filesystem::path { argv[1] };
         }
-        ppplugin::GenericPluginManager<ppplugin::LuaPlugin> manager;
-        std::vector<std::thread> threads;
+        ppplugin::GenericPluginManager<ppplugin::PythonPlugin> const manager;
+        int plugin_number {};
+        std::vector<ppplugin::PythonPlugin> const plugins;
 
+        // checkout: https://stackoverflow.com/questions/26061298/python-multi-thread-multi-interpreter-c-api#26570708
         // recursively traverse filesystem to find scripts
         const std::filesystem::recursive_directory_iterator dir_iterator { plugin_dir };
         for (const auto& entry : dir_iterator) {
@@ -34,18 +38,18 @@ int main(int argc, char* argv[])
             }
             const auto& path = entry.path();
             // only load files ending with ".lua" and execute in separate thread
-            if (path.extension() == ".lua") {
-                if (auto plugin = manager.loadLuaPlugin(path)) {
-                    threads.emplace_back([plugin = std::move(*plugin), plugin_number = threads.size()]() mutable {
-                        // data race due to shared resource "stdout",
-                        // but Lua plugins are otherwise thread-safe
-                        std::ignore = plugin.call<void>("initialize");
-                        std::ignore = plugin.call<void>("loop", plugin_number);
-                    });
+            if (path.extension() == ".py") {
+                ppplugin::PythonInterpreter interpreter;
+                if (auto error = interpreter.load(path.string())) {
+                    std::cerr << "failed to load " << path << '\n';
+                    // return -1;
                 }
+                threads.emplace_back([manager, path, plugin_number = plugin_number++, interpreter = std::move(interpreter)]() mutable {
+                    interpreter.call<void>("initialize", std::hash<std::thread::id> {}(std::this_thread::get_id()));
+                    interpreter.call<void>("loop", std::hash<std::thread::id> {}(std::this_thread::get_id()));
+                });
             }
         }
-
         for (auto& thread : threads) {
             thread.join();
         }

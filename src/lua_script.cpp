@@ -30,7 +30,8 @@ LuaScript::LuaScript()
     luaL_openlibs(state_.state());
     state_.registerPanicHandler([](lua_State* state) -> int {
         auto error = LuaState::wrap(state).top<std::string>();
-        // TODO: don't throw because will cross library boundaries
+        // TODO: don't throw because will cross library boundaries;
+        //       use global error state (thread-local or lock-protected)
         throw std::runtime_error(format("Lua PANIC: '{}'!", error.value_or("?")));
     });
     // TODO: setup lua_setwarnf

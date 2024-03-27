@@ -10,6 +10,11 @@
 #include <boost/filesystem/path.hpp>
 
 namespace {
+/**
+ * Helper function to determine if given function can be called in given library.
+ *
+ * @return std::nullopt if function is callable, otherwise an error
+ */
 std::optional<ppplugin::CallError> isCallable(const boost::dll::shared_library& library, const std::string& function_name)
 {
     if (!library.is_loaded()) {

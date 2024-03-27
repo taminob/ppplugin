@@ -19,6 +19,9 @@ target_link_libraries(
   PUBLIC Python::Python
   PRIVATE ${LUA_LIBRARIES})
 if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})
+  # TODO: generate C++17 compatible header files instead
+  # target_compile_options(${LIBRARY_TARGET} PUBLIC
+  # "-DPPPLUGIN_CPP17_COMPATIBILITY") # TODO: fix
   target_link_libraries(${LIBRARY_TARGET} PUBLIC fmt::fmt)
 endif()
 target_include_directories(
