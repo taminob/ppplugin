@@ -1,5 +1,4 @@
 #include "python/python_tuple.h"
-#include "python/python_guard.h"
 
 #include <Python.h>
 #include <object.h>
@@ -9,6 +8,7 @@ namespace ppplugin {
 
 PyObject* PythonTuple::initTuple(int size)
 {
+    // TODO: ensure GIL is held for each function where it is necessary
     if (size < 0) {
         return nullptr;
     }

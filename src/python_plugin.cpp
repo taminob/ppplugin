@@ -5,12 +5,8 @@
 #include "expected.h"
 
 #include <filesystem>
-#include <optional>
-#include <string>
 
-#include <boost/python.hpp>
-
-//#include <Python.h>
+#include <Python.h>
 #include <pyerrors.h>
 #include <pylifecycle.h>
 #include <pytypedefs.h>
