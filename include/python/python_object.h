@@ -38,6 +38,7 @@ private:
 
     // TODO: use explicit template instantiations instead?
     std::optional<int> asInt();
+    // NOLINTNEXTLINE(google-runtime-int)
     std::optional<long long> asLongLong();
     std::optional<double> asDouble();
     std::optional<bool> asBool();

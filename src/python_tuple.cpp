@@ -1,9 +1,20 @@
 #include "python/python_tuple.h"
+#include "python/python_forward_defs.h"
+
+#include <cassert>
+#include <cstddef>
+#include <string>
+#include <string_view>
 
 #define PY_SSIZE_T_CLEAN
-#include <Python.h>
+#include <Python.h> // NOLINT(misc-include-cleaner)
+#include <boolobject.h>
+#include <floatobject.h>
+#include <longobject.h>
 #include <object.h>
+#include <pyport.h>
 #include <tupleobject.h>
+#include <unicodeobject.h>
 
 namespace ppplugin {
 
@@ -18,6 +29,8 @@ PyObject* PythonTuple::initTuple(int size)
     return new_tuple;
 }
 
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
+// NOLINTBEGIN(google-runtime-int)
 void PythonTuple::setTupleItem(int index, double value)
 {
     auto* py_value = PyFloat_FromDouble(value);
@@ -62,6 +75,8 @@ void PythonTuple::setTupleItem(int index, long long value)
     assert(py_value);
     assert(PyTuple_SetItem(object(), index, py_value) == 0);
 }
+// NOLINTEND(google-runtime-int)
+// NOLINTEND(bugprone-easily-swappable-parameters)
 
 void PythonTuple::setTupleItem(int index, const char* value)
 {

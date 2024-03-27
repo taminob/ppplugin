@@ -1,8 +1,17 @@
 #include "python/python_object.h"
 
+#include <optional>
+#include <string>
+
 #define PY_SSIZE_T_CLEAN
-#include <Python.h>
+#include <Python.h> // NOLINT(misc-include-cleaner)
+#include <boolobject.h>
+#include <bytesobject.h>
+#include <floatobject.h>
+#include <longobject.h>
+#include <object.h>
 #include <pytypedefs.h>
+#include <unicodeobject.h>
 
 namespace ppplugin {
 PythonObject::PythonObject()
@@ -34,6 +43,7 @@ std::optional<int> PythonObject::asInt()
     return std::nullopt;
 }
 
+// NOLINTNEXTLINE(google-runtime-int)
 std::optional<long long> PythonObject::asLongLong()
 {
     int overflow {};
