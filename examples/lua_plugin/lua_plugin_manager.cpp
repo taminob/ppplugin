@@ -36,9 +36,11 @@ int main(int argc, char* argv[])
             // only load files ending with ".lua" and execute in separate thread
             if (path.extension() == ".lua") {
                 if (auto plugin = manager.loadLuaPlugin(path)) {
-                    threads.emplace_back([plugin = std::move(*plugin)]() mutable {
+                    threads.emplace_back([plugin = std::move(*plugin), plugin_number = threads.size()]() mutable {
+                        // data race due to shared resource "stdout",
+                        // but Lua plugins are otherwise thread-safe
                         std::ignore = plugin.call<void>("initialize");
-                        std::ignore = plugin.call<void>("loop", "2");
+                        std::ignore = plugin.call<void>("loop", plugin_number);
                     });
                 }
             }
