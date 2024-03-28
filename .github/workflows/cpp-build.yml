@@ -9,6 +9,7 @@ on:
       - 'test/**'
       - 'examples/**'
       - 'CMakeLists.txt'
+      - '.github/workflows/cpp-build.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
