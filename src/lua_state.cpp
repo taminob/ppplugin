@@ -77,7 +77,8 @@ void LuaState::pushOne(double value)
     lua_pushnumber(state(), value);
 }
 
-void LuaState::pushOne(int value)
+// NOLINTNEXTLINE(google-runtime-int)
+void LuaState::pushOne(long long value)
 {
     lua_pushinteger(state(), value);
 }
