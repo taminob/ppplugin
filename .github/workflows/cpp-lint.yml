@@ -10,6 +10,7 @@ on:
       - 'test/**/*.h'
       - 'examples/**/*.cpp'
       - 'examples/**/*.h'
+      - '.github/workflows/cpp-lint.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

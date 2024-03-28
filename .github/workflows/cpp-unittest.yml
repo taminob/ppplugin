@@ -8,6 +8,7 @@ on:
       - 'include/**'
       - 'test/**'
       - 'CMakeLists.txt'
+      - '.github/workflows/cpp-unittest.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
