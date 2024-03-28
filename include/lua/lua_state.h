@@ -134,7 +134,15 @@ private:
     std::optional<std::function<Func>> popFunction(bool always_pop = false);
 
     void pushOne(double value);
-    void pushOne(int value);
+    // NOLINTBEGIN(google-runtime-int)
+    // TODO: use template instead
+    void pushOne(unsigned int value) { pushOne(static_cast<long long>(value)); }
+    void pushOne(int value) { pushOne(static_cast<long long>(value)); }
+    void pushOne(unsigned long value) { pushOne(static_cast<long long>(value)); }
+    void pushOne(long value) { pushOne(static_cast<long long>(value)); }
+    void pushOne(unsigned long long value) { pushOne(static_cast<long long>(value)); }
+    void pushOne(long long value);
+    // NOLINTEND(google-runtime-int)
     void pushOne(const char* value);
     void pushOne(std::string_view value);
     void pushOne(bool value);
@@ -259,7 +267,6 @@ auto LuaState::topFunction()
     }
     return std::optional<decltype(top_function)> { std::nullopt };
 }
-
 } // namespace ppplugin
 
 #endif // PPPLUGIN_LUA_STATE_H
