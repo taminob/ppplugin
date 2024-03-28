@@ -1,6 +1,14 @@
 name: "C++ Unittests"
 
 on:
+  # always run on main branch
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+  # run on PR to main branch if relevant files changed
   pull_request:
     branches: [ main ]
     paths:
