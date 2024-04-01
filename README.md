@@ -37,14 +37,16 @@ This will compile and install the library to the directories
 
 Available compilation options:
 
+<!-- markdownlint-capture -->
+<!-- markdownlint-disable line-length -->
 | Name                       |Default| Description                              |
 | -------------------------- | ----- | ---------------------------------------- |
 | `PPPLUGIN_SHARED`          | `OFF` | Compile as shared library                |
 | `PPPLUGIN_ENABLE_COVERAGE` | `OFF` | Enable flags for measuring test coverage |
 | `PPPLUGIN_ENABLE_TESTS`    | `OFF` | Tests in `tests` will be compiled        |
 | `PPPLUGIN_ENABLE_EXAMPLES` | `OFF` | Examples in `examples` will be compiled  |
-| `PPPLUGIN_ENABLE_CPP17_COMPATIBILITY` | `OFF` | Library will be compiled   \\ |
-||| with C++17 compatibility                                                    |
+| `PPPLUGIN_ENABLE_CPP17_COMPATIBILITY` | `OFF` | Library will be compiled with C++17 compatibility |
+<!-- markdownlint-restore -->
 
 Extend the first command above with the desired options, for example:
 
