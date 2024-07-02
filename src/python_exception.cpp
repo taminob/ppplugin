@@ -23,7 +23,7 @@ std::optional<PythonException> PythonException::latest()
     PythonObject exception { PyErr_GetRaisedException() };
     PythonObject type { PyObject_Type(exception.pyObject()) };
     PythonObject args_tuple { PyException_GetArgs(exception.pyObject()) };
-    PythonObject value { (PyTuple_Size(args_tuple.pyObject()) > 0) ? args_tuple
+    PythonObject value { (PyTuple_Size(args_tuple.pyObject()) > 0) ? PyTuple_GetItem(args_tuple.pyObject(), 0)
                                                                    : nullptr };
     PythonObject traceback { PyException_GetTraceback(exception.pyObject()) };
 #else
