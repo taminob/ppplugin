@@ -42,14 +42,32 @@ jobs:
           - cpp_compiler: "clang++"
             alpine_version: "v3.20"
             cpp17_compatibility: "ON"
+    env:
+      apk_package_cache: "/var/cache/apk"
     steps:
       - uses: actions/checkout@v3
       - uses: jirutka/setup-alpine@v1
         with:
           branch: ${{ matrix.alpine_version }}
+      - name: Setup apk cache
+        run: |
+          mkdir -pv ${{ env.apk_package_cache }}
+          ln -s ${{ env.apk_package_cache }} /etc/apk/cache
+        shell: alpine.sh --root {0}
+      - name: Cache alpine packages
+        id: cache-dependencies
+        uses: actions/cache@v4
+        env:
+          cache-name: cache-alpine-packages
+        with:
+          path: ${{ env.apk_package_cache }}
+          key: alpine-${{ matrix.alpine_version }}-${{ env.cache-name }}
+      - if: ${{ steps.cache-dependencies.outputs.cache-hit != 'true' }}
+        name: Update apk repositories
+        run: apk update
+        shell: alpine.sh --root {0}
       - name: Install dependencies
         run: |
-            apk update
             apk add \
               cmake \
               ninja-build \
@@ -70,13 +88,13 @@ jobs:
         shell: alpine.sh --root {0}
       - name: Prepare
         run: |
-            CXX=/usr/bin/${{ matrix.cpp_compiler }} \
-              cmake . -B build -G Ninja \
-              -DCMAKE_BUILD_TYPE=Debug \
-              -DPPPLUGIN_SHARED=ON \
-              -DPPPLUGIN_ENABLE_EXAMPLES=ON \
-              -DPPPLUGIN_ENABLE_TESTS=ON \
-              -DPPPLUGIN_ENABLE_CPP17_COMPATIBILITY=${{ matrix.cpp17_compatibility }}
+          CXX=/usr/bin/${{ matrix.cpp_compiler }} \
+            cmake . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DPPPLUGIN_SHARED=ON \
+            -DPPPLUGIN_ENABLE_EXAMPLES=ON \
+            -DPPPLUGIN_ENABLE_TESTS=ON \
+            -DPPPLUGIN_ENABLE_CPP17_COMPATIBILITY=${{ matrix.cpp17_compatibility }}
         shell: alpine.sh {0}
       - name: Build
         run: |
