@@ -29,16 +29,40 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cpp17_compatibility: [ "ON", "OFF" ]
-        cpp_compiler: [ "g++", "clang++" ]
+        include:
+          - cpp_compiler: "g++"
+            alpine_version: "v3.20"
+            cpp17_compatibility: "ON"
+          - cpp_compiler: "clang++"
+            alpine_version: "v3.19"
+            cpp17_compatibility: "OFF"
+          - cpp_compiler: "g++"
+            alpine_version: "v3.19"
+            cpp17_compatibility: "OFF"
+          - cpp_compiler: "clang++"
+            alpine_version: "v3.20"
+            cpp17_compatibility: "ON"
+    env:
+      apk_package_cache: "/var/cache/apk"
     steps:
       - uses: actions/checkout@v3
       - uses: jirutka/setup-alpine@v1
         with:
-          branch: v3.19
-      - name: Install dependencies
+          branch: ${{ matrix.alpine_version }}
+      - name: Cache alpine packages
+        id: cache-dependencies
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-alpine-packages
+        with:
+          path: ${{ env.apk_package_cache }}
+          key: ${{ runner.os }}-${{ env.cache-name }}
+      - if: ${{ steps.cache-dependencies.outputs.cache-hit != 'true' }}
+        name: Install dependencies
         run: |
             apk update
+            apk add alpine-conf # install setup-apkcache
+            setup-apkcache ${{ env.apk_package_cache }}
             apk add \
               cmake \
               ninja-build \
