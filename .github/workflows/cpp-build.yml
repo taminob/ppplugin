@@ -61,8 +61,8 @@ jobs:
         name: Install dependencies
         run: |
             apk update
-            apk add alpine-conf # install setup-apkcache
-            setup-apkcache ${{ env.apk_package_cache }}
+            #apk add alpine-conf # install setup-apkcache
+            #setup-apkcache ${{ env.apk_package_cache }}
             apk add \
               cmake \
               ninja-build \
