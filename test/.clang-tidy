@@ -10,4 +10,5 @@ Checks: >
         -bugprone-easily-swappable-parameters,
         -bugprone-unchecked-optional-access,
         -hicpp-noexcept-move,
-        -cppcoreguidelines-noexcept-move-operations
+        -cppcoreguidelines-noexcept-move-operations,
+        -cppcoreguidelines-init-variables
