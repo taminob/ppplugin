@@ -60,9 +60,9 @@ jobs:
       - if: ${{ steps.cache-dependencies.outputs.cache-hit != 'true' }}
         name: Install dependencies
         run: |
+            mkdir -pv ${{ env.apk_package_cache }}
+            ln -s ${{ env.apk_package_cache }} /etc/apk/cache
             apk update
-            apk add alpine-conf # install setup-apkcache
-            #setup-apkcache ${{ env.apk_package_cache }}
             apk add \
               cmake \
               ninja-build \
