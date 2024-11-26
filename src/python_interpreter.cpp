@@ -1,9 +1,9 @@
-#include "python/python_interpreter.h"
-#include "errors.h"
-#include "python/python_exception.h"
-#include "python/python_forward_defs.h"
-#include "python/python_guard.h"
-#include "python/python_object.h"
+#include "ppplugin/python/python_interpreter.h"
+#include "ppplugin/errors.h"
+#include "ppplugin/python/python_exception.h"
+#include "ppplugin/python/python_forward_defs.h"
+#include "ppplugin/python/python_guard.h"
+#include "ppplugin/python/python_object.h"
 
 #include <cassert>
 #include <cstdio>

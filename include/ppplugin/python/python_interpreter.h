@@ -1,9 +1,9 @@
 #ifndef PPPLUGIN_PYTHON_INTERPRETER_H
 #define PPPLUGIN_PYTHON_INTERPRETER_H
 
-#include "errors.h"
-#include "python/python_guard.h"
+#include "ppplugin/errors.h"
 #include "python_forward_defs.h"
+#include "python_guard.h"
 #include "python_object.h"
 #include "python_tuple.h"
 

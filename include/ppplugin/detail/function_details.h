@@ -1,7 +1,7 @@
 #ifndef PPPLUGIN_DETAIL_FUNCTION_DETAILS_H
 #define PPPLUGIN_DETAIL_FUNCTION_DETAILS_H
 
-#include "detail/template_helpers.h"
+#include "ppplugin/detail/template_helpers.h"
 
 #include <tuple>
 

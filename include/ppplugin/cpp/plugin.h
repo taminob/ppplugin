@@ -1,8 +1,8 @@
 #ifndef PPPLUGIN_CPP_PLUGIN_H
 #define PPPLUGIN_CPP_PLUGIN_H
 
-#include "detail/boost_dll_loader.h"
-#include "errors.h"
+#include "ppplugin/detail/boost_dll_loader.h"
+#include "ppplugin/errors.h"
 
 #include <boost/dll.hpp>
 

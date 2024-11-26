@@ -1,6 +1,6 @@
-#include "errors.h"
-#include "expected.h"
-#include "python/plugin.h"
+#include "ppplugin/errors.h"
+#include "ppplugin/expected.h"
+#include "ppplugin/python/plugin.h"
 
 #include <filesystem>
 

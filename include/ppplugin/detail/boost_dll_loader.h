@@ -1,7 +1,7 @@
 #ifndef PPPLUGIN_DETAIL_BOOST_DLL_LOADER_H
 #define PPPLUGIN_DETAIL_BOOST_DLL_LOADER_H
 
-#include "errors.h"
+#include "ppplugin/errors.h"
 
 #include <boost/dll.hpp>
 

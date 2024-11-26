@@ -1,10 +1,10 @@
 #ifndef PPPLUGIN_LUA_STATE_H
 #define PPPLUGIN_LUA_STATE_H
 
-#include "detail/compatibility_utils.h"
-#include "detail/function_details.h"
-#include "errors.h"
 #include "lua_helpers.h"
+#include "ppplugin/detail/compatibility_utils.h"
+#include "ppplugin/detail/function_details.h"
+#include "ppplugin/errors.h"
 
 #include <functional>
 #include <optional>

@@ -1,7 +1,7 @@
 #ifndef PPPLUGIN_NOOP_PLUGIN_H
 #define PPPLUGIN_NOOP_PLUGIN_H
 
-#include "errors.h"
+#include "ppplugin/errors.h"
 
 #include <string_view>
 

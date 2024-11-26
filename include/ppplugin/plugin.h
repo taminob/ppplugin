@@ -1,14 +1,14 @@
 #ifndef PPPLUGIN_PLUGIN_H
 #define PPPLUGIN_PLUGIN_H
 
-#include "c/plugin.h"
-#include "cpp/plugin.h"
-#include "errors.h"
-#include "lua/plugin.h"
-#include "noop_plugin.h"
-#include "python/plugin.h"
+#include "ppplugin/c/plugin.h"
+#include "ppplugin/cpp/plugin.h"
+#include "ppplugin/errors.h"
+#include "ppplugin/lua/plugin.h"
+#include "ppplugin/noop_plugin.h"
+#include "ppplugin/python/plugin.h"
 
-#include "detail/template_helpers.h"
+#include "ppplugin/detail/template_helpers.h"
 
 #include <boost/dll.hpp>
 

@@ -1,4 +1,4 @@
-#include "errors.h"
+#include "ppplugin/errors.h"
 
 #include <exception>
 #include <filesystem>

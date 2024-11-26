@@ -1,8 +1,8 @@
-#include "lua/lua_script.h"
-#include "detail/compatibility_utils.h"
-#include "errors.h"
-#include "expected.h"
-#include "lua/lua_state.h"
+#include "ppplugin/lua/lua_script.h"
+#include "ppplugin/detail/compatibility_utils.h"
+#include "ppplugin/errors.h"
+#include "ppplugin/expected.h"
+#include "ppplugin/lua/lua_state.h"
 
 #include <filesystem>
 #include <optional>

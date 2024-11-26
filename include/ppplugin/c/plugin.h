@@ -1,8 +1,8 @@
 #ifndef PPPLUGIN_C_PLUGIN_H
 #define PPPLUGIN_C_PLUGIN_H
 
-#include "detail/boost_dll_loader.h"
-#include "errors.h"
+#include "ppplugin/detail/boost_dll_loader.h"
+#include "ppplugin/errors.h"
 
 namespace ppplugin {
 class CPlugin {
