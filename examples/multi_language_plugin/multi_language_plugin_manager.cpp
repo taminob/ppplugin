@@ -1,8 +1,3 @@
-#include "errors.h"
-#include "noop_plugin.h"
-#include "plugin.h"
-#include "plugin_manager.h"
-
 #include <chrono>
 #include <exception>
 #include <filesystem>
@@ -11,6 +6,11 @@
 #include <thread>
 #include <utility>
 #include <vector>
+
+#include "ppplugin/errors.h"
+#include "ppplugin/noop_plugin.h"
+#include "ppplugin/plugin.h"
+#include "ppplugin/plugin_manager.h"
 
 int main(int argc, char* argv[])
 {

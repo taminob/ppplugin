@@ -1,6 +1,3 @@
-#include "configurable_plugin.h"
-#include "cpp/plugin.h"
-#include "plugin_manager.h"
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -9,6 +6,10 @@
 #include <iostream>
 #include <memory>
 #include <thread>
+
+#include "configurable_plugin.h"
+#include "ppplugin/cpp/plugin.h"
+#include "ppplugin/plugin_manager.h"
 
 int main(int argc, char* argv[])
 {
