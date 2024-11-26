@@ -1,6 +1,3 @@
-#include "lua/plugin.h"
-#include "plugin_manager.h"
-
 #include <exception>
 #include <filesystem>
 #include <iostream>
@@ -8,6 +5,9 @@
 #include <tuple>
 #include <utility>
 #include <vector>
+
+#include "ppplugin/lua/plugin.h"
+#include "ppplugin/plugin_manager.h"
 
 int main(int argc, char* argv[])
 {

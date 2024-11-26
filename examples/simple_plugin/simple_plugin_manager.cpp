@@ -7,9 +7,10 @@
 #include <string_view>
 #include <thread>
 
-#include "cpp/plugin.h"
-#include "errors.h"
-#include "plugin_manager.h"
+#include "ppplugin/cpp/plugin.h"
+#include "ppplugin/errors.h"
+#include "ppplugin/plugin_manager.h"
+
 #include "simple_plugin.h"
 
 void printError(std::string_view function_name, const ppplugin::CallError& error)

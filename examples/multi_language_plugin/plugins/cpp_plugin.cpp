@@ -1,5 +1,6 @@
-#include <boost/dll/alias.hpp>
 #include <iostream>
+
+#include <boost/dll/alias.hpp>
 
 void initialize()
 {
