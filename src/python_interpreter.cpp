@@ -67,11 +67,11 @@ PythonInterpreter::PythonInterpreter()
                             // TODO: handle this failure
                             return;
                         }
-                        PythonGuard const python_guard { state() };
+                        const PythonGuard python_guard { state() };
                         Py_DECREF(main_module);
                     } }
     , state_ { nullptr, [](auto* state) {
-                  PythonGuard const python_guard { state };
+                  const PythonGuard python_guard { state };
                   Py_EndInterpreter(state);
               } }
 {
@@ -124,11 +124,11 @@ std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)
     if (!file) {
         return LoadError::fileNotReadable;
     }
-    PythonGuard const python_guard { state() };
+    const PythonGuard python_guard { state() };
     auto* globals = PyModule_GetDict(mainModule());
     assert(globals);
     auto* locals = globals;
-    int const start { Py_file_input };
+    const int start { Py_file_input };
     auto* result = PyRun_File(file.get(), file_name.c_str(), start, globals, locals);
     Py_DECREF(globals);
     if (result != nullptr) {
