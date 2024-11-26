@@ -17,10 +17,8 @@ target_link_libraries(
   ${LIBRARY_TARGET}
   PUBLIC Boost::filesystem
   PUBLIC Python::Python
-  PRIVATE ${LUA_LIBRARIES})
-if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})
-  target_link_libraries(${LIBRARY_TARGET} PUBLIC fmt::fmt)
-endif()
+  PRIVATE ${LUA_LIBRARIES}
+  PUBLIC $<$<BOOL:${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY}>:fmt::fmt>)
 target_include_directories(
   ${LIBRARY_TARGET}
   PRIVATE ${LUA_INCLUDE_DIR}
