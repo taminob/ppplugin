@@ -1,5 +1,5 @@
-#include "python/python_tuple.h"
-#include "python/python_forward_defs.h"
+#include "ppplugin/python/python_tuple.h"
+#include "ppplugin/python/python_forward_defs.h"
 
 #include <cassert>
 #include <cstddef>

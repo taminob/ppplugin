@@ -1,8 +1,8 @@
 #ifndef PPPLUGIN_LUA_PLUGIN_H
 #define PPPLUGIN_LUA_PLUGIN_H
 
-#include "errors.h"
-#include "lua/lua_script.h"
+#include "lua_script.h"
+#include "ppplugin/errors.h"
 
 #include <string>
 

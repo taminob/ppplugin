@@ -1,9 +1,9 @@
 #ifndef PPPLUGIN_LUA_SCRIPT_H
 #define PPPLUGIN_LUA_SCRIPT_H
 
-#include "errors.h"
-#include "expected.h"
 #include "lua_state.h"
+#include "ppplugin/errors.h"
+#include "ppplugin/expected.h"
 
 #include <filesystem>
 #include <optional>

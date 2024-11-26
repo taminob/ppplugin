@@ -1,8 +1,8 @@
 #ifndef PPPLUGIN_ERRORS_H
 #define PPPLUGIN_ERRORS_H
 
-#include "detail/compatibility_utils.h"
-#include "expected.h"
+#include "ppplugin/detail/compatibility_utils.h"
+#include "ppplugin/expected.h"
 
 #include <memory>
 #ifndef PPPLUGIN_CPP17_COMPATIBILITY

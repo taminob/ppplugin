@@ -1,6 +1,6 @@
-#include "python/python_exception.h"
-#include "detail/compatibility_utils.h"
-#include "python/python_object.h"
+#include "ppplugin/python/python_exception.h"
+#include "ppplugin/detail/compatibility_utils.h"
+#include "ppplugin/python/python_object.h"
 
 #include <cassert>
 #include <optional>

@@ -1,10 +1,10 @@
 #ifndef PPPLUGIN_PYTHON_PLUGIN_H
 #define PPPLUGIN_PYTHON_PLUGIN_H
 
-#include "detail/function_details.h"
-#include "errors.h"
-#include "expected.h"
-#include "python/python_interpreter.h"
+#include "ppplugin/detail/function_details.h"
+#include "ppplugin/errors.h"
+#include "ppplugin/expected.h"
+#include "ppplugin/python/python_interpreter.h"
 
 #include <filesystem>
 

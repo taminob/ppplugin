@@ -1,14 +1,14 @@
 #ifndef PPPLUGIN_PLUGIN_MANAGER_H
 #define PPPLUGIN_PLUGIN_MANAGER_H
 
-#include "c/plugin.h"
-#include "cpp/plugin.h"
-#include "detail/template_helpers.h"
-#include "errors.h"
-#include "expected.h"
-#include "lua/plugin.h"
-#include "plugin.h"
-#include "python/plugin.h"
+#include "ppplugin/c/plugin.h"
+#include "ppplugin/cpp/plugin.h"
+#include "ppplugin/detail/template_helpers.h"
+#include "ppplugin/errors.h"
+#include "ppplugin/expected.h"
+#include "ppplugin/lua/plugin.h"
+#include "ppplugin/plugin.h"
+#include "ppplugin/python/plugin.h"
 
 #include <boost/dll.hpp>
 
