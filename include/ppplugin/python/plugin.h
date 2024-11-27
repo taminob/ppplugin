@@ -27,6 +27,17 @@ public:
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
+    template <typename VariableType>
+    CallResult<VariableType> global(const std::string& variable_name)
+    {
+        return interpreter_.global<VariableType>(variable_name);
+    }
+    template <typename VariableType>
+    void global(const std::string& variable_name, VariableType&& new_value)
+    {
+        interpreter_.global(variable_name, std::forward<VariableType>(new_value));
+    }
+
 private:
     PythonPlugin() = default;
 
