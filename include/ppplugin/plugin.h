@@ -57,6 +57,12 @@ public:
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
+    template <typename VariableType>
+    CallResult<VariableType> global(const std::string& variable_name);
+    // TODO: return error
+    template <typename VariableType>
+    void global(const std::string& variable_name, VariableType&& new_value);
+
     template <typename P>
     std::optional<std::reference_wrapper<P>> plugin();
 
@@ -94,6 +100,28 @@ CallResult<ReturnValue> GenericPlugin<Plugins...>::call(
                     function_name, std::forward<Args>(args)...);
             },
                 std::move(args));
+        },
+        plugin_);
+}
+
+template <typename... Plugins>
+template <typename VariableType>
+CallResult<VariableType> GenericPlugin<Plugins...>::global(const std::string& variable_name)
+{
+    return std::visit(
+        [&variable_name](auto& plugin) -> CallResult<VariableType> {
+            return plugin.template global<VariableType>(variable_name);
+        },
+        plugin_);
+}
+
+template <typename... Plugins>
+template <typename VariableType>
+void GenericPlugin<Plugins...>::global(const std::string& variable_name, VariableType&& new_value)
+{
+    std::visit(
+        [&variable_name, &new_value](auto& plugin) {
+            plugin.global(variable_name, std::forward<VariableType>(new_value));
         },
         plugin_);
 }
