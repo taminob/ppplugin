@@ -42,6 +42,24 @@ public:
             plugin_, function_name, std::forward<Args>(args)...);
     }
 
+    template <typename VariableType>
+    CallResult<VariableType> global(const std::string& variable_name)
+    {
+        auto p = detail::boost_dll::getSymbol(plugin_, variable_name);
+        if (p.hasValue()) {
+            return *reinterpret_cast<VariableType*>(p.value().value());
+        }
+        return { p.error().value() };
+    }
+    template <typename VariableType>
+    void global(const std::string& variable_name, VariableType&& new_value)
+    {
+        auto p = detail::boost_dll::getSymbol(plugin_, variable_name);
+        if (p.hasValue()) {
+            *reinterpret_cast<VariableType*>(p.value().value()) = std::forward<VariableType>(new_value);
+        }
+    }
+
 private:
     CppPlugin() = default;
 

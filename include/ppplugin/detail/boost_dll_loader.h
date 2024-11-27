@@ -20,6 +20,7 @@ namespace ppplugin::detail::boost_dll {
 
 [[nodiscard]] CallResult<void*> getFunctionSymbol(const boost::dll::shared_library& library, const std::string& function_name);
 [[nodiscard]] CallResult<void*> getFunctionPointerSymbol(const boost::dll::shared_library& library, const std::string& function_name);
+[[nodiscard]] CallResult<void**> getSymbol(const boost::dll::shared_library& library, const std::string& function_name);
 
 template <bool isPointer, typename ReturnValue, typename... Args>
 [[nodiscard]] CallResult<ReturnValue> call(const boost::dll::shared_library& library, const std::string& function_name, Args&&... args)
