@@ -47,6 +47,17 @@ public:
         return script_.call<ReturnValue>(function_name, std::forward<Args>(args)...);
     }
 
+    template <typename VariableType>
+    CallResult<VariableType> global(const std::string& variable_name)
+    {
+        return script_.global<VariableType>(variable_name);
+    }
+    template <typename VariableType>
+    void global(const std::string& variable_name, VariableType&& new_value)
+    {
+        script_.global(variable_name, std::forward<VariableType>(new_value));
+    }
+
 private:
     explicit LuaPlugin(LuaScript&& script)
         : script_ { std::move(script) }
