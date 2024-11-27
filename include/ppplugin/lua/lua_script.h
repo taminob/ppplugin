@@ -39,6 +39,24 @@ public:
         return { CallError::Code::symbolNotFound };
     }
 
+    template <typename VariableType>
+    CallResult<VariableType> global(const std::string& variable_name)
+    {
+        if (state_.pushGlobal(variable_name)) {
+            if (auto value = state_.pop<VariableType>()) {
+                return value.value();
+            }
+            return { CallError::Code::unknown };
+        }
+        return { CallError::Code::symbolNotFound };
+    }
+    template <typename VariableType>
+    void global(const std::string& variable_name, VariableType&& new_value)
+    {
+        state_.push(new_value);
+        state_.markGlobal(variable_name);
+    }
+
 private:
     LuaScript();
 
