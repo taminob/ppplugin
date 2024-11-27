@@ -20,6 +20,22 @@ public:
     template <typename ReturnValue, typename... Args>
     CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
+    template <typename VariableType>
+    CallResult<VariableType> global(const std::string& variable_name)
+    {
+        // TODO implement global for Python
+        (void)variable_name;
+        throw std::logic_error { "unimplemented" };
+    }
+    template <typename VariableType>
+    void global(const std::string& variable_name, VariableType&& new_value)
+    {
+        // TODO implement global for Python
+        (void)variable_name;
+        (void)new_value;
+        throw std::logic_error { "unimplemented" };
+    }
+
 private:
     PyThreadState* state() { return state_.get(); }
     PyObject* mainModule() { return main_module_.get(); }
