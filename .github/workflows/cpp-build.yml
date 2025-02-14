@@ -42,50 +42,29 @@ jobs:
           - cpp_compiler: "clang++"
             alpine_version: "v3.20"
             cpp17_compatibility: "ON"
-    env:
-      apk_package_cache: "/var/cache/apk"
     steps:
       - uses: actions/checkout@v3
       - uses: jirutka/setup-alpine@v1
         with:
           branch: ${{ matrix.alpine_version }}
-      - name: Setup apk cache
-        run: |
-          mkdir -pv ${{ env.apk_package_cache }}
-          ln -s ${{ env.apk_package_cache }} /etc/apk/cache
-        shell: alpine.sh --root {0}
-      - name: Cache alpine packages
-        id: cache-dependencies
-        uses: actions/cache@v4
-        env:
-          cache-name: cache-alpine-packages
-        with:
-          path: ${{ env.apk_package_cache }}
-          key: alpine-${{ matrix.alpine_version }}-${{ env.cache-name }}
-      - if: ${{ steps.cache-dependencies.outputs.cache-hit != 'true' }}
-        name: Update apk repositories
-        run: apk update
-        shell: alpine.sh --root {0}
-      - name: Install dependencies
-        run: |
-            apk add \
-              cmake \
-              ninja-build \
-              g++ \
-              clang \
-              boost-dev \
-              boost-filesystem \
-              boost-python3 \
-              lua5.2-dev \
-              python3-dev \
-              fmt-dev \
-              gtest-dev
-        shell: alpine.sh --root {0}
+          packages: >
+            cmake
+            ninja-build
+            g++
+            clang
+            boost-dev
+            boost-filesystem
+            boost-python3
+            lua5.2-dev
+            python3-dev
+            fmt-dev
+            gtest-dev
       - name: Fixup environment
         run: |
           ln -s liblua-5.2.so.0 /usr/lib/liblua-5.2.so
           ln -s /usr/lib/ninja-build/bin/ninja /usr/bin/ninja
         shell: alpine.sh --root {0}
+
       - name: Prepare
         run: |
           CXX=/usr/bin/${{ matrix.cpp_compiler }} \

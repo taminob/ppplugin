@@ -33,27 +33,24 @@ jobs:
       - uses: jirutka/setup-alpine@v1
         with:
           branch: v3.19
-      - name: Install dependencies
-        run: |
-            apk update
-            apk add \
-              cmake \
-              ninja-build \
-              g++ \
-              boost-dev \
-              boost-filesystem \
-              boost-python3 \
-              lua5.2-dev \
-              python3-dev \
-              fmt-dev \
-              gtest-dev \
-              clang-extra-tools
-        shell: alpine.sh --root {0}
+          packages: >
+            cmake
+            ninja-build
+            g++
+            boost-dev
+            boost-filesystem
+            boost-python3
+            lua5.2-dev
+            python3-dev
+            fmt-dev
+            gtest-dev
+            clang-extra-tools
       - name: Fixup environment
         run: |
           ln -s liblua-5.2.so.0 /usr/lib/liblua-5.2.so
           ln -s /usr/lib/ninja-build/bin/ninja /usr/bin/ninja
         shell: alpine.sh --root {0}
+
       - name: Generate compile_commands.json
         run: |
             cmake . -B build -G Ninja \
@@ -61,6 +58,7 @@ jobs:
               -DPPPLUGIN_ENABLE_TESTS=ON \
               -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
         shell: alpine.sh {0}
+
       # Check all source and header C++ files;
       # ignore files in the build directory or in hidden directories
       - name: Execute clang-tidy
