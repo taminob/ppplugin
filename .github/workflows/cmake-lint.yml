@@ -25,12 +25,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache-dependency-path: '.github/workflows/cmake-lint.yml'
+          cache: 'pip'
       - name: Install dependencies
-        run: |
-            sudo apt update -y
-            sudo apt -y --no-install-recommends install \
-              python3-pip='22.*'
-            pip install cmakelint
+        run: pip install cmakelint
       - name: Execute cmakelint
         run: find . \( \( -path './build' -o -path '*/.*' \) -prune \) -o
           \( -type f -a -iname 'CMakeLists.txt' \)
