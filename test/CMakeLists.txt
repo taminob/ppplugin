@@ -10,6 +10,8 @@ target_link_libraries(
   ${TESTS_NAME} PRIVATE GTest::GTest GTest::Main gmock Threads::Threads
                         ${LIBRARY_TARGET_STATIC})
 
+gtest_discover_tests(${TESTS_NAME})
+
 add_test(
   NAME cmake_shared_cpp17_compatible_installation_test
   COMMAND
