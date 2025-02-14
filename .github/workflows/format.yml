@@ -30,13 +30,18 @@ jobs:
       - uses: jirutka/setup-alpine@v1
         with:
           branch: v3.19
-      - name: Install dependencies
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache-dependency-path: '.github/workflows/format.yml'
+          cache: 'pip'
+      - name: Install CMake linting tools
+        run: pip install cmakelint
+      - name: Install C++ linting tools
         run: |
             apk update
             apk add \
-              clang-extra-tools \
-              py3-pip
-            pip install --break-system-packages cmake-format
+              clang-extra-tools
         shell: alpine.sh --root {0}
       # Check all source and header C++ files; ignore files in hidden directories
       - name: Execute clang-format
@@ -51,4 +56,3 @@ jobs:
           \( -type f -a -name 'CMakeLists.txt' \)
           -exec echo "Format checking '{}'..." \;
           -exec cmake-format --check -- {} +
-        shell: alpine.sh {0}
