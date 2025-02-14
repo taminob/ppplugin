@@ -1,4 +1,4 @@
-name: "C++ Build"
+name: "Build|Test"
 
 on:
   # always run on main branch
@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   build:
-    name: "gcc/clang build"
+    name: "build"
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -73,6 +73,7 @@ jobs:
             -DPPPLUGIN_SHARED=ON \
             -DPPPLUGIN_ENABLE_EXAMPLES=ON \
             -DPPPLUGIN_ENABLE_TESTS=ON \
+            -DPPPLUGIN_ENABLE_COVERAGE=ON \
             -DPPPLUGIN_ENABLE_CPP17_COMPATIBILITY=${{ matrix.cpp17_compatibility }}
         shell: alpine.sh {0}
       - name: Build
@@ -83,3 +84,62 @@ jobs:
         run: |
           cmake --install build
         shell: alpine.sh --root {0}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: build_alpine-${{ matrix.alpine_version }}_${{ matrix.cpp_compiler }}_cpp17-${{ matrix.cpp17_compatibility }}
+          path: build
+
+  unittest:
+    name: "unittest"
+    needs: build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        cpp17_compatibility: [ "ON", "OFF" ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: build_alpine-*_g++_cpp17-${{ matrix.cpp17_compatibility }}
+          path: build
+          merge-multiple: true
+      - name: Fix artifact permissions
+        run: chmod +x build/test/tests
+
+      - uses: jirutka/setup-alpine@v1
+        with:
+          branch: v3.20
+          packages: >
+            g++
+            gtest-dev
+            lcov
+            gzip
+
+      - name: Execute tests
+        run: |
+          lcov --capture --initial \
+            --directory . \
+            --ignore-errors mismatch \
+            --output-file baseline_coverage 
+          build/test/tests || echo $?
+          lcov --capture \
+            --directory . \
+            --ignore-errors mismatch \
+            --output-file total_coverage
+          lcov \
+            --add-tracefile baseline_coverage \
+            --add-tracefile total_coverage \
+            --ignore-errors mismatch \
+            --output-file measured_coverage
+          lcov --remove measured_coverage "/usr*" \
+            --ignore-errors mismatch \
+            --output-file coverage_without_system_files
+          lcov --remove coverage_without_system_files "*/test/*" \
+            --ignore-errors mismatch \
+            --output-file coverage_without_system_and_test_files
+          genhtml \
+            --output-directory coverage \
+            --legend coverage_without_system_and_test_files
+          lcov --list coverage_without_system_and_test_files
+        shell: alpine.sh {0}
