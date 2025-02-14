@@ -30,19 +30,9 @@ jobs:
       - uses: jirutka/setup-alpine@v1
         with:
           branch: v3.19
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-          cache-dependency-path: '.github/workflows/format.yml'
-          cache: 'pip'
-      - name: Install CMake linting tools
-        run: pip install cmakelint
-      - name: Install C++ linting tools
-        run: |
-            apk update
-            apk add \
-              clang-extra-tools
-        shell: alpine.sh --root {0}
+          packages: >
+            clang-extra-tools
+
       # Check all source and header C++ files; ignore files in hidden directories
       - name: Execute clang-format
         run: find . \( -path '*/.*' -prune \) -o
@@ -50,6 +40,15 @@ jobs:
           -exec echo "Format checking '{}'..." \;
           -exec clang-format --dry-run --Werror --Wno-error=unknown {} +
         shell: alpine.sh {0}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache-dependency-path: '.github/workflows/format.yml'
+          cache: 'pip'
+      - name: Install CMake formatting tool
+        run: pip install cmake-format
+
       # Check all cmake files; ignore files in hidden directories
       - name: Execute cmake-format
         run: find . \( -path '*/.*' -prune \) -o

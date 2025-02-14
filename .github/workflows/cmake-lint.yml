@@ -32,6 +32,7 @@ jobs:
           cache: 'pip'
       - name: Install dependencies
         run: pip install cmakelint
+
       - name: Execute cmakelint
         run: find . \( \( -path './build' -o -path '*/.*' \) -prune \) -o
           \( -type f -a -iname 'CMakeLists.txt' \)
