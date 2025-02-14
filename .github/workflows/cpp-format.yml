@@ -1,0 +1,41 @@
+name: "C++ Format"
+
+on:
+  # always run on main branch
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+  # run on PR to main branch if relevant files changed
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**/*.cpp'
+      - '**/*.h'
+      - '.github/workflows/cpp-format.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: "clang-format"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: jirutka/setup-alpine@v1
+        with:
+          branch: v3.19
+          packages: >
+            clang-extra-tools
+
+      # Check all source and header C++ files; ignore files in hidden directories
+      - name: Execute clang-format
+        run: find . \( -path '*/.*' -prune \) -o
+          \( -type f -a \( -iname '*.cpp' -o -iname '*.h' \) \)
+          -exec echo "Format checking '{}'..." \;
+          -exec clang-format --dry-run --Werror --Wno-error=unknown {} +
+        shell: alpine.sh {0}
