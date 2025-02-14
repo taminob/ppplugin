@@ -38,3 +38,22 @@ add_test(
     ${CMAKE_CURRENT_BINARY_DIR}/cmake_find_package_test_build
     ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_static "STATIC" "Cpp20"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/find_package_test)
+
+add_test(
+  NAME cmake_no_shared_installation_test
+  COMMAND
+    test.sh ${CMAKE_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake_find_package_test_build
+    ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_shared_fail "SHARED_FAIL"
+    "Cpp20"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/find_package_test)
+set_property(TEST cmake_no_shared_installation_test PROPERTY WILL_FAIL TRUE)
+add_test(
+  NAME cmake_no_static_installation_test
+  COMMAND
+    test.sh ${CMAKE_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake_find_package_test_build
+    ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_static_fail "STATIC_FAIL"
+    "Cpp20"
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/find_package_test)
+set_property(TEST cmake_no_static_installation_test PROPERTY WILL_FAIL TRUE)
