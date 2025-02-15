@@ -121,23 +121,23 @@ jobs:
         run: |
           lcov --capture --initial \
             --directory . \
-            --ignore-errors mismatch \
+            --ignore-errors mismatch,source \
             --output-file baseline_coverage 
           build/test/tests || echo $?
           lcov --capture \
             --directory . \
-            --ignore-errors mismatch \
+            --ignore-errors mismatch,source \
             --output-file total_coverage
           lcov \
             --add-tracefile baseline_coverage \
             --add-tracefile total_coverage \
-            --ignore-errors mismatch \
+            --ignore-errors mismatch,source \
             --output-file measured_coverage
           lcov --remove measured_coverage "/usr*" \
-            --ignore-errors mismatch \
+            --ignore-errors mismatch,source \
             --output-file coverage_without_system_files
           lcov --remove coverage_without_system_files "*/test/*" \
-            --ignore-errors mismatch \
+            --ignore-errors mismatch,source \
             --output-file coverage_without_system_and_test_files
           genhtml \
             --output-directory coverage \
