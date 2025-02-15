@@ -32,16 +32,16 @@ jobs:
         include:
           - cpp_compiler: "g++"
             alpine_version: "v3.20"
-            cpp17_compatibility: "ON"
+            cpp_version: "cpp17"
           - cpp_compiler: "clang++"
             alpine_version: "v3.19"
-            cpp17_compatibility: "OFF"
+            cpp_version: "cpp17"
           - cpp_compiler: "g++"
             alpine_version: "v3.19"
-            cpp17_compatibility: "OFF"
+            cpp_version: "cpp20"
           - cpp_compiler: "clang++"
             alpine_version: "v3.20"
-            cpp17_compatibility: "ON"
+            cpp_version: "cpp20"
     steps:
       - uses: actions/checkout@v3
       - uses: jirutka/setup-alpine@v1
@@ -73,8 +73,8 @@ jobs:
             -DPPPLUGIN_SHARED=ON \
             -DPPPLUGIN_ENABLE_EXAMPLES=ON \
             -DPPPLUGIN_ENABLE_TESTS=ON \
-            -DPPPLUGIN_ENABLE_COVERAGE=ON \
-            -DPPPLUGIN_ENABLE_CPP17_COMPATIBILITY=${{ matrix.cpp17_compatibility }}
+            -DPPPLUGIN_ENABLE_COVERAGE=${{ matrix.cpp_compiler == 'g++' && 'ON' || 'OFF' }} \
+            -DPPPLUGIN_ENABLE_CPP17_COMPATIBILITY=${{ matrix.cpp_version == 'cpp17' && 'ON' || 'OFF' }}
         shell: alpine.sh {0}
       - name: Build
         run: |
@@ -87,7 +87,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: build_alpine-${{ matrix.alpine_version }}_${{ matrix.cpp_compiler }}_cpp17-${{ matrix.cpp17_compatibility }}
+          name: build_alpine-${{ matrix.alpine_version }}_${{ matrix.cpp_compiler }}_${{ matrix.cpp_version }}
           path: build
 
   unittest:
@@ -96,12 +96,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        cpp17_compatibility: [ "ON", "OFF" ]
+        cpp_version: [ "cpp17", "cpp20" ]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/download-artifact@v4
         with:
-          pattern: build_alpine-*_g++_cpp17-${{ matrix.cpp17_compatibility }}
+          pattern: build_alpine-*_g++_${{ matrix.cpp_version }}
           path: build
           merge-multiple: true
       - name: Fix artifact permissions
