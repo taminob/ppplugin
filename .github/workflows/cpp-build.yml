@@ -89,6 +89,7 @@ jobs:
         with:
           name: build_alpine-${{ matrix.alpine_version }}_${{ matrix.cpp_compiler }}_${{ matrix.cpp_version }}
           path: build
+          retention-days: 5
 
   unittest:
     name: "unittest"
