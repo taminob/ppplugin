@@ -4,7 +4,6 @@
 #include "ppplugin/detail/compatibility_utils.h"
 #include "ppplugin/expected.h"
 
-#include <memory>
 #ifndef PPPLUGIN_CPP17_COMPATIBILITY
 #include <source_location>
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
