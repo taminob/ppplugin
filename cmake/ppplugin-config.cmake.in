@@ -6,6 +6,10 @@ find_dependency(Boost @Boost_VERSION_MAJOR@ COMPONENTS headers filesystem
 find_dependency(Python @Python_VERSION_MAJOR@ COMPONENTS Development)
 find_dependency(Lua @LUA_VERSION_MAJOR@)
 
+if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})
+  find_dependency(fmt @fmt_VERSION_MAJOR@)
+endif()
+
 check_required_components("@PROJECT_NAME@")
 
 set(PPPLUGIN_INCLUDE_DIR ${PACKAGE_PREFIX_DIR}/include)
