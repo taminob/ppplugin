@@ -28,7 +28,7 @@ fi
 TEST_BUILD_DIR="${BUILD_DIR}/shared_${TEST_SHARED}_cpp17_${TEST_CPP17_COMPATIBILITY}"
 EXECUTABLE_NAME="${TEST_BUILD_DIR}/a"
 
-"${ROOT_SOURCE_DIR}/test/cmake_tests/build_and_install_ppplugin.sh" "${ROOT_SOURCE_DIR}" "${BUILD_DIR}/ppplugin_build_shared_${TEST_SHARED}" "${INSTALL_ROOT}" "${TEST_SHARED}"
+"${ROOT_SOURCE_DIR}/test/cmake_tests/build_and_install_ppplugin.sh" "${ROOT_SOURCE_DIR}" "${BUILD_DIR}/ppplugin_build_shared_${TEST_SHARED}_cpp17_${TEST_CPP17_COMPATIBILITY}" "${INSTALL_ROOT}" "${TEST_SHARED}" "${TEST_CPP17_COMPATIBILITY}"
 
 # if it is a test with expected failure, switch dependency to opposite library type to provoke error
 if [ "${4}" = "SHARED_FAIL" ]; then
