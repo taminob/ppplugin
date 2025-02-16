@@ -4,7 +4,7 @@
 #include <cassert>
 #include <optional>
 #include <variant>
-#if __cplusplus >= 202101L
+#if __cplusplus >= 202101L // if C++23 is available
 #include <expected>
 #endif // __cplusplus
 
