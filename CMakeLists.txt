@@ -60,8 +60,6 @@ set(DEBUG_FLAGS "-g3")
 if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})
   find_package(fmt 8.1.0 REQUIRED)
   set(CMAKE_CXX_STANDARD 17)
-  # TODO: generate C++17 compatible header files instead
-  add_definitions("-DPPPLUGIN_CPP17_COMPATIBILITY")
 else()
   set(CMAKE_CXX_STANDARD 20)
 endif()

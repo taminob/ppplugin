@@ -24,6 +24,9 @@ target_include_directories(
   PRIVATE ${LUA_INCLUDE_DIR}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
   PUBLIC $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+target_compile_definitions(
+  ${LIBRARY_TARGET} PUBLIC $<$<BOOL:${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY}>:
+                           "PPPLUGIN_CPP17_COMPATIBILITY">)
 
 set_target_properties(
   ${LIBRARY_TARGET}
