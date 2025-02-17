@@ -7,6 +7,7 @@
 #include "ppplugin/errors.h"
 
 #include <functional>
+#include <memory>
 #include <optional>
 
 struct lua_State;

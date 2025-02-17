@@ -24,7 +24,7 @@ option(PPPLUGIN_ENABLE_UNDEFINED_SANITIZE
 option(PPPLUGIN_ENABLE_UNREACHABLE_SANITIZE
        "Enable compilation with unreachable sanitize flags" OFF)
 
-find_package(Boost 1.61.0 REQUIRED COMPONENTS headers filesystem)
+find_package(Boost 1.70.0 REQUIRED CONFIG COMPONENTS headers filesystem)
 find_package(Python 3.0 REQUIRED COMPONENTS Development)
 find_package(Lua 5.2 REQUIRED)
 
@@ -60,8 +60,6 @@ set(DEBUG_FLAGS "-g3")
 if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})
   find_package(fmt 8.1.0 REQUIRED)
   set(CMAKE_CXX_STANDARD 17)
-  # TODO: generate C++17 compatible header files instead
-  add_definitions("-DPPPLUGIN_CPP17_COMPATIBILITY")
 else()
   set(CMAKE_CXX_STANDARD 20)
 endif()
@@ -129,5 +127,6 @@ if(${PPPLUGIN_ENABLE_EXAMPLES})
   add_subdirectory(examples)
 endif()
 if(${PPPLUGIN_ENABLE_TESTS})
+  enable_testing()
   add_subdirectory(test)
 endif()
