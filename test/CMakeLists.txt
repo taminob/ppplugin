@@ -16,28 +16,28 @@ add_test(
   COMMAND
     test.sh ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/cmake_find_package_test_build
-    ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_shared "SHARED" "Cpp17"
+    ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_shared_cpp17 "SHARED" "Cpp17"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/find_package_test)
 add_test(
   NAME cmake_shared_cpp20_compatible_installation_test
   COMMAND
     test.sh ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/cmake_find_package_test_build
-    ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_shared "SHARED" "Cpp20"
+    ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_shared_cpp20 "SHARED" "Cpp20"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/find_package_test)
 add_test(
   NAME cmake_static_cpp17_compatible_installation_test
   COMMAND
     test.sh ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/cmake_find_package_test_build
-    ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_static "STATIC" "Cpp17"
+    ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_static_cpp17 "STATIC" "Cpp17"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/find_package_test)
 add_test(
   NAME cmake_static_cpp20_compatible_installation_test
   COMMAND
     test.sh ${CMAKE_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}/cmake_find_package_test_build
-    ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_static "STATIC" "Cpp20"
+    ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_static_cpp20 "STATIC" "Cpp20"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/find_package_test)
 
 add_test(
