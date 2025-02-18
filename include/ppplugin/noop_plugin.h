@@ -26,6 +26,16 @@ public:
         }
         return CallResult<ReturnValue> {};
     }
+
+    template <typename VariableType>
+    CallResult<VariableType> global(const std::string& /*variable_name*/)
+    {
+        return VariableType {};
+    }
+    template <typename VariableType>
+    void global(const std::string& /*variable_name*/, VariableType&& /*new_value*/)
+    {
+    }
 };
 } // namespace ppplugin
 
