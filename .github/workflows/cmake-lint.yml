@@ -30,11 +30,13 @@ jobs:
           python-version: '3.13'
           cache-dependency-path: '.github/workflows/cmake-lint.yml'
           cache: 'pip'
-      - name: Install dependencies
-        run: pip install cmakelint
+      - name: Install CMake linting tool
+        run: pip install cmakelang
 
-      - name: Execute cmakelint
+      # Check all cmake files; ignore files in hidden directories;
+      # use increased line width since formatting is checked by other workflow
+      - name: Execute cmake-lint
         run: find . \( \( -path './build' -o -path '*/.*' \) -prune \) -o
           \( -type f -a -iname 'CMakeLists.txt' \)
           -exec echo "Linting '{}'..." \;
-          -exec cmakelint --spaces=1 {} +
+          -exec cmake-lint --line-width=90 -- {} +
