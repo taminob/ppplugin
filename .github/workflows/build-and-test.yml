@@ -144,6 +144,11 @@ jobs:
             --legend coverage_without_system_and_test_files
           lcov --list coverage_without_system_and_test_files
         shell: alpine.sh {0}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage_${{ matrix.cpp_version }}
+          path: coverage
+          retention-days: 3
 
   ctest:
     name: "ctest"
