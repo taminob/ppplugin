@@ -38,4 +38,4 @@ jobs:
         run: find . \( -path '*/.*' -prune \) -o
           \( -type f -a -name 'CMakeLists.txt' \)
           -exec echo "Format checking '{}'..." \;
-          -exec cmake-format --check -- {} +
+          -exec cmake-format --check --line-width=80 -- {} +
