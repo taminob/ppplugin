@@ -15,18 +15,19 @@ set(LIBRARY_SOURCES
 add_library(${LIBRARY_TARGET} ${LIBRARY_SOURCES})
 target_link_libraries(
   ${LIBRARY_TARGET}
-  PUBLIC Boost::filesystem
-  PUBLIC Python::Python
   PRIVATE ${LUA_LIBRARIES}
-  PUBLIC $<$<BOOL:${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY}>:fmt::fmt>)
+  PUBLIC Boost::filesystem Python::Python
+         $<$<BOOL:${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY}>:fmt::fmt>)
 target_include_directories(
   ${LIBRARY_TARGET}
   PRIVATE ${LUA_INCLUDE_DIR}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-  PUBLIC $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+         $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
 target_compile_definitions(
-  ${LIBRARY_TARGET} PUBLIC $<$<BOOL:${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY}>:
-                           "PPPLUGIN_CPP17_COMPATIBILITY">)
+  ${LIBRARY_TARGET}
+  PUBLIC
+    $<$<BOOL:${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY}>:"PPPLUGIN_CPP17_COMPATIBILITY">
+)
 
 set_target_properties(
   ${LIBRARY_TARGET}
