@@ -181,7 +181,7 @@ jobs:
       - name: Run cmake tests
         run: |
           cd build
-          ctest -R cmake_
+          ctest -R cmake_ --output-on-failure
         env:
           CMAKE_GENERATOR: Ninja
         shell: alpine.sh {0}
