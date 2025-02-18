@@ -7,4 +7,5 @@ add_custom_command(
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/plugin.lua
           $<TARGET_FILE_DIR:lua_plugin_manager>/plugin_1.lua
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/plugin.lua
-          $<TARGET_FILE_DIR:lua_plugin_manager>/plugin_2.lua)
+          $<TARGET_FILE_DIR:lua_plugin_manager>/plugin_2.lua
+  COMMENT "Copying Lua plugins to output directory...")
