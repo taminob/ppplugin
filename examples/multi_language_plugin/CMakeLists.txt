@@ -11,11 +11,9 @@ add_custom_command(
   POST_BUILD
   COMMAND
     ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/plugins/lua_plugin.lua
-    $<TARGET_FILE_DIR:multi_language_plugin_manager>)
-add_custom_command(
-  TARGET multi_language_plugin_manager
-  POST_BUILD
+    $<TARGET_FILE_DIR:multi_language_plugin_manager>
   COMMAND
     ${CMAKE_COMMAND} -E copy
     ${CMAKE_CURRENT_SOURCE_DIR}/plugins/python_plugin.py
-    $<TARGET_FILE_DIR:multi_language_plugin_manager>)
+    $<TARGET_FILE_DIR:multi_language_plugin_manager>
+  COMMENT "Copying plugins to output directory...")
