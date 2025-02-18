@@ -46,7 +46,7 @@ public:
             if (auto value = state_.pop<VariableType>()) {
                 return value.value();
             }
-            return { CallError::Code::unknown };
+            return { CallError::Code::incorrectType };
         }
         return { CallError::Code::symbolNotFound };
     }

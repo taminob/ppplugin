@@ -16,6 +16,7 @@ public:
         unknown,
         notLoaded,
         symbolNotFound,
+        incorrectType,
     };
 
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
