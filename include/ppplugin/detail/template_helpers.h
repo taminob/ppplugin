@@ -100,6 +100,23 @@ template <typename DefaultType, typename... Types>
 using FirstOrT = typename FirstOr<DefaultType, Types...>::Type;
 
 /**
+ * Get second template parameter of given class.
+ * If the class does not have any or sufficient template parameters,
+ * return given DefaultType.
+ */
+template <typename DefaultType, typename>
+struct SecondTemplateParameterOr {
+    using Type = DefaultType;
+};
+template <typename DefaultType, template <typename...> typename T,
+    typename U, typename V, typename... Ts>
+struct SecondTemplateParameterOr<DefaultType, T<U, V, Ts...>> {
+    using Type = V;
+};
+template <typename... Ts>
+using SecondTemplateParameterOrT = typename SecondTemplateParameterOr<Ts...>::Type;
+
+/**
  * Wrap types into given type "Wrapper" (which has to accept exactly one template argument,
  * but can have more defaulted template parameters) and puts them into the first given type
  * "OuterType" which has to accept as many template parameter as types were given.
@@ -170,7 +187,6 @@ struct IsSpecialization<ExpectedType<Ts...>, ExpectedType> : std::true_type { };
 
 template <typename T>
 using IsStdTuple = IsSpecialization<T, std::tuple>;
-
 } // namespace ppplugin::detail::templates
 
 #endif // PPPLUGIN_DETAIL_TEMPLATE_HELPERS_H
