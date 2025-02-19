@@ -1,6 +1,8 @@
 #ifndef PPPLUGIN_EXPECTED_H
 #define PPPLUGIN_EXPECTED_H
 
+#include "detail/template_helpers.h"
+
 #include <cassert>
 #include <optional>
 #include <variant>
@@ -111,6 +113,17 @@ public:
 private:
     template <typename, typename>
     friend class Expected;
+
+    // andThen wraps the result of the function into an Expected, except if the function
+    // returns an Expected which has an error matching the error type of the current instance.
+    template <typename InvokeResult>
+    using AndThenReturnType = std::conditional_t<
+        detail::templates::IsSpecialization<detail::templates::RemoveCvrefT<InvokeResult>, Expected>::value,
+        std::conditional_t<
+            std::is_same_v<detail::templates::SecondTemplateParameterOrT<void, detail::templates::RemoveCvrefT<InvokeResult>>, E>,
+            InvokeResult,
+            Expected<InvokeResult, E>>,
+        Expected<InvokeResult, E>>;
 
     // actually, these functions also have a check, but will throw on error
     [[nodiscard]] constexpr T& uncheckedValue() & { return std::get<T>(value_); }
@@ -446,13 +459,13 @@ template <typename F>
 constexpr auto Expected<T, E>::andThen(F&& func) const&
 {
     if constexpr (std::is_invocable_v<F, T>) {
-        using ReturnType = Expected<std::invoke_result_t<F, T>, E>;
+        using ReturnType = AndThenReturnType<std::invoke_result_t<F, T>>;
         if (!hasValue()) {
             return static_cast<ReturnType>(uncheckedError());
         }
         return static_cast<ReturnType>(std::forward<F>(func)(uncheckedValue()));
     } else if constexpr (std::is_invocable_v<F>) {
-        using ReturnType = Expected<std::invoke_result_t<F>, E>;
+        using ReturnType = AndThenReturnType<std::invoke_result_t<F>>;
         if (!hasValue()) {
             return static_cast<ReturnType>(uncheckedError());
         }
@@ -467,7 +480,7 @@ template <typename F>
 constexpr auto Expected<T, E>::andThen(F&& func) &&
 {
     if constexpr (std::is_invocable_v<F, T>) {
-        using ReturnType = Expected<std::invoke_result_t<F, T>, E>;
+        using ReturnType = AndThenReturnType<std::invoke_result_t<F, T>>;
         if (!hasValue()) {
             return static_cast<ReturnType>(std::move(*this).uncheckedError());
         }
@@ -479,7 +492,7 @@ constexpr auto Expected<T, E>::andThen(F&& func) &&
                 std::move(*this).uncheckedValue()));
         }
     } else if constexpr (std::is_invocable_v<F>) {
-        using ReturnType = Expected<std::invoke_result_t<F>, E>;
+        using ReturnType = AndThenReturnType<std::invoke_result_t<F>>;
         if (!hasValue()) {
             return static_cast<ReturnType>(std::move(*this).uncheckedError());
         }

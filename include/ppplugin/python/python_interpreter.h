@@ -20,11 +20,19 @@ public:
     template <typename ReturnValue, typename... Args>
     CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
+    template <typename VariableType>
+    CallResult<VariableType> global(const std::string& variable_name);
+    template <typename VariableType>
+    void global(const std::string& variable_name, VariableType&& new_value);
+
 private:
     PyThreadState* state() { return state_.get(); }
     PyObject* mainModule() { return main_module_.get(); }
 
     CallResult<PythonObject> internalCall(const std::string& function_name, PyObject* args);
+
+    CallResult<PythonObject> internalGlobal(const std::string& variable_name);
+    void internalGlobal(const std::string& variable_name, PythonObject new_value);
 
 private:
     std::unique_ptr<PyObject, std::function<void(PyObject*)>> main_module_;
@@ -44,6 +52,25 @@ CallResult<ReturnValue> PythonInterpreter::call(const std::string& function_name
             return result.as<ReturnValue>();
         }
     });
+}
+
+template <typename VariableType>
+CallResult<VariableType> PythonInterpreter::global(const std::string& variable_name)
+{
+    PythonGuard python_guard { state() };
+    return internalGlobal(variable_name).andThen([](PythonObject&& object) -> CallResult<VariableType> {
+        if (auto result = object.template as<VariableType>()) {
+            return *result;
+        }
+        return { CallError::Code::incorrectType };
+    });
+}
+
+template <typename VariableType>
+void PythonInterpreter::global(const std::string& variable_name, VariableType&& new_value)
+{
+    PythonGuard python_guard { state() };
+    internalGlobal(variable_name, PythonObject::from(new_value));
 }
 } // namespace ppplugin
 

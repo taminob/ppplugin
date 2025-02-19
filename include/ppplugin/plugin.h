@@ -15,7 +15,6 @@
 #ifndef PPPLUGIN_CPP17_COMPATIBILITY
 #include <concepts>
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
-#include <filesystem>
 #include <optional>
 #include <utility>
 #include <variant>
@@ -42,7 +41,7 @@ public:
 
     GenericPlugin() = default;
     template <typename P,
-        std::enable_if_t<(std::is_base_of_v<Plugins, std::remove_cv_t<std::remove_reference_t<P>>> || ...), bool> = true>
+        std::enable_if_t<(std::is_base_of_v<Plugins, detail::templates::RemoveCvrefT<P>> || ...), bool> = true>
     GenericPlugin(P&& plugin); // NOLINT(google-explicit-constructor,hicpp-explicit-conversions)
 
     ~GenericPlugin() = default;
@@ -57,6 +56,12 @@ public:
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
+    template <typename VariableType>
+    CallResult<VariableType> global(const std::string& variable_name);
+    // TODO: return error
+    template <typename VariableType>
+    void global(const std::string& variable_name, VariableType&& new_value);
+
     template <typename P>
     std::optional<std::reference_wrapper<P>> plugin();
 
@@ -68,7 +73,7 @@ using Plugin = GenericPlugin<CPlugin, CppPlugin, LuaPlugin, PythonPlugin, NoopPl
 
 template <typename... Plugins>
 template <typename P,
-    std::enable_if_t<(std::is_base_of_v<Plugins, std::remove_cv_t<std::remove_reference_t<P>>> || ...), bool>>
+    std::enable_if_t<(std::is_base_of_v<Plugins, detail::templates::RemoveCvrefT<P>> || ...), bool>>
 // NOLINTNEXTLINE(bugprone-forwarding-reference-overload); enable_if condition prevents hiding copy/move ctors
 GenericPlugin<Plugins...>::GenericPlugin(P&& plugin)
     : plugin_(std::forward<P>(plugin))
@@ -94,6 +99,28 @@ CallResult<ReturnValue> GenericPlugin<Plugins...>::call(
                     function_name, std::forward<Args>(args)...);
             },
                 std::move(args));
+        },
+        plugin_);
+}
+
+template <typename... Plugins>
+template <typename VariableType>
+CallResult<VariableType> GenericPlugin<Plugins...>::global(const std::string& variable_name)
+{
+    return std::visit(
+        [&variable_name](auto& plugin) -> CallResult<VariableType> {
+            return plugin.template global<VariableType>(variable_name);
+        },
+        plugin_);
+}
+
+template <typename... Plugins>
+template <typename VariableType>
+void GenericPlugin<Plugins...>::global(const std::string& variable_name, VariableType&& new_value)
+{
+    std::visit(
+        [&variable_name, &new_value](auto& plugin) {
+            plugin.global(variable_name, std::forward<VariableType>(new_value));
         },
         plugin_);
 }

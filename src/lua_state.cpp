@@ -23,7 +23,7 @@ LuaState::LuaState()
 }
 
 LuaState::LuaState(lua_State* state)
-    : state_ { state, [](lua_State*) {} }
+    : state_ { state, [](lua_State*) { } }
 {
 }
 
