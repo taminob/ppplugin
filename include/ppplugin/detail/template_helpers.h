@@ -187,6 +187,12 @@ struct IsSpecialization<ExpectedType<Ts...>, ExpectedType> : std::true_type { };
 
 template <typename T>
 using IsStdTuple = IsSpecialization<T, std::tuple>;
+
+/**
+ * C++17 compatible version of std::remove_cvref_t.
+ */
+template <typename T>
+using RemoveCvrefT = std::remove_cv_t<std::remove_reference_t<T>>;
 } // namespace ppplugin::detail::templates
 
 #endif // PPPLUGIN_DETAIL_TEMPLATE_HELPERS_H
