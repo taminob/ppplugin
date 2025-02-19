@@ -4,6 +4,7 @@
 #include "lua_helpers.h"
 #include "ppplugin/detail/compatibility_utils.h"
 #include "ppplugin/detail/function_details.h"
+#include "ppplugin/detail/template_helpers.h"
 #include "ppplugin/errors.h"
 
 #include <functional>
@@ -200,7 +201,7 @@ auto LuaState::pop(bool always_pop)
 template <typename T, std::enable_if_t<!std::is_function_v<T>, bool>>
 std::optional<T> LuaState::top()
 {
-    using PlainT = std::remove_cv_t<std::remove_reference_t<T>>;
+    using PlainT = detail::templates::RemoveCvrefT<T>;
     if constexpr (std::is_same_v<PlainT, double>) {
         return topDouble();
     } else if constexpr (std::is_same_v<PlainT, int>) {
