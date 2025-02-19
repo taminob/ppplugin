@@ -147,11 +147,12 @@ std::optional<std::string> PythonObject::asString()
         return result;
     }
     if (PyBytes_Check(object()) != 0) {
-        auto* result = PyBytes_AsString(object());
+        const auto* result = PyBytes_AsString(object());
         if (result == nullptr) {
             return std::nullopt;
         }
-        return std::string { result };
+        auto length = PyBytes_Size(object());
+        return std::string { result, 0, static_cast<std::string::size_type>(length) };
     }
     return std::nullopt;
 }
