@@ -354,3 +354,45 @@ TEST(Expected, comparisonEqual)
     },
         e1, e2);
 }
+
+TEST(Expected, andThenReturnRawValue)
+{
+    const Expected<const char*, int> v { "test" };
+
+    auto result = v.andThen([]() { return 2.0; });
+
+    EXPECT_TRUE(result.hasValue());
+    EXPECT_EQ(result.value().value_or(0.0), 2.0);
+}
+
+TEST(Expected, andThenReturnValueInExpected)
+{
+    const Expected<const char*, int> v { "test" };
+
+    auto result = v.andThen([]() -> Expected<double, int> { return 3.0; });
+
+    EXPECT_TRUE(result.hasValue());
+    EXPECT_EQ(result.value().value_or(0.0), 3.0);
+}
+
+TEST(Expected, andThenReturnError)
+{
+    const Expected<const char*, int> v { "test" };
+
+    auto result = v.andThen([]() -> decltype(v) { return 1; });
+
+    // static_assert(std::is_same_v<const decltype(result), decltype(v)>);
+
+    EXPECT_FALSE(result.hasValue());
+    EXPECT_EQ(result.error().value_or(-1), 1);
+}
+
+TEST(Expected, andThenError)
+{
+    const Expected<const char*, int> e { 5 };
+
+    auto result = e.andThen([]() { return "abc"; });
+
+    EXPECT_FALSE(result.hasValue());
+    EXPECT_EQ(result.error().value_or(-1), 5);
+}
