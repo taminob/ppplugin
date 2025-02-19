@@ -4,10 +4,6 @@
 #include "python_forward_defs.h"
 #include "python_object.h"
 
-#include <cstddef>
-#include <string>
-#include <string_view>
-
 namespace ppplugin {
 class PythonTuple {
 public:
@@ -24,23 +20,7 @@ private:
     template <typename T, typename... Args>
     void fillTuple(int start_index, T&& arg, Args&&... args);
 
-    // NOLINTBEGIN(bugprone-easily-swappable-parameters)
-    // NOLINTBEGIN(google-runtime-int)
-    void setTupleItem(int index, double value);
-    void setTupleItem(int index, unsigned int value);
-    void setTupleItem(int index, int value);
-    void setTupleItem(int index, unsigned long value);
-    void setTupleItem(int index, long value);
-    void setTupleItem(int index, unsigned long long value);
-    void setTupleItem(int index, long long value);
-    void setTupleItem(int index, const char* value);
-    void setTupleItem(int index, std::string_view value);
-    void setTupleItem(int index, const std::string& value);
-    void setTupleItem(int index, bool value);
-    void setTupleItem(int index, std::nullptr_t);
-    // NOLINTEND(google-runtime-int)
-    // NOLINTEND(bugprone-easily-swappable-parameters)
-    // TODO: also make adding function (via function pointer) possible?
+    void setTupleItem(int index, PythonObject value);
 
 private:
     PythonObject object_;
@@ -58,7 +38,7 @@ PythonTuple::PythonTuple(Args&&... args)
 template <typename T, typename... Args>
 void PythonTuple::fillTuple(int start_index, T&& arg, Args&&... args)
 {
-    setTupleItem(start_index, std::forward<T>(arg));
+    setTupleItem(start_index, PythonObject::from(std::forward<T>(arg)));
     if constexpr (sizeof...(Args) > 0) {
         fillTuple(start_index + 1, std::forward<Args>(args)...);
     }

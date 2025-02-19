@@ -30,8 +30,72 @@ PythonObject::PythonObject(PyObject* object)
 PythonObject PythonObject::wrap(PyObject* object)
 {
     PythonObject new_object;
-    new_object.object_ = { object, [](auto*) {} };
+    new_object.object_ = { object, [](auto*) { } };
     return new_object;
+}
+// NOLINTBEGIN(bugprone-easily-swappable-parameters)
+// NOLINTBEGIN(google-runtime-int)
+PythonObject PythonObject::from(double value)
+{
+    return PythonObject { PyFloat_FromDouble(value) };
+}
+
+PythonObject PythonObject::from(unsigned int value)
+{
+    return PythonObject::from(static_cast<unsigned long>(value));
+}
+
+PythonObject PythonObject::from(int value)
+{
+    return PythonObject::from(static_cast<long>(value));
+}
+
+PythonObject PythonObject::from(unsigned long value)
+{
+    return PythonObject { PyLong_FromUnsignedLong(value) };
+}
+
+PythonObject PythonObject::from(long value)
+{
+    return PythonObject { PyLong_FromLong(value) };
+}
+
+PythonObject PythonObject::from(unsigned long long value)
+{
+    return PythonObject { PyLong_FromUnsignedLongLong(value) };
+}
+
+PythonObject PythonObject::from(long long value)
+{
+    return PythonObject { PyLong_FromLongLong(value) };
+}
+// NOLINTEND(google-runtime-int)
+// NOLINTEND(bugprone-easily-swappable-parameters)
+
+PythonObject PythonObject::from(const char* value)
+{
+    return PythonObject { PyUnicode_FromString(value) };
+}
+
+PythonObject PythonObject::from(std::string_view value)
+{
+    return PythonObject { PyUnicode_FromStringAndSize(
+        value.data(), static_cast<Py_ssize_t>(value.size())) };
+}
+
+PythonObject PythonObject::from(const std::string& value)
+{
+    return PythonObject::from(std::string_view { value });
+}
+
+PythonObject PythonObject::from(bool value)
+{
+    return PythonObject { PyBool_FromLong(static_cast<int>(value)) };
+}
+
+PythonObject PythonObject::from(std::nullptr_t)
+{
+    return PythonObject::wrap(Py_None);
 }
 
 std::optional<int> PythonObject::asInt()

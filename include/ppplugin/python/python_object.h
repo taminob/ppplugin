@@ -13,10 +13,28 @@ public:
     PythonObject();
     explicit PythonObject(PyObject* object);
 
+    // NOLINTBEGIN(bugprone-easily-swappable-parameters)
+    // NOLINTBEGIN(google-runtime-int)
+    static PythonObject from(double value);
+    static PythonObject from(unsigned int value);
+    static PythonObject from(int value);
+    static PythonObject from(unsigned long value);
+    static PythonObject from(long value);
+    static PythonObject from(unsigned long long value);
+    static PythonObject from(long long value);
+    static PythonObject from(const char* value);
+    static PythonObject from(std::string_view value);
+    static PythonObject from(const std::string& value);
+    static PythonObject from(bool value);
+    static PythonObject from(std::nullptr_t);
+    // NOLINTEND(google-runtime-int)
+    // NOLINTEND(bugprone-easily-swappable-parameters)
+    // TODO: also make adding function (via function pointer) possible?
+
     /**
      * Wrap given PyObject into PythonObject without claiming
      * ownership (no Py_DECREF at end of lifetime).
-     * Use this to access member functions for non-owning PyObjects.
+     * Use this to access member functions for non-owned PyObjects.
      */
     static PythonObject wrap(PyObject* object);
 
@@ -27,9 +45,15 @@ public:
         return object() != nullptr;
     }
 
+    /**
+     * Get current value as given type.
+     */
     template <typename T>
     std::optional<T> as();
 
+    /**
+     * Cast current value to given type.
+     */
     template <typename T>
     std::optional<T> to();
 
