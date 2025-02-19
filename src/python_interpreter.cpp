@@ -175,4 +175,32 @@ CallResult<PythonObject> PythonInterpreter::internalCall(const std::string& func
     return result;
 }
 
+CallResult<PythonObject> PythonInterpreter::internalGlobal(const std::string& variable_name)
+{
+    // TODO: find uniform way to manage guards (here: already locked in PythonPlugin::global)
+    // PythonGuard python_guard { state() };
+    auto* variable = PyObject_GetAttrString(mainModule(), variable_name.c_str());
+    if (variable == nullptr) {
+        if (PythonException::occurred()) {
+            if (auto exception = PythonException::latest()) {
+                return CallError {
+                    CallError::Code::symbolNotFound,
+                    exception->toString()
+                };
+            }
+            return CallError { CallError::Code::symbolNotFound };
+        }
+        return { CallError::Code::unknown };
+    }
+    return PythonObject { variable };
+}
+
+void PythonInterpreter::internalGlobal(const std::string& variable_name, PythonObject new_value)
+{
+    // TODO: find uniform way to manage guards (here: already locked in PythonPlugin::global)
+    // PythonGuard python_guard { state() };
+    PythonObject attribute_name { PyUnicode_FromString(variable_name.c_str()) };
+    // TODO: return error on failure
+    [[maybe_unused]] auto result = PyObject_SetAttr(mainModule(), attribute_name.pyObject(), new_value.pyObject());
+}
 } // namespace ppplugin
