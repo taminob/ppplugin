@@ -58,9 +58,8 @@ public:
 
     template <typename VariableType>
     CallResult<VariableType> global(const std::string& variable_name);
-    // TODO: return error
     template <typename VariableType>
-    void global(const std::string& variable_name, VariableType&& new_value);
+    CallResult<void> global(const std::string& variable_name, VariableType&& new_value);
 
     template <typename P>
     std::optional<std::reference_wrapper<P>> plugin();
@@ -116,9 +115,9 @@ CallResult<VariableType> GenericPlugin<Plugins...>::global(const std::string& va
 
 template <typename... Plugins>
 template <typename VariableType>
-void GenericPlugin<Plugins...>::global(const std::string& variable_name, VariableType&& new_value)
+CallResult<void> GenericPlugin<Plugins...>::global(const std::string& variable_name, VariableType&& new_value)
 {
-    std::visit(
+    return std::visit(
         [&variable_name, &new_value](auto& plugin) {
             plugin.global(variable_name, std::forward<VariableType>(new_value));
         },

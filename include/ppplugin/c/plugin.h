@@ -42,12 +42,14 @@ public:
         return { p.error().value() };
     }
     template <typename VariableType>
-    void global(const std::string& variable_name, VariableType&& new_value)
+    CallResult<void> global(const std::string& variable_name, VariableType&& new_value)
     {
         auto p = detail::boost_dll::getSymbol(plugin_, variable_name);
         if (p.hasValue()) {
             *reinterpret_cast<VariableType*>(p.value().value()) = std::forward<VariableType>(new_value);
+            return {};
         }
+        return { p.error().value() };
     }
 
 private:
