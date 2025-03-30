@@ -29,7 +29,7 @@ TEST(ScopeGuard, moveSourceCalled)
 {
     bool guard_called { false };
     {
-        ScopeGuard first_guard { []() {} };
+        ScopeGuard first_guard { []() { } };
         {
             ScopeGuard second_guard {
                 [&guard_called]() {
@@ -51,7 +51,7 @@ TEST(ScopeGuard, moveTargetCalled)
             guard_called = true;
         } };
         {
-            ScopeGuard second_guard { []() {} };
+            ScopeGuard second_guard { []() { } };
             first_guard = std::move(second_guard);
             EXPECT_TRUE(guard_called);
         }
