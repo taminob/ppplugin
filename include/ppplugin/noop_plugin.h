@@ -33,8 +33,9 @@ public:
         return VariableType {};
     }
     template <typename VariableType>
-    void global(const std::string& /*variable_name*/, VariableType&& /*new_value*/)
+    CallResult<void> global(const std::string& /*variable_name*/, VariableType&& /*new_value*/)
     {
+        return {};
     }
 };
 } // namespace ppplugin

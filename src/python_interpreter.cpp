@@ -195,12 +195,19 @@ CallResult<PythonObject> PythonInterpreter::internalGlobal(const std::string& va
     return PythonObject { variable };
 }
 
-void PythonInterpreter::internalGlobal(const std::string& variable_name, PythonObject new_value)
+CallResult<void> PythonInterpreter::internalGlobal(const std::string& variable_name, PythonObject new_value)
 {
     // TODO: find uniform way to manage guards (here: already locked in PythonPlugin::global)
     // PythonGuard python_guard { state() };
     PythonObject attribute_name { PyUnicode_FromString(variable_name.c_str()) };
-    // TODO: return error on failure
-    [[maybe_unused]] auto result = PyObject_SetAttr(mainModule(), attribute_name.pyObject(), new_value.pyObject());
+    auto result = PyObject_SetAttr(mainModule(), attribute_name.pyObject(), new_value.pyObject());
+    if (result < 0) {
+        auto exception = PythonException::latest();
+        return CallError {
+            CallError::Code::unknown,
+            exception.value_or(PythonException {}).toString()
+        };
+    }
+    return {};
 }
 } // namespace ppplugin

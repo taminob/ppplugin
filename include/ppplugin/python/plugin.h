@@ -29,7 +29,7 @@ public:
     template <typename VariableType>
     CallResult<VariableType> global(const std::string& variable_name);
     template <typename VariableType>
-    void global(const std::string& variable_name, VariableType&& new_value);
+    CallResult<void> global(const std::string& variable_name, VariableType&& new_value);
 
 private:
     PythonPlugin() = default;
@@ -50,9 +50,9 @@ CallResult<VariableType> PythonPlugin::global(const std::string& variable_name)
     return interpreter_.global<VariableType>(variable_name);
 }
 template <typename VariableType>
-void PythonPlugin::global(const std::string& variable_name, VariableType&& new_value)
+CallResult<void> PythonPlugin::global(const std::string& variable_name, VariableType&& new_value)
 {
-    interpreter_.global(variable_name, std::forward<VariableType>(new_value));
+    return interpreter_.global(variable_name, std::forward<VariableType>(new_value));
 }
 } // namespace ppplugin
 

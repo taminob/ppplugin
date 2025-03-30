@@ -23,7 +23,7 @@ public:
     template <typename VariableType>
     CallResult<VariableType> global(const std::string& variable_name);
     template <typename VariableType>
-    void global(const std::string& variable_name, VariableType&& new_value);
+    CallResult<void> global(const std::string& variable_name, VariableType&& new_value);
 
 private:
     PyThreadState* state() { return state_.get(); }
@@ -32,7 +32,7 @@ private:
     CallResult<PythonObject> internalCall(const std::string& function_name, PyObject* args);
 
     CallResult<PythonObject> internalGlobal(const std::string& variable_name);
-    void internalGlobal(const std::string& variable_name, PythonObject new_value);
+    CallResult<void> internalGlobal(const std::string& variable_name, PythonObject new_value);
 
 private:
     std::unique_ptr<PyObject, std::function<void(PyObject*)>> main_module_;
@@ -67,10 +67,10 @@ CallResult<VariableType> PythonInterpreter::global(const std::string& variable_n
 }
 
 template <typename VariableType>
-void PythonInterpreter::global(const std::string& variable_name, VariableType&& new_value)
+CallResult<void> PythonInterpreter::global(const std::string& variable_name, VariableType&& new_value)
 {
     PythonGuard python_guard { state() };
-    internalGlobal(variable_name, PythonObject::from(new_value));
+    return internalGlobal(variable_name, PythonObject::from(new_value));
 }
 } // namespace ppplugin
 

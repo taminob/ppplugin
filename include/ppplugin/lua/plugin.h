@@ -53,9 +53,12 @@ public:
         return script_.global<VariableType>(variable_name);
     }
     template <typename VariableType>
-    void global(const std::string& variable_name, VariableType&& new_value)
+    CallResult<void> global(const std::string& variable_name, VariableType&& new_value)
     {
         script_.global(variable_name, std::forward<VariableType>(new_value));
+        // cannot fail in Lua; new value will be assigned regardless of previous type
+        // and variable will be created if it does not exist yet
+        return {};
     }
 
 private:
