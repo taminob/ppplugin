@@ -1,7 +1,6 @@
 set(LIBRARY_SOURCES ppplugin.cpp)
 
 set(LIBRARY_SOURCES
-    "ppplugin.cpp"
     "boost_dll_loader.cpp"
     "lua_state.cpp"
     "lua_script.cpp"
