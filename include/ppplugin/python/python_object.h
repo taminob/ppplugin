@@ -15,18 +15,18 @@ public:
 
     // NOLINTBEGIN(bugprone-easily-swappable-parameters)
     // NOLINTBEGIN(google-runtime-int)
-    static PythonObject from(double value);
-    static PythonObject from(unsigned int value);
-    static PythonObject from(int value);
-    static PythonObject from(unsigned long value);
-    static PythonObject from(long value);
-    static PythonObject from(unsigned long long value);
-    static PythonObject from(long long value);
-    static PythonObject from(const char* value);
-    static PythonObject from(std::string_view value);
-    static PythonObject from(const std::string& value);
-    static PythonObject from(bool value);
-    static PythonObject from(std::nullptr_t);
+    [[nodiscard]] static PythonObject from(double value);
+    [[nodiscard]] static PythonObject from(unsigned int value);
+    [[nodiscard]] static PythonObject from(int value);
+    [[nodiscard]] static PythonObject from(unsigned long value);
+    [[nodiscard]] static PythonObject from(long value);
+    [[nodiscard]] static PythonObject from(unsigned long long value);
+    [[nodiscard]] static PythonObject from(long long value);
+    [[nodiscard]] static PythonObject from(const char* value);
+    [[nodiscard]] static PythonObject from(std::string_view value);
+    [[nodiscard]] static PythonObject from(const std::string& value);
+    [[nodiscard]] static PythonObject from(bool value);
+    [[nodiscard]] static PythonObject from(std::nullptr_t);
     // NOLINTEND(google-runtime-int)
     // NOLINTEND(bugprone-easily-swappable-parameters)
     // TODO: also make adding function (via function pointer) possible?
@@ -36,9 +36,9 @@ public:
      * ownership (no Py_DECREF at end of lifetime).
      * Use this to access member functions for non-owned PyObjects.
      */
-    static PythonObject wrap(PyObject* object);
+    [[nodiscard]] static PythonObject wrap(PyObject* object);
 
-    PyObject* pyObject() { return object(); }
+    [[nodiscard]] PyObject* pyObject() { return object(); }
 
     explicit operator bool()
     {
@@ -49,26 +49,26 @@ public:
      * Get current value as given type.
      */
     template <typename T>
-    std::optional<T> as();
+    [[nodiscard]] std::optional<T> as();
 
     /**
      * Cast current value to given type.
      */
     template <typename T>
-    std::optional<T> to();
+    [[nodiscard]] std::optional<T> to();
 
 private:
     PyObject* object() { return object_.get(); }
 
     // TODO: use explicit template instantiations instead?
-    std::optional<int> asInt();
+    [[nodiscard]] std::optional<int> asInt();
     // NOLINTNEXTLINE(google-runtime-int)
-    std::optional<long long> asLongLong();
-    std::optional<double> asDouble();
-    std::optional<bool> asBool();
-    std::optional<std::string> asString();
+    [[nodiscard]] std::optional<long long> asLongLong();
+    [[nodiscard]] std::optional<double> asDouble();
+    [[nodiscard]] std::optional<bool> asBool();
+    [[nodiscard]] std::optional<std::string> asString();
 
-    std::optional<std::string> toString();
+    [[nodiscard]] std::optional<std::string> toString();
 
 private:
     std::unique_ptr<PyObject, void (*)(PyObject*)> object_;

@@ -36,7 +36,7 @@ public:
     /**
      * Load Lua script from given path.
      */
-    Expected<LuaPlugin, LoadError> loadLuaPlugin(
+    [[nodiscard]] Expected<LuaPlugin, LoadError> loadLuaPlugin(
         const std::filesystem::path& plugin_library_path)
     {
         return LuaPlugin::load(plugin_library_path);
@@ -45,7 +45,7 @@ public:
     /**
      * Load Python script from given path.
      */
-    Expected<PythonPlugin, LoadError> loadPythonPlugin(
+    [[nodiscard]] Expected<PythonPlugin, LoadError> loadPythonPlugin(
         const std::filesystem::path& plugin_library_path)
     {
         return PythonPlugin::load(plugin_library_path);
@@ -60,7 +60,7 @@ public:
      *            created by the plugin are fully destroyed.
      *            Failure to do so will result in a SEGFAULT.
      */
-    Expected<CppPlugin, LoadError> loadCppPlugin(
+    [[nodiscard]] Expected<CppPlugin, LoadError> loadCppPlugin(
         const std::filesystem::path& plugin_library_path)
     {
         return CppPlugin::load(plugin_library_path);
@@ -70,7 +70,7 @@ public:
      * This plugin can call any C function or C++ functions that were marked
      * as 'extern "C"'.
      */
-    Expected<CPlugin, LoadError> loadCPlugin(
+    [[nodiscard]] Expected<CPlugin, LoadError> loadCPlugin(
         const std::filesystem::path& plugin_library_path)
     {
         return CPlugin::load(plugin_library_path);
