@@ -6,7 +6,7 @@ Checks: >
         google-*,-google-readability-todo,-google-readability-braces-around-statements,
         hicpp-*,-hicpp-braces-around-statements,-hicpp-use-emplace,-hicpp-named-parameter,
           -hicpp-no-array-decay,-hicpp-uppercase-literal-suffix,
-        misc-*,-misc-no-recursion,
+        misc-*,-misc-include-cleaner,-misc-no-recursion,
         bugprone-*,
         boost-*,
         cert-*,-cert-dcl16-c,-cert-dcl51-cpp,-cert-dcl37-c,
