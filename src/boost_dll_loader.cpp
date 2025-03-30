@@ -47,8 +47,7 @@ CallResult<void*> getFunctionPointerSymbol(const boost::dll::shared_library& lib
         return { *error };
     }
     try {
-        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        if (auto* symbol = reinterpret_cast<void*>(library.get<void*>(function_name))) {
+        if (auto* symbol = library.get<void*>(function_name)) {
             return symbol;
         }
     } catch (const std::exception& exception) {

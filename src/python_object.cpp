@@ -2,16 +2,10 @@
 
 #include <optional>
 #include <string>
+#include <string_view>
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h> // NOLINT(misc-include-cleaner)
-#include <boolobject.h>
-#include <bytesobject.h>
-#include <floatobject.h>
-#include <longobject.h>
-#include <object.h>
-#include <pytypedefs.h>
-#include <unicodeobject.h>
 
 namespace ppplugin {
 PythonObject::PythonObject()
@@ -152,7 +146,7 @@ std::optional<std::string> PythonObject::asString()
             return std::nullopt;
         }
         auto length = PyBytes_Size(object());
-        return std::string { result, 0, static_cast<std::string::size_type>(length) };
+        return std::string { result, static_cast<std::string::size_type>(length) };
     }
     return std::nullopt;
 }

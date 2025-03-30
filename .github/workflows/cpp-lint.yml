@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: jirutka/setup-alpine@v1
         with:
-          branch: v3.19
+          branch: v3.21
           packages: >
             cmake
             ninja-build
@@ -44,7 +44,7 @@ jobs:
             python3-dev
             fmt-dev
             gtest-dev
-            clang-extra-tools
+            clang19-extra-tools
       - name: Fixup environment
         run: |
           ln -s liblua-5.2.so.0 /usr/lib/liblua-5.2.so

@@ -40,12 +40,12 @@ int main(int argc, char* argv[])
             plugins.push_back(std::move(*plugin));
         }
         plugins.push_back(manager.loadCPlugin(non_existant_lib_path)
-                              .andThen([](const auto& plugin) {
-                                  // convert to generic plugin
-                                  return ppplugin::Plugin { plugin };
-                              })
-                              // silently fail and use no-op plugin instead
-                              .valueOr(ppplugin::NoopPlugin {}));
+                .andThen([](const auto& plugin) {
+                    // convert to generic plugin
+                    return ppplugin::Plugin { plugin };
+                })
+                // silently fail and use no-op plugin instead
+                .valueOr(ppplugin::NoopPlugin {}));
         for (auto& plugin : plugins) {
             plugin.call<void>("initialize").valueOrElse([](const ppplugin::CallError& error) {
                 std::cerr << "Initialize Error: " << error.what() << '\n';

@@ -95,7 +95,7 @@ PythonInterpreter::PythonInterpreter()
     PyGILState_Ensure();
 #if PY_VERSION_HEX >= 0x030c0000 // Python 3.12 or newer
     PyThreadState* new_state = nullptr;
-    PyInterpreterConfig config = _PyInterpreterConfig_INIT;
+    const PyInterpreterConfig config = _PyInterpreterConfig_INIT;
     auto status = Py_NewInterpreterFromConfig(&new_state, &config);
     if (PyStatus_IsError(status) == 0) {
         state_.reset(new_state);

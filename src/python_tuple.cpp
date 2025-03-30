@@ -29,8 +29,6 @@ PyObject* PythonTuple::initTuple(int size)
     return new_tuple;
 }
 
-// NOLINTBEGIN(bugprone-easily-swappable-parameters)
-// NOLINTBEGIN(google-runtime-int)
 void PythonTuple::setTupleItem(int index, PythonObject value)
 {
     auto* py_value = value.pyObject();

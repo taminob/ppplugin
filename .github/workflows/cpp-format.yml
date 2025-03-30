@@ -28,9 +28,9 @@ jobs:
       - uses: actions/checkout@v3
       - uses: jirutka/setup-alpine@v1
         with:
-          branch: v3.19
+          branch: v3.21
           packages: >
-            clang-extra-tools
+            clang19-extra-tools
 
       # Check all source and header C++ files; ignore files in hidden directories
       - name: Execute clang-format
