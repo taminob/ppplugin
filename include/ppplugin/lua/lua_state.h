@@ -31,7 +31,7 @@ public:
      * Wrap given state in a LuaState and allow access to methods,
      * but do not claim ownership of the state.
      */
-    static LuaState wrap(lua_State* state) { return LuaState(state); }
+    [[nodiscard]] static LuaState wrap(lua_State* state) { return LuaState(state); }
 
     [[nodiscard]] lua_State* state() { return state_.get(); }
     [[nodiscard]] const lua_State* state() const { return state_.get(); }
@@ -55,22 +55,22 @@ public:
      * @return top-most stack value or std::nullopt if given type does not match
      */
     template <typename T, std::enable_if_t<!std::is_function_v<T>, bool> = true>
-    std::optional<T> pop(bool always_pop = false);
+    [[nodiscard]] std::optional<T> pop(bool always_pop = false);
     /**
      * Pop upmost element of type function from Lua stack.
      *
      * @return std::function wrapped in optional of given function type.
      */
     template <typename T, std::enable_if_t<std::is_function_v<T>, bool> = true>
-    auto pop(bool always_pop = false);
+    [[nodiscard]] auto pop(bool always_pop = false);
 
     /**
      * Get top-most stack value.
      */
     template <typename T, std::enable_if_t<!std::is_function_v<T>, bool> = true>
-    std::optional<T> top();
+    [[nodiscard]] std::optional<T> top();
     template <typename T, std::enable_if_t<std::is_function_v<T>, bool> = true>
-    auto top();
+    [[nodiscard]] auto top();
 
     /**
      * Mark top-most stack value as global variable with given name.
@@ -82,24 +82,24 @@ public:
      *
      * @return true if global of given name exists, otherwise false
      */
-    bool pushGlobal(const std::string& variable_name);
+    [[nodiscard]] bool pushGlobal(const std::string& variable_name);
 
     /**
      * Check if top-most stack value is of type bool.
      */
-    bool isBool();
+    [[nodiscard]] bool isBool();
     /**
      * Check if top-most stack value is of type number.
      */
-    bool isNumber();
+    [[nodiscard]] bool isNumber();
     /**
      * Check if top-most stack value is of type string.
      */
-    bool isString();
+    [[nodiscard]] bool isString();
     /**
      * Check if top-most stack value is of type function.
      */
-    bool isFunction();
+    [[nodiscard]] bool isFunction();
 
     /**
      * Register function handler to be called in case of a Lua panic.
@@ -118,13 +118,13 @@ private:
     [[nodiscard]] std::optional<int> topInt();
     [[nodiscard]] std::optional<double> topDouble();
     template <typename T>
-    auto topFunction();
-    const void* topPointer();
+    [[nodiscard]] auto topFunction();
+    [[nodiscard]] const void* topPointer();
 
     /**
      * Check if top-most stack value is of type nil.
      */
-    bool isNil();
+    [[nodiscard]] bool isNil();
 
     /**
      * Pop top-most value if it is a function.
@@ -157,7 +157,7 @@ private:
      *
      * @return 0 on success, non-zero value on error
      */
-    int pcall(std::size_t argument_count, std::size_t return_count);
+    [[nodiscard]] int pcall(std::size_t argument_count, std::size_t return_count);
 
     /**
      * Discard top-most stack value.

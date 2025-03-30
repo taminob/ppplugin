@@ -16,23 +16,23 @@ public:
     PythonInterpreter();
     // TODO: call Py_Finalize()
 
-    std::optional<LoadError> load(const std::string& file_name);
+    [[nodiscard]] std::optional<LoadError> load(const std::string& file_name);
     template <typename ReturnValue, typename... Args>
-    CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
+    [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
     template <typename VariableType>
-    CallResult<VariableType> global(const std::string& variable_name);
+    [[nodiscard]] CallResult<VariableType> global(const std::string& variable_name);
     template <typename VariableType>
-    CallResult<void> global(const std::string& variable_name, VariableType&& new_value);
+    [[nodiscard]] CallResult<void> global(const std::string& variable_name, VariableType&& new_value);
 
 private:
-    PyThreadState* state() { return state_.get(); }
-    PyObject* mainModule() { return main_module_.get(); }
+    [[nodiscard]] PyThreadState* state() { return state_.get(); }
+    [[nodiscard]] PyObject* mainModule() { return main_module_.get(); }
 
-    CallResult<PythonObject> internalCall(const std::string& function_name, PyObject* args);
+    [[nodiscard]] CallResult<PythonObject> internalCall(const std::string& function_name, PyObject* args);
 
-    CallResult<PythonObject> internalGlobal(const std::string& variable_name);
-    CallResult<void> internalGlobal(const std::string& variable_name, PythonObject new_value);
+    [[nodiscard]] CallResult<PythonObject> internalGlobal(const std::string& variable_name);
+    [[nodiscard]] CallResult<void> internalGlobal(const std::string& variable_name, PythonObject new_value);
 
 private:
     std::unique_ptr<PyObject, std::function<void(PyObject*)>> main_module_;

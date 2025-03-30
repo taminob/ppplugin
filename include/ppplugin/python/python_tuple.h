@@ -10,12 +10,12 @@ public:
     template <typename... Args>
     explicit PythonTuple(Args&&... args);
 
-    PyObject* pyObject() { return object(); }
+    [[nodiscard]] PyObject* pyObject() { return object(); }
 
 private:
-    PyObject* object() { return object_.pyObject(); }
+    [[nodiscard]] PyObject* object() { return object_.pyObject(); }
 
-    static PyObject* initTuple(int size);
+    [[nodiscard]] static PyObject* initTuple(int size);
 
     template <typename T, typename... Args>
     void fillTuple(int start_index, T&& arg, Args&&... args);
