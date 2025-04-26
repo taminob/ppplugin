@@ -14,15 +14,6 @@
 struct lua_State;
 
 namespace ppplugin {
-enum class LuaType {
-    none = -1,
-    nil = 0,
-    boolean = 1,
-    number = 3,
-    string = 4,
-    function = 6,
-};
-
 class LuaState {
 public:
     LuaState();
