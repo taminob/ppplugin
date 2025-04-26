@@ -2,19 +2,9 @@
 #include "ppplugin/python/python_forward_defs.h"
 
 #include <cassert>
-#include <cstddef>
-#include <string>
-#include <string_view>
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h> // NOLINT(misc-include-cleaner)
-#include <boolobject.h>
-#include <floatobject.h>
-#include <longobject.h>
-#include <object.h>
-#include <pyport.h>
-#include <tupleobject.h>
-#include <unicodeobject.h>
 
 namespace ppplugin {
 

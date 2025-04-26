@@ -16,20 +16,6 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h> // NOLINT(misc-include-cleaner)
-#include <abstract.h>
-#include <bytesobject.h>
-#include <ceval.h>
-#include <compile.h>
-#include <cpython/initconfig.h>
-#include <dictobject.h>
-#include <import.h>
-#include <listobject.h>
-#include <moduleobject.h>
-#include <object.h>
-#include <pylifecycle.h>
-#include <pystate.h>
-#include <pythonrun.h>
-#include <unicodeobject.h>
 
 namespace {
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-non-const-global-variables)

@@ -12,8 +12,6 @@
 #include <import.h>
 #include <listobject.h>
 #include <object.h>
-#include <pyerrors.h>
-#include <pytypedefs.h>
 
 namespace ppplugin {
 std::optional<PythonException> PythonException::latest()
