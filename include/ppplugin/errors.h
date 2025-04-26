@@ -47,7 +47,7 @@ public:
     {
     }
 
-    [[nodiscard]] CallError error() const { return error_; }
+    [[nodiscard]] Code code() const { return error_; }
     [[nodiscard]] const std::string& what() const { return what_; }
 #ifndef PPPLUGIN_CPP17_COMPATIBILITY
     [[nodiscard]] const std::source_location& location() const
