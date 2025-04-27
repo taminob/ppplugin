@@ -8,6 +8,7 @@
 #include "ppplugin/errors.h"
 
 #include <functional>
+#include <map>
 #include <memory>
 #include <optional>
 
@@ -91,6 +92,10 @@ public:
      * Check if top-most stack value is of type function.
      */
     [[nodiscard]] bool isFunction();
+    /**
+     * Check if top-most stack value is of type table (either array or map).
+     */
+    [[nodiscard]] bool isTable();
 
     /**
      * Register function handler to be called in case of a Lua panic.
@@ -111,6 +116,10 @@ private:
     template <typename T>
     [[nodiscard]] auto topFunction();
     [[nodiscard]] const void* topPointer();
+    template <typename T>
+    [[nodiscard]] std::optional<T> topMap();
+    template <typename T>
+    [[nodiscard]] std::optional<T> topArray();
 
     /**
      * Check if top-most stack value is of type nil.
@@ -142,6 +151,27 @@ private:
     void pushOne(std::nullptr_t);
     void pushOne(LuaCFunction func);
 
+    // TODO: support additional container types
+    template <typename T>
+    void pushOne(const std::vector<T>& value);
+    template <typename K, typename V>
+    void pushOne(const std::map<K, V>& value);
+
+    /**
+     * Start creation of table.
+     * All following push() calls will be used alternating as key and value.
+     *
+     * @return index of table which must be passed to endTable() to complete table creation
+     */
+    int startTable(std::size_t size_hint, bool is_array);
+
+    /**
+     * Finalize table.
+     * Stack must contain as many (key, value) pairs as the given table size indicates and
+     * no other elements are allowed on the stack in-between.
+     */
+    void endTable(int table_index, std::size_t table_size);
+
     /**
      * Call function on stack with given number of arguments from stack.
      * The function has to be in right below the arguments on the stack.
@@ -155,6 +185,19 @@ private:
      */
     void discardTop();
 
+    /**
+     * Push next table item (first key, second value) to stack.
+     * Before first call, top-most stack value must be of type table.
+     * Before next call, pop the value (top element of stack).
+     * To abort iteration, remove both key and value from stack.
+     *
+     * @param is_first_iteration Must be true to start the iteration process
+     *
+     * @return true if the next key/value was pushed to the stack,
+     *         false if there are no more elements in the table
+     */
+    bool pushNextTableItem(bool is_first_iteration);
+
 private:
     std::unique_ptr<lua_State, void (*)(lua_State*)> state_;
 };
@@ -164,7 +207,7 @@ void LuaState::push(T&& arg, Args&&... args)
 {
     pushOne(std::forward<T>(arg));
     if constexpr (sizeof...(Args) > 0) {
-        push(std::forward<Args...>(args...));
+        push(std::forward<Args>(args)...);
     }
 }
 
@@ -201,6 +244,10 @@ std::optional<T> LuaState::top()
         return topBool();
     } else if constexpr (std::is_same_v<PlainT, std::string>) {
         return topString();
+    } else if constexpr (detail::templates::IsSpecializationV<T, std::map>) {
+        return topMap<T>();
+    } else if constexpr (detail::templates::IsSpecializationV<T, std::vector>) {
+        return topArray<T>();
     } else {
         static_assert(!sizeof(T), "Unsupported type!");
     }
@@ -229,7 +276,7 @@ auto LuaState::topFunction()
             push(std::forward<decltype(args)>(args)...);
         }
         auto error = pcall(sizeof...(args), RETURN_TYPE_COUNT);
-        // TODO
+        // TODO: proper error checking
         if (error != 0) {
             return CallError {
                 CallError::Code::unknown,
@@ -259,6 +306,77 @@ auto LuaState::topFunction()
         return std::optional { top_function };
     }
     return std::optional<decltype(top_function)> { std::nullopt };
+}
+
+template <typename T>
+std::optional<T> LuaState::topMap()
+{
+    if (isTable()) {
+        T result;
+
+        bool is_first_iteration = true;
+        while (pushNextTableItem(is_first_iteration)) {
+            is_first_iteration = false;
+
+            // pop value but keep key to iterate to next element
+            auto value = pop<typename T::mapped_type>(true);
+            auto key = top<typename T::key_type>();
+
+            if (key.has_value() && value.has_value()) {
+                result.emplace(*std::move(key), *std::move(value));
+            } else {
+                discardTop(); // abort iteration by discarding key
+                // key or value have wrong type
+                return std::nullopt;
+            }
+        }
+        return result;
+    }
+    return std::nullopt;
+}
+
+template <typename T>
+std::optional<T> LuaState::topArray()
+{
+    // retrieve table as sorted map first since iteration is not guaranteed to
+    // be in correct order
+    auto array_map = topMap<std::map<int, typename T::value_type>>();
+    if (!array_map.has_value()) {
+        // not a table or does not match given type
+        return std::nullopt;
+    }
+
+    T result;
+    for (auto& [index, value] : *array_map) {
+        if (index - 1 != static_cast<int>(result.size())) { // Lua indices start at 1
+            // keys not continuous, thus it cannot be turned into an array
+            return std::nullopt;
+        }
+        result.push_back(std::move(value));
+    }
+    return result;
+}
+
+template <typename T>
+void LuaState::pushOne(const std::vector<T>& value)
+{
+    auto table_index = startTable(value.size(), true);
+    for (std::size_t index = 0; index < value.size(); ++index) {
+        pushOne(index + 1); // Lua arrays start at 1
+        push(value[index]);
+    }
+    endTable(table_index, value.size());
+}
+
+template <typename K, typename V>
+void LuaState::pushOne(const std::map<K, V>& value)
+{
+    auto table_index = startTable(value.size(), false);
+    for (auto&& [key, element] : value) {
+        pushOne(key);
+        push(element);
+    }
+    endTable(table_index, value.size());
 }
 } // namespace ppplugin
 

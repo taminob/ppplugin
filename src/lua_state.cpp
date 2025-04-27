@@ -133,6 +133,11 @@ bool LuaState::isNil()
     return lua_type(state(), -1) == LUA_TNIL;
 }
 
+bool LuaState::isTable()
+{
+    return lua_type(state(), -1) == LUA_TTABLE;
+}
+
 void LuaState::registerPanicHandler(LuaCFunction handler)
 {
     lua_atpanic(state(), handler);
@@ -157,5 +162,38 @@ bool LuaState::pushGlobal(const std::string& variable_name)
         return false;
     }
     return true;
+}
+
+int LuaState::startTable(std::size_t size_hint, bool is_array)
+{
+    const int array_size = is_array ? static_cast<int>(size_hint) : 0;
+    const int map_size = is_array ? 0 : static_cast<int>(size_hint);
+    lua_createtable(state(), array_size, map_size);
+
+    return lua_gettop(state());
+}
+
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+void LuaState::endTable(int table_index, std::size_t table_size)
+{
+    assert(static_cast<std::size_t>(lua_gettop(state())) > table_size * 2);
+    for (std::size_t i = 0; i < table_size; ++i) {
+        lua_settable(state(), table_index);
+    }
+}
+
+bool LuaState::pushNextTableItem(bool is_first_iteration)
+{
+    if (is_first_iteration) {
+        assert(isTable());
+        pushOne(nullptr);
+    }
+
+    // table is below key (or nil for first iteration) which is on the stack
+    auto table_index = lua_gettop(state()) - 1;
+    assert(table_index >= 1);
+
+    // if finished, lua_next will push nothing and return 0
+    return lua_next(state(), table_index) != 0;
 }
 } // namespace ppplugin
