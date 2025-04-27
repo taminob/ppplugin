@@ -9,10 +9,23 @@ namespace ppplugin {
 PythonGuard::PythonGuard(PyThreadState* state)
     : state_ { state }
 {
-    PyEval_AcquireThread(state_); // aquire GIL
+    lock(state_);
 }
+
 PythonGuard::~PythonGuard()
 {
-    PyEval_ReleaseThread(state_); // release GIL
+    unlock(state_);
+}
+
+void PythonGuard::lock(PyThreadState* state)
+{
+    assert(state != nullptr);
+    PyEval_AcquireThread(state); // aquire GIL
+}
+
+void PythonGuard::unlock(PyThreadState* state)
+{
+    assert(state != nullptr);
+    PyEval_ReleaseThread(state); // release GIL
 }
 } // namespace ppplugin

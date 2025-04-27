@@ -127,8 +127,6 @@ std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)
 
 CallResult<PythonObject> PythonInterpreter::internalCall(const std::string& function_name, PyObject* args)
 {
-    // TODO: find uniform way to manage guards (here: already locked in PythonPlugin::call)
-    // PythonGuard python_guard { state() };
     auto* function = PyObject_GetAttrString(mainModule(), function_name.c_str());
     if ((function == nullptr) || (PyCallable_Check(function) == 0)) {
         Py_XDECREF(function);
@@ -163,8 +161,6 @@ CallResult<PythonObject> PythonInterpreter::internalCall(const std::string& func
 
 CallResult<PythonObject> PythonInterpreter::internalGlobal(const std::string& variable_name)
 {
-    // TODO: find uniform way to manage guards (here: already locked in PythonPlugin::global)
-    // PythonGuard python_guard { state() };
     auto* variable = PyObject_GetAttrString(mainModule(), variable_name.c_str());
     if (variable == nullptr) {
         if (PythonException::occurred()) {
@@ -183,8 +179,6 @@ CallResult<PythonObject> PythonInterpreter::internalGlobal(const std::string& va
 
 CallResult<void> PythonInterpreter::internalGlobal(const std::string& variable_name, PythonObject new_value)
 {
-    // TODO: find uniform way to manage guards (here: already locked in PythonPlugin::global)
-    // PythonGuard python_guard { state() };
     PythonObject attribute_name { PyUnicode_FromString(variable_name.c_str()) };
     auto result = PyObject_SetAttr(mainModule(), attribute_name.pyObject(), new_value.pyObject());
     if (result < 0) {

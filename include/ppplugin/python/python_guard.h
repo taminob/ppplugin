@@ -12,6 +12,9 @@ struct PythonGuard final {
     PythonGuard& operator=(const PythonGuard&) = delete;
     PythonGuard& operator=(PythonGuard&&) = delete;
 
+    static void lock(PyThreadState* state);
+    static void unlock(PyThreadState* state);
+
 private:
     PyThreadState* state_;
 };
