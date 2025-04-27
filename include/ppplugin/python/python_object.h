@@ -39,6 +39,12 @@ public:
     [[nodiscard]] static PythonObject wrap(PyObject* object);
 
     [[nodiscard]] PyObject* pyObject() { return object(); }
+    /**
+     * Release owned reference and returned internal PyObject.
+     * This will make this instance an empty PythonObject and no
+     * Py_DECREF will be called for any previously managed object.
+     */
+    [[nodiscard]] PyObject* release() { return object_.release(); }
 
     explicit operator bool()
     {
