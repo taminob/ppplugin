@@ -2,7 +2,10 @@
 #define PPPLUGIN_TEST_HELPER_H
 
 #include <array>
+#include <string>
 #include <tuple>
+
+#include <ppplugin/expected.h>
 
 namespace ppplugin::test {
 namespace detail {
@@ -55,6 +58,12 @@ constexpr void forEachCombination(Func&& func, Args&&... args)
             std::make_tuple(std::forward<Args>(args)...),
             std::make_tuple(std::forward<Args>(args)...));
     }
+}
+
+template <typename T, typename E>
+[[nodiscard]] static std::string errorOutput(const ppplugin::Expected<T, E>& expected)
+{
+    return std::string { expected.error()->location().file_name() } + ":" + std::to_string(expected.error()->location().line()) + " - " + expected.error()->what();
 }
 } // namespace ppplugin::test
 
