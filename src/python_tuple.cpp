@@ -21,7 +21,8 @@ PyObject* PythonTuple::initTuple(int size)
 
 void PythonTuple::setTupleItem(int index, PythonObject value)
 {
-    auto* py_value = value.pyObject();
+    // PyTuple_SetItem will steal this reference, so release ownership
+    auto* py_value = value.release();
     assert(py_value);
     assert(PyTuple_SetItem(object(), index, py_value) == 0);
 }
