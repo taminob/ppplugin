@@ -48,16 +48,8 @@ std::once_flag python_initialization_done; // this is fine because Python
 
 namespace ppplugin {
 PythonInterpreter::PythonInterpreter()
-    : main_module_ { nullptr, [this](auto* main_module) {
-                        if (!state()) {
-                            // TODO: handle this failure
-                            return;
-                        }
-                        const PythonGuard python_guard { state() };
-                        Py_DECREF(main_module);
-                    } }
-    , state_ { nullptr, [](auto* state) {
-                  const PythonGuard python_guard { state };
+    : state_ { nullptr, [](auto* state) {
+                  PythonGuard::lock(state);
                   Py_EndInterpreter(state);
               } }
 {
@@ -93,9 +85,25 @@ PythonInterpreter::PythonInterpreter()
     // Python will exit application on error
     state_.reset(Py_NewInterpreter());
 #endif // PY_VERSION_HEX
-    main_module_.reset(PyImport_AddModule("__main__"));
+    main_module_ = { PyImport_AddModule("__main__"),
+        [state = state_.get()](auto* main_module) {
+            if (state) {
+                const PythonGuard guard { state };
+                Py_DECREF(main_module);
+            }
+        } };
     // release GIL of sub-interpreter
     PyEval_ReleaseThread(state());
+}
+
+PythonInterpreter::~PythonInterpreter()
+{
+    // main_module_ must be destructed before state_ since it will access the
+    // state object in its deleter
+    main_module_.reset();
+    state_.reset();
+
+    // TODO: call Py_Finalize()?
 }
 
 std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)

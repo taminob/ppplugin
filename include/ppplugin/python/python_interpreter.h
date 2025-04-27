@@ -14,7 +14,11 @@ namespace ppplugin {
 class PythonInterpreter {
 public:
     PythonInterpreter();
-    // TODO: call Py_Finalize()
+    ~PythonInterpreter();
+    PythonInterpreter(const PythonInterpreter&) = delete;
+    PythonInterpreter(PythonInterpreter&&) = default;
+    PythonInterpreter& operator=(const PythonInterpreter&) = delete;
+    PythonInterpreter& operator=(PythonInterpreter&&) = default;
 
     [[nodiscard]] std::optional<LoadError> load(const std::string& file_name);
     template <typename ReturnValue, typename... Args>
@@ -29,14 +33,31 @@ private:
     [[nodiscard]] PyThreadState* state() { return state_.get(); }
     [[nodiscard]] PyObject* mainModule() { return main_module_.get(); }
 
+    /**
+     * Call function with given arguments.
+     * Arguments must be wrapped in a python tuple.
+     *
+     * @note the GIL must be held
+     */
     [[nodiscard]] CallResult<PythonObject> internalCall(const std::string& function_name, PyObject* args);
 
+    /**
+     * Return value of global variable for given name.
+     *
+     * @note the GIL must be held
+     */
     [[nodiscard]] CallResult<PythonObject> internalGlobal(const std::string& variable_name);
+    /**
+     * Set value of global variable for given name.
+     * Will create the global variable if it does not exist yet.
+     *
+     * @note the GIL must be held
+     */
     [[nodiscard]] CallResult<void> internalGlobal(const std::string& variable_name, PythonObject new_value);
 
 private:
-    std::unique_ptr<PyObject, std::function<void(PyObject*)>> main_module_;
     std::unique_ptr<PyThreadState, void (*)(PyThreadState*)> state_;
+    std::unique_ptr<PyObject, std::function<void(PyObject*)>> main_module_;
 };
 
 template <typename ReturnValue, typename... Args>
