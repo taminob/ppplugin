@@ -44,6 +44,24 @@ std::once_flag python_initialization_done; // this is fine because Python
     Py_DECREF(keys);
     return result;
 }
+
+#if PY_VERSION_HEX >= 0x030c0000 // Python 3.12 or newer
+/**
+ * Create interpreter configuration struct for new Python sub-interpreter.
+ */
+PyInterpreterConfig createInterpreterConfig()
+{
+    PyInterpreterConfig config {};
+    config.use_main_obmalloc = 0;
+    config.allow_fork = 0;
+    config.allow_exec = 0;
+    config.allow_threads = 1;
+    config.allow_daemon_threads = 0;
+    config.check_multi_interp_extensions = 1;
+    config.gil = PyInterpreterConfig_OWN_GIL;
+    return config;
+}
+#endif // PY_VERSION_HEX
 } // namespace
 
 namespace ppplugin {
@@ -73,7 +91,7 @@ PythonInterpreter::PythonInterpreter()
     PyGILState_Ensure();
 #if PY_VERSION_HEX >= 0x030c0000 // Python 3.12 or newer
     PyThreadState* new_state = nullptr;
-    const PyInterpreterConfig config = _PyInterpreterConfig_INIT;
+    const auto config = createInterpreterConfig();
     auto status = Py_NewInterpreterFromConfig(&new_state, &config);
     if (PyStatus_IsError(status) == 0) {
         state_.reset(new_state);
