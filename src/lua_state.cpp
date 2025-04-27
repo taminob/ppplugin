@@ -196,4 +196,28 @@ bool LuaState::pushNextTableItem(bool is_first_iteration)
     // if finished, lua_next will push nothing and return 0
     return lua_next(state(), table_index) != 0;
 }
+
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
+void LuaState::dumpStack(std::ostream& out, int start_index, int end_index
+#ifndef PPPLUGIN_CPP17_COMPATIBILITY
+    ,
+    const std::source_location& location
+#endif // PPPLUGIN_CPP17_COMPATIBILITY
+)
+{
+    auto top_index = lua_gettop(state());
+    out << "Lua Stack (size " << top_index << ")"
+#ifndef PPPLUGIN_CPP17_COMPATIBILITY
+        << " at " << location.file_name() << ":" << location.line()
+#endif // PPPLUGIN_CPP17_COMPATIBILITY
+        << ":\n";
+
+    end_index = end_index < 0 ? top_index : end_index;
+    for (int i = start_index; i <= end_index; ++i) {
+        auto type = lua_type(state(), i);
+        const auto* type_name = lua_typename(state(), type);
+
+        out << i << ": (" << type_name << ")\n";
+    }
+}
 } // namespace ppplugin
