@@ -102,6 +102,16 @@ public:
      */
     void registerPanicHandler(LuaCFunction handler);
 
+    /**
+     * Dump stack between given indices to stream.
+     */
+    void dumpStack(std::ostream& out, int start_index = 1, int end_index = -1
+#ifndef PPPLUGIN_CPP17_COMPATIBILITY
+        ,
+        const std::source_location& location = std::source_location::current()
+#endif // PPPLUGIN_CPP17_COMPATIBILITY
+    );
+
 private:
     /**
      * Create non-owning LuaState instance of given state.
