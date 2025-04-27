@@ -1,3 +1,5 @@
+#include "test_helper.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -11,13 +13,6 @@ protected:
         ASSERT_TRUE(load_result.hasValue());
 
         plugin = std::make_unique<ppplugin::LuaPlugin>(std::move(load_result.valueRef()->get()));
-    }
-
-protected:
-    template <typename T, typename E>
-    [[nodiscard]] static std::string errorOutput(const ppplugin::Expected<T, E>& expected)
-    {
-        return std::string { expected.error()->location().file_name() } + ":" + std::to_string(expected.error()->location().line()) + " - " + expected.error()->what();
     }
 
 protected:
@@ -38,8 +33,8 @@ TEST_F(LuaTest, callFunctionWithWrongArguments)
     auto result_1 = plugin->call<bool>("accept_number_string_bool", "def", false);
     auto result_2 = plugin->call<bool>("accept_number_string_bool", 1, 2, 3, 4);
 
-    ASSERT_TRUE(result_1.hasValue()) << errorOutput(result_1);
-    ASSERT_TRUE(result_2.hasValue()) << errorOutput(result_2);
+    ASSERT_TRUE(result_1.hasValue()) << ppplugin::test::errorOutput(result_1);
+    ASSERT_TRUE(result_2.hasValue()) << ppplugin::test::errorOutput(result_2);
     EXPECT_FALSE(result_1.valueOr(true));
     EXPECT_FALSE(result_2.valueOr(true));
 }
@@ -48,7 +43,7 @@ TEST_F(LuaTest, callFunctionWithArrayArgument)
 {
     auto result = plugin->call<std::string>("serialize_array", std::vector<std::string> { "a", "b", "c" });
 
-    ASSERT_TRUE(result.hasValue()) << errorOutput(result);
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
     EXPECT_EQ(result.valueOr(""), "1:a,2:b,3:c,");
 }
 
@@ -69,7 +64,7 @@ TEST_F(LuaTest, callFunctionWithArrayResult)
 {
     auto result = plugin->call<std::vector<std::string>>("return_array");
 
-    ASSERT_TRUE(result.hasValue()) << errorOutput(result);
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
     EXPECT_THAT(result.valueOr(std::vector<std::string> {}), testing::ElementsAre("a", "b", "c"));
 }
 
@@ -80,7 +75,7 @@ TEST_F(LuaTest, callFunctionWithMapResult)
 
     auto result = plugin->call<ResultType>("return_map");
 
-    ASSERT_TRUE(result.hasValue()) << errorOutput(result);
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
     EXPECT_EQ(result.valueOr(ResultType {}), expected);
 }
 
@@ -95,6 +90,6 @@ TEST_F(LuaTest, nestedTable)
 
     auto result = plugin->call<ResultType>("identity", value);
 
-    ASSERT_TRUE(result.hasValue()) << errorOutput(result);
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
     EXPECT_EQ(result.valueOr(ResultType {}), value);
 }
