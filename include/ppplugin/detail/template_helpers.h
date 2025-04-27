@@ -185,6 +185,10 @@ struct IsSpecialization : std::false_type { };
 template <template <typename...> typename ExpectedType, typename... Ts>
 struct IsSpecialization<ExpectedType<Ts...>, ExpectedType> : std::true_type { };
 
+template <typename ActualType, template <typename...> typename ExpectedType>
+constexpr bool IsSpecializationV = // NOLINT(readability-identifier-naming)
+    IsSpecialization<ActualType, ExpectedType>::value;
+
 template <typename T>
 using IsStdTuple = IsSpecialization<T, std::tuple>;
 
