@@ -45,11 +45,14 @@ CallResult<ReturnValue> PythonInterpreter::call(const std::string& function_name
     PythonGuard python_guard { state() };
     PythonTuple args_tuple { std::forward<Args>(args)... };
 
-    return internalCall(function_name, args_tuple.pyObject()).andThen([](const PythonObject& result) {
+    return internalCall(function_name, args_tuple.pyObject()).andThen([](PythonObject&& result) -> CallResult<ReturnValue> {
         if constexpr (std::is_void_v<ReturnValue>) {
-            return;
+            return {};
         } else {
-            return result.as<ReturnValue>();
+            if (auto return_value = std::move(result).as<ReturnValue>()) {
+                return *return_value;
+            }
+            return CallError { CallError::Code::incorrectType, "Unable to convert result to return type!" };
         }
     });
 }
