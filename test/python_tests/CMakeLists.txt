@@ -1,6 +1,6 @@
 target_sources(${TESTS_NAME} PRIVATE python_tests.cpp)
 
-add_custom_target(python_tests ALL)
+add_custom_target(python_tests ALL COMMENT "Python test files")
 add_custom_command(
   TARGET python_tests
   POST_BUILD

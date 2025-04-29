@@ -1,6 +1,6 @@
 target_sources(${TESTS_NAME} PRIVATE lua_tests.cpp)
 
-add_custom_target(lua_tests ALL)
+add_custom_target(lua_tests ALL COMMENT "Lua test files")
 add_custom_command(
   TARGET lua_tests
   POST_BUILD
