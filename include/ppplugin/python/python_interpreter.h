@@ -94,7 +94,7 @@ template <typename VariableType>
 CallResult<void> PythonInterpreter::global(const std::string& variable_name, VariableType&& new_value)
 {
     PythonGuard python_guard { state() };
-    return internalGlobal(variable_name, PythonObject::from(new_value));
+    return internalGlobal(variable_name, PythonObject::from(std::forward<VariableType>(new_value)));
 }
 } // namespace ppplugin
 

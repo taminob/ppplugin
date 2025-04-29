@@ -145,6 +145,15 @@ std::optional<bool> PythonObject::asBool()
     return std::nullopt;
 }
 
+std::optional<char> PythonObject::asChar()
+{
+    if (auto string = asString();
+            string.has_value() && string->size() == 1) {
+        return string->at(0);
+    }
+    return std::nullopt;
+}
+
 std::optional<std::string> PythonObject::asString()
 {
     if (isString()) {
