@@ -7,5 +7,15 @@ def accept_int_string_bool_float(i, s, b, f):
     return is_int and is_string and is_bool and is_float
 
 
+def accept_dict(d, key):
+    return d[key]
+
+def accept_list(l):
+    result = ""
+    for e in l:
+        result += e + ","
+    return result
+
+
 def identity(x):
     return x
