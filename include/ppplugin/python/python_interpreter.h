@@ -83,7 +83,7 @@ CallResult<VariableType> PythonInterpreter::global(const std::string& variable_n
 {
     PythonGuard python_guard { state() };
     return internalGlobal(variable_name).andThen([](PythonObject&& object) -> CallResult<VariableType> {
-        if (auto result = object.template as<VariableType>()) {
+        if (auto result = std::move(object).template as<VariableType>()) {
             return *result;
         }
         return { CallError::Code::incorrectType };

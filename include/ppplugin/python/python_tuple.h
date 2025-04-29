@@ -21,6 +21,7 @@ private:
     void fillTuple(int start_index, T&& arg, Args&&... args);
 
     void setTupleItem(int index, PythonObject value);
+    [[nodiscard]] PythonObject getTupleItem(int index);
 
 private:
     PythonObject object_;
@@ -38,7 +39,9 @@ PythonTuple::PythonTuple(Args&&... args)
 template <typename T, typename... Args>
 void PythonTuple::fillTuple(int start_index, T&& arg, Args&&... args)
 {
-    setTupleItem(start_index, PythonObject::from(std::forward<T>(arg)));
+    auto element = PythonObject::from(std::forward<T>(arg));
+    setTupleItem(start_index, std::move(element));
+
     if constexpr (sizeof...(Args) > 0) {
         fillTuple(start_index + 1, std::forward<Args>(args)...);
     }

@@ -21,9 +21,17 @@ PyObject* PythonTuple::initTuple(int size)
 
 void PythonTuple::setTupleItem(int index, PythonObject value)
 {
-    // PyTuple_SetItem will steal this reference, so release ownership
-    auto* py_value = value.release();
-    assert(py_value);
-    assert(PyTuple_SetItem(object(), index, py_value) == 0);
+    // PyTuple_SetItem will steal this reference, so claim ownership first
+    assert(value);
+    auto* released_value = value.release();
+
+    assert(PyTuple_SetItem(object(), index, released_value) == 0);
+}
+
+PythonObject PythonTuple::getTupleItem(int index)
+{
+    auto* item = PyTuple_GetItem(object(), index);
+    Py_XINCREF(item); // claim strong reference to item
+    return PythonObject { item };
 }
 } // namespace ppplugin
