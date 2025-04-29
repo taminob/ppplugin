@@ -38,3 +38,39 @@ TEST_F(PythonTest, callFunctionWithWrongArguments)
     EXPECT_FALSE(result_1.valueOr(true));
     EXPECT_FALSE(result_2.valueOr(true));
 }
+
+TEST_F(PythonTest, callFunctionWithDict)
+{
+    auto result = plugin->call<int>("accept_dict", std::map<std::string, int> {
+                                                       { "", 1 },
+                                                       { "a", 2 },
+                                                       { "b", 3 },
+                                                       { "c", 4 },
+                                                   },
+        "c");
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(result.valueOr(0), 4);
+}
+
+TEST_F(PythonTest, callFunctionWithList)
+{
+    auto result = plugin->call<std::string>("accept_list", std::vector<char> { 'a', 'b', 'c' });
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(result.valueOr(""), "a,b,c,");
+}
+
+TEST_F(PythonTest, nestedDict)
+{
+    using ResultType = std::map<std::string, std::vector<std::map<int, int>>>;
+    const ResultType expected = {
+        { "", {} },
+        { "a", { { { 1, 1 }, { 2, 2 } }, { { 0, 0 } } } },
+        { "b", { { { 1, 1 } } } }
+    };
+
+    auto result = plugin->call<ResultType>("identity", expected);
+
+    EXPECT_EQ(result.valueOr(ResultType {}), expected);
+}
