@@ -78,6 +78,7 @@ private:
     [[nodiscard]] std::optional<long long> asLongLong();
     [[nodiscard]] std::optional<double> asDouble();
     [[nodiscard]] std::optional<bool> asBool();
+    [[nodiscard]] std::optional<char> asChar();
     [[nodiscard]] std::optional<std::string> asString();
     template <typename T>
     [[nodiscard]] std::optional<T> asMap();
@@ -139,6 +140,8 @@ std::optional<T> PythonObject::as()
         return asDouble();
     } else if constexpr (std::is_same_v<T, bool>) {
         return asBool();
+    } else if constexpr (std::is_same_v<T, char>) {
+        return asChar();
     } else if constexpr (std::is_same_v<T, std::string>) {
         return asString();
     } else if constexpr (std::is_integral_v<T>) {
