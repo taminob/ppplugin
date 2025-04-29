@@ -74,3 +74,80 @@ TEST_F(PythonTest, nestedDict)
 
     EXPECT_EQ(result.valueOr(ResultType {}), expected);
 }
+
+TEST_F(PythonTest, getGlobalString)
+{
+    auto result = plugin->global<std::string>("string_global");
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(result.valueOr(""), "abc");
+}
+
+TEST_F(PythonTest, getGlobalChar)
+{
+    auto result = plugin->global<char>("char_global");
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(result.valueOr(' '), 'a');
+}
+
+TEST_F(PythonTest, getGlobalBool)
+{
+    auto result = plugin->global<bool>("bool_global");
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(result.valueOr(true), false);
+}
+
+TEST_F(PythonTest, getGlobalInt)
+{
+    auto result = plugin->global<int>("int_global");
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(result.valueOr(0), 12);
+}
+
+TEST_F(PythonTest, getGlobalFloat)
+{
+    auto result = plugin->global<float>("float_global");
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_DOUBLE_EQ(result.valueOr(0.0), 42.0);
+}
+
+TEST_F(PythonTest, getGlobalList)
+{
+    using ResultType = std::vector<std::vector<int>>;
+    const ResultType expected { {}, { 0 }, { 0, 0 } };
+
+    auto result = plugin->global<ResultType>("list_global");
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(result.valueOr(ResultType {}), expected);
+}
+
+TEST_F(PythonTest, getGlobalDict)
+{
+    using ResultType = std::map<std::string, int>;
+    const ResultType expected { { "a", 1 }, { "b", 2 } };
+
+    auto result = plugin->global<ResultType>("dict_global");
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(result.valueOr(ResultType {}), expected);
+}
+
+TEST_F(PythonTest, setGlobalDict)
+{
+    using ResultType = std::map<std::string, int>;
+    const ResultType expected { { "x", 10 }};
+
+    auto set_result = plugin->global("dict_global", expected);
+
+    EXPECT_TRUE(set_result.hasValue()) << ppplugin::test::errorOutput(set_result);
+
+    auto result = plugin->call<ResultType>("get_global", "dict_global");
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(*result, expected);
+}
