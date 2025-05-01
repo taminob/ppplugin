@@ -8,6 +8,7 @@
 #include <source_location>
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
 #include <string>
+#include <string_view>
 
 namespace ppplugin {
 class CallError {
@@ -76,12 +77,42 @@ private:
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
 };
 
+[[nodiscard]] static constexpr std::string_view codeToString(CallError::Code code)
+{
+    switch (code) {
+    case CallError::Code::incorrectType:
+        return "incorrect type";
+    case CallError::Code::notLoaded:
+        return "not loaded";
+    case CallError::Code::symbolNotFound:
+        return "symbol not found";
+    case CallError::Code::unknown:
+    default:
+        return "unknown";
+    }
+}
+
 enum class LoadError {
     unknown,
     fileNotFound,
     fileInvalid,
     fileNotReadable,
 };
+
+[[nodiscard]] static constexpr std::string_view codeToString(LoadError code)
+{
+    switch (code) {
+    case LoadError::fileNotReadable:
+        return "file not readable";
+    case LoadError::fileInvalid:
+        return "file invalid";
+    case LoadError::fileNotFound:
+        return "file not found";
+    case LoadError::unknown:
+    default:
+        return "unknown";
+    }
+}
 
 template <typename ReturnType>
 using CallResult = Expected<ReturnType, CallError>;
