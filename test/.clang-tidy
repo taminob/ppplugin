@@ -11,4 +11,6 @@ Checks: >
         -bugprone-unchecked-optional-access,
         -hicpp-noexcept-move,
         -cppcoreguidelines-noexcept-move-operations,
-        -cppcoreguidelines-init-variables
+        -cppcoreguidelines-init-variables,
+        -cppcoreguidelines-non-private-member-variables-in-classes,
+        -misc-non-private-member-variables-in-classes

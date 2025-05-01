@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
         for (int counter {}; counter < std::numeric_limits<int>::max(); ++counter) {
             for (auto& plugin : plugins) {
                 // explicit cast to int to avoid passing by reference
-                plugin.call<void>("loop", static_cast<int>(counter))
+                plugin.call<void>("loop", static_cast<int>(counter)) // NOLINT(readability-redundant-casting)
                     .valueOrElse([](const ppplugin::CallError& error) {
                         std::cerr << "Loop Error: " << error.what() << '\n';
                     });
