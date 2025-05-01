@@ -2,7 +2,7 @@
 
 #include <boost/dll/alias.hpp>
 
-void initialize()
+extern void initialize()
 {
     std::cout << "C++ initialize" << '\n';
 }

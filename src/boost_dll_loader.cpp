@@ -1,3 +1,4 @@
+#include "ppplugin/detail/boost_dll_loader.h"
 #include "ppplugin/errors.h"
 
 #include <exception>

@@ -12,7 +12,7 @@ Checks: >
         cert-*,-cert-dcl16-c,-cert-dcl51-cpp,-cert-dcl37-c,
         concurrency-*,
         cppcoreguidelines-*,-cppcoreguidelines-avoid-magic-numbers,
-        modernize-*,-modernize-use-trailing-return-type,-modernize-use-emplace,
+        modernize-*,-modernize-use-trailing-return-type,-modernize-use-emplace,-modernize-use-designated-initializers,
         performance-*,-performance-noexcept-move-constructor,
         portability-*,
         readability-*,-readability-redundant-access-specifiers

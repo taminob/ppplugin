@@ -32,12 +32,10 @@ int main(int argc, char* argv[])
         if (!a_1 || !a_2) {
             return 2;
         }
-        auto unwrapped_a_1 = *a_1;
-        auto unwrapped_a_2 = *a_2;
 
         std::atomic<bool> stop_signal { false };
-        std::thread thread_1([plugin = unwrapped_a_1, &stop_signal]() { plugin->loop(stop_signal); });
-        std::thread thread_2([plugin = unwrapped_a_2, &stop_signal]() { plugin->loop(stop_signal); });
+        std::thread thread_1([plugin = *a_1, &stop_signal]() { plugin->loop(stop_signal); });
+        std::thread thread_2([plugin = *a_2, &stop_signal]() { plugin->loop(stop_signal); });
         std::this_thread::sleep_for(std::chrono::seconds { 5 });
         stop_signal.store(true);
         thread_1.join();

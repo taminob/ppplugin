@@ -140,7 +140,7 @@ TEST_F(PythonTest, getGlobalDict)
 TEST_F(PythonTest, setGlobalDict)
 {
     using ResultType = std::map<std::string, int>;
-    const ResultType expected { { "x", 10 }};
+    const ResultType expected { { "x", 10 } };
 
     auto set_result = plugin->global("dict_global", expected);
 
