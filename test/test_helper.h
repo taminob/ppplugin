@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 
+#include <ppplugin/detail/compatibility_utils.h>
 #include <ppplugin/expected.h>
 
 namespace ppplugin::test {
@@ -23,7 +24,6 @@ namespace detail {
                     std::forward<TupleTwo>(inner_args));
             }
         } else if constexpr (outerIndex < OUTER_SIZE) {
-
             auto&& a = std::get<outerIndex>(outer_args);
             auto&& b = std::get<innerIndex>(inner_args);
             using A = decltype(a);
@@ -63,7 +63,20 @@ constexpr void forEachCombination(Func&& func, Args&&... args)
 template <typename T, typename E>
 [[nodiscard]] static std::string errorOutput(const ppplugin::Expected<T, E>& expected)
 {
-    return std::string { expected.error()->location().file_name() } + ":" + std::to_string(expected.error()->location().line()) + " - " + expected.error()->what();
+    auto error = *expected.error();
+
+    std::string output;
+#ifndef PPPLUGIN_CPP17_COMPATIBILITY
+    output += error.where();
+    output += " - ";
+#endif // PPPLUGIN_CPP17_COMPATIBILITY
+
+    output += error.what();
+    output += " (";
+    output += codeToString(error.code());
+    output += ")";
+
+    return output;
 }
 } // namespace ppplugin::test
 
