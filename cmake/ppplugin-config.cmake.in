@@ -2,7 +2,7 @@
 
 include(CMakeFindDependencyMacro)
 find_dependency(Boost @Boost_VERSION_MAJOR@ COMPONENTS headers filesystem
-                python)
+                python process)
 find_dependency(Python @Python_VERSION_MAJOR@ COMPONENTS Development)
 find_dependency(Lua @LUA_VERSION_MAJOR@)
 
