@@ -10,3 +10,4 @@ QualifierOrder: [
   'const',
   'type',
 ]
+SpaceInEmptyBraces: Block
