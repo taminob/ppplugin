@@ -92,7 +92,7 @@ jobs:
           retention-days: 5
 
   unittest:
-    name: "unittest"
+    name: "unittests"
     needs: build
     runs-on: ubuntu-latest
     strategy:
@@ -151,7 +151,7 @@ jobs:
           retention-days: 3
 
   ctest:
-    name: "ctest"
+    name: "cmake tests"
     needs: build
     runs-on: ubuntu-latest
     steps:

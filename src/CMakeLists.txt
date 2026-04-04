@@ -12,19 +12,22 @@ set(LIBRARY_SOURCES
     "python_exception.cpp"
     "python_tuple.cpp"
     "python_object.cpp"
-    "python_guard.cpp")
+    "python_guard.cpp"
+    "shell_plugin.cpp"
+    "shell_session.cpp")
 
-add_library(${LIBRARY_TARGET} ${LIBRARY_SOURCES})
+file(GLOB_RECURSE LIBRARY_HEADERS ${CMAKE_SOURCE_DIR}/include/**/*.h)
+
+add_library(${LIBRARY_TARGET} ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 target_link_libraries(
   ${LIBRARY_TARGET}
   PRIVATE ${LUA_LIBRARIES}
-  PUBLIC Boost::filesystem Python::Python
+  PUBLIC Boost::filesystem Boost::process Python::Python
          $<$<BOOL:${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY}>:fmt::fmt>)
 target_include_directories(
   ${LIBRARY_TARGET}
   PRIVATE ${LUA_INCLUDE_DIR}
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-         $<INSTALL_INTERFACE:include/${PROJECT_NAME}>)
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>)
 target_compile_definitions(
   ${LIBRARY_TARGET}
   PUBLIC

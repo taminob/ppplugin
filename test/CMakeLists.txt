@@ -9,6 +9,7 @@ target_link_libraries(${TESTS_NAME} PRIVATE GTest::GTest GTest::Main gmock
                                             Threads::Threads ${LIBRARY_TARGET})
 
 add_subdirectory(lua_tests)
+add_subdirectory(shell_tests)
 add_subdirectory(python_tests)
 
 gtest_discover_tests(${TESTS_NAME})
