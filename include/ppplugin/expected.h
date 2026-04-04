@@ -459,17 +459,33 @@ template <typename F>
 constexpr auto Expected<T, E>::andThen(F&& func) const&
 {
     if constexpr (std::is_invocable_v<F, T>) {
-        using ReturnType = AndThenReturnType<std::invoke_result_t<F, T>>;
+        using InvokeResultType = std::invoke_result_t<F, T>;
+        using ReturnType = AndThenReturnType<InvokeResultType>;
         if (!hasValue()) {
             return static_cast<ReturnType>(uncheckedError());
         }
-        return static_cast<ReturnType>(std::forward<F>(func)(uncheckedValue()));
+        if constexpr (std::is_void_v<InvokeResultType>) {
+            // cannot cast void function return type to result type;
+            // thus, handle separately here
+            std::forward<F>(func)(uncheckedValue());
+            return ReturnType {};
+        } else {
+            return static_cast<ReturnType>(std::forward<F>(func)(uncheckedValue()));
+        }
     } else if constexpr (std::is_invocable_v<F>) {
-        using ReturnType = AndThenReturnType<std::invoke_result_t<F>>;
+        using InvokeResultType = std::invoke_result_t<F>;
+        using ReturnType = AndThenReturnType<InvokeResultType>;
         if (!hasValue()) {
             return static_cast<ReturnType>(uncheckedError());
         }
-        return static_cast<ReturnType>(std::forward<F>(func)());
+        if constexpr (std::is_void_v<InvokeResultType>) {
+            // cannot cast void function return type to result type;
+            // thus, handle separately here
+            std::forward<F>(func)();
+            return ReturnType {};
+        } else {
+            return static_cast<ReturnType>(std::forward<F>(func)());
+        }
     } else {
         static_assert(std::is_invocable_v<F>,
             "Given function has to be invocable!");
@@ -658,10 +674,18 @@ template <typename E>
 template <typename F>
 constexpr auto Expected<void, E>::andThen(F&& func) &&
 {
+    using FunctionReturnType = std::invoke_result_t<F>;
+    using ReturnType = Expected<FunctionReturnType, E>;
+
     if (error_) {
-        return std::move(*error_);
+        return ReturnType { std::move(*error_) };
     }
-    return std::forward<F>(func)();
+    if constexpr (std::is_void_v<FunctionReturnType>) {
+        func();
+        return ReturnType {};
+    } else {
+        return ReturnType { std::forward<F>(func)() };
+    }
 }
 template <typename E>
 constexpr void Expected<void, E>::operator*() const
