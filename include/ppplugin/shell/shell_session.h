@@ -2,11 +2,10 @@
 #define PPPLUGIN_SHELL_SESSION_H
 
 #include "ppplugin/detail/string_utils.h"
+#include "ppplugin/detail/thread_safe.h"
 #include "ppplugin/errors.h"
 
 #include <chrono>
-#include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <thread>
@@ -23,20 +22,27 @@ public:
     explicit ShellSession(const std::string& shell_binary)
         : context_ { std::make_unique<boost::asio::io_context>() }
         , stdin_pipe_ { *context_ }
-        , stdout_pipe_ { *context_ }
+        , stdout_pipe_ { std::make_unique<decltype(stdout_pipe_)::element_type>(boost::asio::readable_pipe { *context_ }) }
         , stderr_pipe_ { *context_ }
-        , io_ { stdin_pipe_, stdout_pipe_, stderr_pipe_ }
+        , io_ { stdin_pipe_, *stdout_pipe_, stderr_pipe_ }
         , shell_process_ { *context_, shell_binary, {}, io_ }
-        , wait_for_result_mutex_ { std::make_unique<std::mutex>() }
-        , wait_for_result_ { std::make_unique<std::condition_variable>() }
+        , is_running_ { std::make_unique<decltype(is_running_)::element_type>(true) }
     {
-        thread_ = std::thread { [context = context_.get(), wait_for_result = wait_for_result_.get()]() { assert(context); runContextLoop(*context); wait_for_result->notify_all(); } };
+        thread_ = std::thread { [context = context_.get()]() { assert(context); runContextLoop(*context); } };
+
+        // TODO: make movable across threads
+        shell_process_.async_wait([stdout_pipe = stdout_pipe_.get(), is_running = is_running_.get()](const boost::system::error_code& ec, int exit_code) {
+            std::cout << "PROCESS EXIT: " << ec.what() << " (" << exit_code << ")\n";
+            assert(stdout_pipe);
+            stdout_pipe->cancel();
+            assert(is_running);
+            is_running->store(false);
+        });
     }
     ~ShellSession()
     {
         if (shell_process_.running()) {
-            shell_process_.interrupt();
-            std::this_thread::sleep_for(SHELL_SHUTDOWN_TIMEOUT);
+            // TODO? use shell_process_.request_exit() first?
             shell_process_.terminate();
         }
         if (context_) {
@@ -51,12 +57,12 @@ public:
     ShellSession& operator=(const ShellSession&) = delete;
     ShellSession& operator=(ShellSession&&) = default;
 
-    CallResult<void> callWithoutResult(const std::string& function_name, const std::vector<std::string>& arguments)
+    [[nodiscard]] CallResult<void> callWithoutResult(const std::string& function_name, const std::vector<std::string>& arguments)
     {
         auto result = callWithResult(function_name, arguments);
         return result.andThen([]() { });
     }
-    CallResult<std::string> callWithResult(const std::string& function_name, const std::vector<std::string>& arguments)
+    [[nodiscard]] CallResult<std::string> callWithResult(const std::string& function_name, const std::vector<std::string>& arguments)
     {
         if (!shell_process_.running()) {
             return CallError { CallError::Code::unknown, "Shell is not running!" };
@@ -76,35 +82,22 @@ public:
         boost::asio::write(stdin_pipe_, boost::asio::buffer(command_line));
 
         std::string result;
-        constexpr auto BUFFER_SIZE = 1024;
-        // for the abort condition to work, the end marker must fully fit into the buffer
-        assert(end_marker.size() < BUFFER_SIZE);
-        std::array<char, BUFFER_SIZE> buffer {};
+        // use future with empty handler to avoid blocking read() syscall;
+        // this allows cancellation of pipe in case shell process dies
+        boost::asio::async_read_until(*stdout_pipe_,
+            boost::asio::dynamic_buffer(result),
+            end_marker, boost::asio::use_future([](auto&&...) { }))
+            .wait();
 
-        std::function<void(const boost::system::error_code& error, std::size_t bytes_transferred)> read_handler = [this, &result, &buffer, &end_marker, &read_handler](const boost::system::error_code& error, std::size_t bytes_transferred) {
-            if (error.failed()) {
-                // TODO? report error to user (error.what())?
-                std::cout << "ERROR while reading: " << error.what() << '\n';
-                return;
-            }
-            result.append(buffer.data(), bytes_transferred);
-            std::cout << "PROGRESS... (" << result << ")\n";
-            if (endsWith(result, end_marker)) {
-                std::lock_guard lock { *wait_for_result_mutex_ };
-                is_result_available_ = true;
-                wait_for_result_->notify_all();
-            } else {
-                stdout_pipe_.async_read_some(boost::asio::buffer(buffer), read_handler);
-            }
-        };
-        is_result_available_ = false;
-        stdout_pipe_.async_read_some(boost::asio::buffer(buffer), read_handler);
-        std::unique_lock lock { *wait_for_result_mutex_ };
-        while (!wait_for_result_->wait_for(lock, std::chrono::milliseconds { 50 }, [this]() { return is_result_available_ || !shell_process_.running(); })) { }
         if (!shell_process_.running()) {
-            return CallError { CallError::Code::unknown, std::to_string(shell_process_.exit_code()) };
+            is_running_->store(false);
+            return CallError { CallError::Code::unknown, "shell ended prematurely" };
         }
-        assert(result.size() > end_marker.size());
+
+        if (!endsWith(result, end_marker)) {
+            return CallError { CallError::Code::unknown, "failed to get command output" };
+        }
+        // remove end marker
         result.resize(result.size() - end_marker.size());
 
         auto exit_code_pos = result.find_last_of(':');
@@ -122,13 +115,8 @@ public:
         return result;
     }
 
-    CallResult<std::string> environmentVariable(const std::string& variable_name)
+    [[nodiscard]] CallResult<std::string> environmentVariable(const std::string& variable_name)
     {
-        // auto it = environment_variables_.find(variable_name);
-        // if (it != environment_variables_.end()) {
-        //     return it->second;
-        // }
-        // return CallError { CallError::Code::symbolNotFound };
         return callWithResult("printenv", { variable_name }).andThen([](auto&& result) {
             assert(!result.empty());
             assert(result.back() == '\n');
@@ -137,10 +125,20 @@ public:
         });
     }
 
-    CallResult<void> environmentVariable(const std::string& variable_name, const std::string& new_value)
+    [[nodiscard]] CallResult<void> environmentVariable(const std::string& variable_name, const std::string& new_value)
     {
         std::string variable_assignment = variable_name + "='" + new_value + '\'';
-        return callWithoutResult("export", { variable_assignment }).andThen([]() { });
+        return callWithoutResult("export", { variable_assignment });
+    }
+
+    [[nodiscard]] bool isRunning()
+    {
+        return shell_process_.running();
+    }
+
+    [[nodiscard]] bool isRunning() const
+    {
+        return is_running_->load();
     }
 
 private:
@@ -152,7 +150,9 @@ private:
                 context.run();
                 break;
             } catch (const std::exception& exception) {
+                assert(false);
             } catch (...) {
+                assert(false);
             }
         }
     }
@@ -161,17 +161,15 @@ private:
     static constexpr std::chrono::milliseconds SHELL_SHUTDOWN_TIMEOUT { 10 };
 
 private:
+    // thread for running io_context
     std::thread thread_;
     std::unique_ptr<boost::asio::io_context> context_;
     boost::asio::writable_pipe stdin_pipe_;
-    boost::asio::readable_pipe stdout_pipe_;
+    std::unique_ptr<boost::asio::readable_pipe> stdout_pipe_;
     boost::asio::readable_pipe stderr_pipe_;
     boost::process::process_stdio io_;
     boost::process::process shell_process_;
-
-    std::unique_ptr<std::mutex> wait_for_result_mutex_;
-    std::unique_ptr<std::condition_variable> wait_for_result_;
-    bool is_result_available_ { false };
+    std::unique_ptr<std::atomic<bool>> is_running_;
 
     // TODO: explore possibility to import/export variables and functions for each call
 };

@@ -10,8 +10,10 @@ Expected<ShellPlugin, LoadError> ShellPlugin::load(
     const std::filesystem::path& plugin_library_path)
 {
     ShellPlugin plugin;
-    // TODO: handle error
-    std::ignore = plugin.call<void>(".", plugin_library_path.string());
-    return plugin;
+    auto result = plugin.call<void>(".", plugin_library_path.string());
+    if (result.hasValue()) {
+        return plugin;
+    }
+    return LoadError::unknown;
 }
 } // namespace ppplugin

@@ -20,7 +20,7 @@ public:
     ShellPlugin& operator=(ShellPlugin&&) = default;
 
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    operator bool() const { return true; }
+    operator bool() { return shell_.isRunning(); }
 
     /**
      * Accepted types are:

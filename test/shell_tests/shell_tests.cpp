@@ -19,6 +19,12 @@ protected:
     std::unique_ptr<ppplugin::ShellPlugin> plugin;
 };
 
+TEST(ShellTestStandalone, failToLoadNonexistentFile)
+{
+    auto plugin = ppplugin::ShellPlugin::load("./path/that/does/not/exist.sh");
+    EXPECT_FALSE(plugin);
+}
+
 TEST_F(ShellTest, getEnvironmentVariable)
 {
     auto result = plugin->global<std::string>("env_var");
@@ -52,6 +58,19 @@ TEST_F(ShellTest, callFunctionWithStringResult)
 {
     auto result = plugin->call<std::string>("print_first", "qwerty");
 
-    EXPECT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
     EXPECT_EQ(result.value().value(), "qwerty\n");
+}
+
+TEST_F(ShellTest, moveToOtherThread)
+{
+    auto result = plugin->global("some_var", "some_value");
+    EXPECT_TRUE(result) << ppplugin::test::errorOutput(result);
+
+    std::thread thread { [moved_plugin = std::move(*plugin)]() mutable {
+        auto result = moved_plugin.global<std::string>("some_var");
+        EXPECT_TRUE(result) << ppplugin::test::errorOutput(result);
+        EXPECT_EQ(result.value().value(), "some_value");
+    } };
+    thread.join();
 }
