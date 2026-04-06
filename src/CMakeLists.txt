@@ -1,18 +1,18 @@
 set(LIBRARY_SOURCES
     "boost_dll_loader.cpp"
-    "c_plugin.cpp"
-    "cpp_plugin.cpp"
-    "lua_plugin.cpp"
-    "lua_state.cpp"
-    "lua_script.cpp"
-    "python_plugin.cpp"
-    "python_interpreter.cpp"
-    "python_exception.cpp"
-    "python_tuple.cpp"
-    "python_object.cpp"
-    "python_guard.cpp"
-    "shell_plugin.cpp"
-    "shell_session.cpp")
+    "c/plugin.cpp"
+    "cpp/plugin.cpp"
+    "lua/plugin.cpp"
+    "lua/lua_state.cpp"
+    "lua/lua_script.cpp"
+    "python/plugin.cpp"
+    "python/python_interpreter.cpp"
+    "python/python_exception.cpp"
+    "python/python_tuple.cpp"
+    "python/python_object.cpp"
+    "python/python_guard.cpp"
+    "shell/plugin.cpp"
+    "shell/shell_session.cpp")
 
 file(GLOB_RECURSE LIBRARY_HEADERS ${CMAKE_SOURCE_DIR}/include/**/*.h)
 
