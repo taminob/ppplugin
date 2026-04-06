@@ -13,7 +13,7 @@
 namespace ppplugin {
 class CallError {
 public:
-    enum class Code {
+    enum class Code : std::uint8_t {
         unknown,
         notLoaded,
         symbolNotFound,
@@ -92,7 +92,7 @@ private:
     }
 }
 
-enum class LoadError {
+enum class LoadError : std::uint8_t {
     unknown,
     fileNotFound,
     fileInvalid,
