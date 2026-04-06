@@ -63,7 +63,7 @@ private:
 template <typename ReturnValue, typename... Args>
 CallResult<ReturnValue> PythonInterpreter::call(const std::string& function_name, Args&&... args)
 {
-    PythonGuard python_guard { state() };
+    const PythonGuard python_guard { state() };
     PythonTuple args_tuple { std::forward<Args>(args)... };
 
     return internalCall(function_name, args_tuple.pyObject()).andThen([](PythonObject&& result) -> CallResult<ReturnValue> {
@@ -81,7 +81,7 @@ CallResult<ReturnValue> PythonInterpreter::call(const std::string& function_name
 template <typename VariableType>
 CallResult<VariableType> PythonInterpreter::global(const std::string& variable_name)
 {
-    PythonGuard python_guard { state() };
+    const PythonGuard python_guard { state() };
     return internalGlobal(variable_name).andThen([](PythonObject&& object) -> CallResult<VariableType> {
         if (auto result = std::move(object).template as<VariableType>()) {
             return *result;
@@ -93,7 +93,7 @@ CallResult<VariableType> PythonInterpreter::global(const std::string& variable_n
 template <typename VariableType>
 CallResult<void> PythonInterpreter::global(const std::string& variable_name, VariableType&& new_value)
 {
-    PythonGuard python_guard { state() };
+    const PythonGuard python_guard { state() };
     return internalGlobal(variable_name, PythonObject::from(std::forward<VariableType>(new_value)));
 }
 } // namespace ppplugin

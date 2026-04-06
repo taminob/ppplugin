@@ -109,12 +109,12 @@ private:
 };
 
 template <typename K, typename V>
-PythonObject PythonObject::from(const std::map<K, V>& dict)
+PythonObject PythonObject::from(const std::map<K, V>& value)
 {
     PythonObject object { initDict() };
-    for (auto&& [key, value] : dict) {
-        auto py_key = PythonObject::from(key);
-        auto py_value = PythonObject::from(value);
+    for (auto&& [item_key, item_value] : value) {
+        auto py_key = PythonObject::from(item_key);
+        auto py_value = PythonObject::from(item_value);
         object.setDictItem(py_key.pyObject(), py_value.pyObject());
     }
     return object;

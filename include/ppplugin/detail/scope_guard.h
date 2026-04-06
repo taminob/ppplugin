@@ -8,7 +8,7 @@ public:
     template <typename Func,
         typename = std::enable_if_t<!std::is_same_v<Func, ScopeGuard>>>
     explicit ScopeGuard(Func&& func)
-        : function_ { func }
+        : function_ { std::forward<Func>(func) }
     {
     }
     ~ScopeGuard() { call(); }
@@ -40,8 +40,7 @@ public:
     void cancel() { function_ = {}; }
 
 private:
-    std::function<void()>
-        function_;
+    std::function<void()> function_;
 };
 } // namespace ppplugin::detail
 

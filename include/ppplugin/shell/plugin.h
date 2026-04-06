@@ -55,9 +55,9 @@ template <typename ReturnValue, typename... Args>
 CallResult<ReturnValue> ShellPlugin::call(const std::string& function_name, Args&&... args)
 {
     if constexpr (std::is_void_v<ReturnValue>) {
-        return shell_.callWithoutResult(function_name, { args... });
+        return shell_.callWithoutResult(function_name, { std::forward<Args>(args)... });
     } else {
-        return shell_.callWithResult(function_name, { args... });
+        return shell_.callWithResult(function_name, { std::forward<Args>(args)... });
     }
 }
 

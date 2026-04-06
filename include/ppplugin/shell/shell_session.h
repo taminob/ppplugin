@@ -31,13 +31,13 @@ public:
         thread_ = std::thread { [context = context_.get()]() { assert(context); runContextLoop(*context); } };
 
         // TODO: make movable across threads
-        shell_process_.async_wait([stdout_pipe = stdout_pipe_.get(), is_running = is_running_.get()](const boost::system::error_code& ec, int exit_code) {
-            std::cout << "PROCESS EXIT: " << ec.what() << " (" << exit_code << ")\n";
-            assert(stdout_pipe);
-            stdout_pipe->cancel();
-            assert(is_running);
-            is_running->store(false);
-        });
+        shell_process_.async_wait(
+            [stdout_pipe = stdout_pipe_.get(), is_running = is_running_.get()](const boost::system::error_code& /*exit_status*/, int /*exit_code*/) {
+                assert(stdout_pipe);
+                stdout_pipe->cancel();
+                assert(is_running);
+                is_running->store(false);
+            });
     }
     ~ShellSession()
     {
@@ -53,9 +53,9 @@ public:
         }
     }
     ShellSession(const ShellSession&) = delete;
-    ShellSession(ShellSession&&) = default;
+    ShellSession(ShellSession&&) noexcept = default;
     ShellSession& operator=(const ShellSession&) = delete;
-    ShellSession& operator=(ShellSession&&) = default;
+    ShellSession& operator=(ShellSession&&) noexcept = default;
 
     [[nodiscard]] CallResult<void> callWithoutResult(const std::string& function_name, const std::vector<std::string>& arguments)
     {
@@ -127,7 +127,7 @@ public:
 
     [[nodiscard]] CallResult<void> environmentVariable(const std::string& variable_name, const std::string& new_value)
     {
-        std::string variable_assignment = variable_name + "='" + new_value + '\'';
+        const std::string variable_assignment = variable_name + "='" + new_value + '\'';
         return callWithoutResult("export", { variable_assignment });
     }
 

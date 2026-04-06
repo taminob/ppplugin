@@ -44,22 +44,26 @@ CallResult<ReturnValue> CPlugin::call(const std::string& function_name, Args&&..
 template <typename VariableType>
 CallResult<VariableType> CPlugin::global(const std::string& variable_name)
 {
-    auto p = detail::boost_dll::getSymbol(plugin_, variable_name);
-    if (p.hasValue()) {
-        return *reinterpret_cast<VariableType*>(p.value().value());
+    auto result_pointer = detail::boost_dll::getSymbol(plugin_, variable_name);
+    if (result_pointer.hasValue()) {
+        // raw type casting necessary due to lack of type information in shared library
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        return *reinterpret_cast<VariableType*>(result_pointer.value().value());
     }
-    return { p.error().value() };
+    return { result_pointer.error().value() };
 }
 
 template <typename VariableType>
 CallResult<void> CPlugin::global(const std::string& variable_name, VariableType&& new_value)
 {
-    auto p = detail::boost_dll::getSymbol(plugin_, variable_name);
-    if (p.hasValue()) {
-        *reinterpret_cast<VariableType*>(p.value().value()) = std::forward<VariableType>(new_value);
+    auto result_pointer = detail::boost_dll::getSymbol(plugin_, variable_name);
+    if (result_pointer.hasValue()) {
+        // raw type casting necessary due to lack of type information in shared library
+        // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
+        *reinterpret_cast<VariableType*>(result_pointer.value().value()) = std::forward<VariableType>(new_value);
         return {};
     }
-    return { p.error().value() };
+    return { result_pointer.error().value() };
 }
 } // namespace ppplugin
 
