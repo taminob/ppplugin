@@ -12,9 +12,15 @@
 
 #include <boost/algorithm/string/replace.hpp>
 #include <boost/asio.hpp>
+#include <boost/version.hpp>
+#if BOOST_VERSION >= 108800
 #include <boost/process.hpp>
-#include <boost/process/v2/process.hpp>
-#include <boost/uuid.hpp>
+#else
+#include <boost/process/v2.hpp>
+#endif // BOOST_VERSION
+#include <boost/uuid/random_generator.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
 namespace ppplugin {
 class ShellSession {
@@ -167,8 +173,8 @@ private:
     boost::asio::writable_pipe stdin_pipe_;
     std::unique_ptr<boost::asio::readable_pipe> stdout_pipe_;
     boost::asio::readable_pipe stderr_pipe_;
-    boost::process::process_stdio io_;
-    boost::process::process shell_process_;
+    boost::process::v2::process_stdio io_;
+    boost::process::v2::process shell_process_;
     std::unique_ptr<std::atomic<bool>> is_running_;
 
     // TODO: explore possibility to import/export variables and functions for each call

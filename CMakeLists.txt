@@ -24,7 +24,16 @@ option(PPPLUGIN_ENABLE_UNDEFINED_SANITIZE
 option(PPPLUGIN_ENABLE_UNREACHABLE_SANITIZE
        "Enable compilation with unreachable sanitize flags" OFF)
 
-find_package(Boost 1.70.0 REQUIRED CONFIG COMPONENTS headers filesystem process)
+# required Boost header-only components: dll, algorithm, asio, process, uuid;
+# Boost.filesystem is only required because of Boost.dll
+find_package(Boost 1.70.0 REQUIRED CONFIG COMPONENTS headers filesystem)
+if(${Boost_VERSION} VERSION_GREATER_EQUAL 1.85.0)
+  # Boost.process was header-only until 1.84; requires linking in >= 1.85
+  find_package(Boost REQUIRED CONFIG COMPONENTS process)
+else()
+  # add dummy target so that this check is only necessary once
+  add_library(Boost::process ALIAS Boost::headers)
+endif()
 find_package(Python 3.0 REQUIRED COMPONENTS Development)
 find_package(Lua 5.2 REQUIRED)
 

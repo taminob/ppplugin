@@ -47,8 +47,12 @@ jobs:
             clang19-extra-tools
       - name: Fixup environment
         run: |
+          # add missing final symlink for Lua library
           ln -s liblua-5.2.so.0 /usr/lib/liblua-5.2.so
+          # use ninja-build as ninja binary (alternative: install samurai instead)
           ln -s /usr/lib/ninja-build/bin/ninja /usr/bin/ninja
+          # patch Boost.process to not use ::close_range() since Alpine's musl implementation does not provide it
+          sed -i 's/#define BOOST_PROCESS_V2_HAS_CLOSE_RANGE 1/\/\/#define BOOST_PROCESS_V2_HAS_CLOSE_RANGE 1\n#include <dirent.h>/g' /usr/include/boost/process/v2/posix/detail/close_handles.ipp
         shell: alpine.sh --root {0}
 
       - name: Generate compile_commands.json

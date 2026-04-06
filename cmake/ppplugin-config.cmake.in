@@ -1,8 +1,14 @@
 @PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
-find_dependency(Boost @Boost_VERSION_MAJOR@ COMPONENTS headers filesystem
-                python process)
+find_dependency(Boost @Boost_VERSION_MAJOR@ CONFIG COMPONENTS headers filesystem)
+if(@Boost_VERSION@ VERSION_GREATER_EQUAL 1.85.0)
+  # Boost.process was header-only until 1.84; requires linking in >= 1.85
+  find_dependency(Boost CONFIG COMPONENTS process)
+else()
+  # add dummy target so that this check is only necessary once
+  add_library(Boost::process ALIAS Boost::headers)
+endif()
 find_dependency(Python @Python_VERSION_MAJOR@ COMPONENTS Development)
 find_dependency(Lua @LUA_VERSION_MAJOR@)
 

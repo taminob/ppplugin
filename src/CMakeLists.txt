@@ -21,7 +21,7 @@ add_library(${LIBRARY_TARGET} ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 target_link_libraries(
   ${LIBRARY_TARGET}
   PRIVATE ${LUA_LIBRARIES}
-  PUBLIC Boost::filesystem Boost::process Python::Python
+  PUBLIC Boost::headers Boost::filesystem Boost::process Python::Python
          $<$<BOOL:${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY}>:fmt::fmt>)
 target_include_directories(
   ${LIBRARY_TARGET}
