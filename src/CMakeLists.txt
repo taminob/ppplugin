@@ -1,4 +1,5 @@
 set(LIBRARY_SOURCES
+    "${CMAKE_SOURCE_DIR}/include/ppplugin.cpp"
     "boost_dll_loader.cpp"
     "c/plugin.cpp"
     "cpp/plugin.cpp"
