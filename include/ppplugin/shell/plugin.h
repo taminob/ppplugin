@@ -21,6 +21,8 @@ public:
 
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
     operator bool() { return shell_.isRunning(); }
+    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
+    operator bool() const { return shell_.isRunning(); }
 
     /**
      * Accepted types are:
@@ -57,6 +59,7 @@ CallResult<ReturnValue> ShellPlugin::call(const std::string& function_name, Args
     if constexpr (std::is_void_v<ReturnValue>) {
         return shell_.callWithoutResult(function_name, { std::forward<Args>(args)... });
     } else {
+        // TODO: handle results other than std::string
         return shell_.callWithResult(function_name, { std::forward<Args>(args)... });
     }
 }
