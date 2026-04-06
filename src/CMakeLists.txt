@@ -1,5 +1,3 @@
-set(LIBRARY_SOURCES ppplugin.cpp)
-
 set(LIBRARY_SOURCES
     "boost_dll_loader.cpp"
     "c_plugin.cpp"
@@ -27,7 +25,8 @@ target_link_libraries(
 target_include_directories(
   ${LIBRARY_TARGET}
   PRIVATE ${LUA_INCLUDE_DIR}
-  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>)
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+  PUBLIC $<INSTALL_INTERFACE:include>)
 target_compile_definitions(
   ${LIBRARY_TARGET}
   PUBLIC
@@ -42,7 +41,7 @@ set_target_properties(
 
 set(TARGETS_EXPORT_NAME "${PROJECT_NAME}-targets")
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/include/"
-        DESTINATION "include/${LIBRARY_NAME}")
+        DESTINATION "include/")
 install(
   TARGETS ${LIBRARY_TARGET}
   EXPORT "${TARGETS_EXPORT_NAME}"
