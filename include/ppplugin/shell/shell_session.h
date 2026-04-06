@@ -2,7 +2,6 @@
 #define PPPLUGIN_SHELL_SESSION_H
 
 #include "ppplugin/detail/string_utils.h"
-#include "ppplugin/detail/thread_safe.h"
 #include "ppplugin/errors.h"
 
 #include <chrono>
@@ -84,7 +83,7 @@ public:
         }
         auto end_marker = boost::uuids::to_string(boost::uuids::random_generator()()) + '\n';
         command_line += " ; echo :$?" + end_marker;
-        std::cout << "WRITING: " << command_line;
+
         boost::asio::write(stdin_pipe_, boost::asio::buffer(command_line));
 
         std::string result;
@@ -109,14 +108,11 @@ public:
         auto exit_code_pos = result.find_last_of(':');
         assert(exit_code_pos != std::string::npos);
         auto exit_code = toInteger<int>(result.substr(exit_code_pos + 1)).value_or(std::numeric_limits<int>::max());
-        std::cout << "EXIT_CODE: " << exit_code << '\n';
         if (exit_code != 0) {
             return CallError { CallError::Code::unknown, std::to_string(exit_code) };
         }
+        // remove colon and exit code
         result.resize(exit_code_pos);
-
-        std::cout << "DONE: " << command_line << '\n';
-        std::cout << "RESULT: " << result << '\n';
 
         return result;
     }
@@ -139,11 +135,14 @@ public:
 
     [[nodiscard]] bool isRunning()
     {
+        // if a non-const object is available, return actual status
         return shell_process_.running();
     }
 
     [[nodiscard]] bool isRunning() const
     {
+        // return cached state because boost::process::v2::process::running()
+        // is not const since it modifies its internal state
         return is_running_->load();
     }
 

@@ -3,8 +3,6 @@
 #include "ppplugin/errors.h"
 #include "ppplugin/expected.h"
 
-#include <boost/parser/parser.hpp>
-
 namespace ppplugin {
 Expected<ShellPlugin, LoadError> ShellPlugin::load(
     const std::filesystem::path& plugin_library_path)
