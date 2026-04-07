@@ -27,7 +27,7 @@ target_include_directories(
   ${LIBRARY_TARGET}
   PRIVATE ${LUA_INCLUDE_DIR}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
-  PUBLIC $<INSTALL_INTERFACE:include>)
+         $<INSTALL_INTERFACE:include>)
 target_compile_definitions(
   ${LIBRARY_TARGET}
   PUBLIC
@@ -41,8 +41,7 @@ set_target_properties(
              SOVERSION ${ppplugin_VERSION_MAJOR})
 
 set(TARGETS_EXPORT_NAME "${PROJECT_NAME}-targets")
-install(DIRECTORY "${CMAKE_SOURCE_DIR}/include/"
-        DESTINATION "include/")
+install(DIRECTORY "${CMAKE_SOURCE_DIR}/include/" DESTINATION "include/")
 install(
   TARGETS ${LIBRARY_TARGET}
   EXPORT "${TARGETS_EXPORT_NAME}"
