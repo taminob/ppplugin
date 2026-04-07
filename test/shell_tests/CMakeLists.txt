@@ -6,4 +6,4 @@ add_custom_command(
   POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/test.sh
           ${CMAKE_CURRENT_BINARY_DIR}/test.sh
-          COMMENT "Copying POSIX shell plugins to output directory...")
+  COMMENT "Copying POSIX shell plugins to output directory...")
