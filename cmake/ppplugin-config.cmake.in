@@ -12,7 +12,7 @@ endif()
 find_dependency(Python @Python_VERSION_MAJOR@ COMPONENTS Development)
 find_dependency(Lua @LUA_VERSION_MAJOR@)
 
-if(${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY})
+if(@PPPLUGIN_ENABLE_CPP17_COMPATIBILITY@)
   find_dependency(fmt @fmt_VERSION_MAJOR@)
 endif()
 
