@@ -56,11 +56,16 @@ private:
 template <typename ReturnValue, typename... Args>
 CallResult<ReturnValue> ShellPlugin::call(const std::string& function_name, Args&&... args)
 {
-    if constexpr (std::is_void_v<ReturnValue>) {
+    if constexpr (!((detail::IsStringlikeV<Args>) || ...)) {
+        // TODO: compile-time error requires changes to GenericPlugin
+        return CallError { CallError::Code::incorrectType, "shell functions can only accept strings as arguments" };
+    } else if constexpr (std::is_void_v<ReturnValue>) {
         return shell_.callWithoutResult(function_name, { std::forward<Args>(args)... });
-    } else {
-        // TODO: handle results other than std::string
+    } else if constexpr (std::is_same_v<ReturnValue, std::string>) {
         return shell_.callWithResult(function_name, { std::forward<Args>(args)... });
+    } else {
+        // TODO: compile-time error requires changes to GenericPlugin
+        return CallError { CallError::Code::incorrectType, "shell functions can only return a string" };
     }
 }
 

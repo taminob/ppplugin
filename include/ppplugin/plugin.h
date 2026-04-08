@@ -7,6 +7,7 @@
 #include "ppplugin/lua/plugin.h"
 #include "ppplugin/noop_plugin.h"
 #include "ppplugin/python/plugin.h"
+#include "ppplugin/shell/plugin.h"
 
 #include "ppplugin/detail/template_helpers.h"
 
@@ -68,7 +69,7 @@ private:
     detail::templates::UniqueVariant<Plugins...> plugin_;
 };
 
-using Plugin = GenericPlugin<CPlugin, CppPlugin, LuaPlugin, PythonPlugin, NoopPlugin>;
+using Plugin = GenericPlugin<CPlugin, CppPlugin, LuaPlugin, PythonPlugin, ShellPlugin, NoopPlugin>;
 
 template <typename... Plugins>
 template <typename P,

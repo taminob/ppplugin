@@ -99,7 +99,7 @@ public:
             return CallError { CallError::Code::unknown, "shell ended prematurely" };
         }
 
-        if (!endsWith(result, end_marker)) {
+        if (!detail::endsWith(result, end_marker)) {
             return CallError { CallError::Code::unknown, "failed to get command output" };
         }
         // remove end marker
@@ -107,7 +107,7 @@ public:
 
         auto exit_code_pos = result.find_last_of(':');
         assert(exit_code_pos != std::string::npos);
-        auto exit_code = toInteger<int>(result.substr(exit_code_pos + 1)).value_or(std::numeric_limits<int>::max());
+        auto exit_code = detail::toInteger<int>(result.substr(exit_code_pos + 1)).value_or(std::numeric_limits<int>::max());
         if (exit_code != 0) {
             return CallError { CallError::Code::unknown, std::to_string(exit_code) };
         }
