@@ -1,11 +1,17 @@
 #ifndef PPPLUGIN_DETAIL_STRING_UTILS_H
 #define PPPLUGIN_DETAIL_STRING_UTILS_H
 
+#include "template_helpers.h"
+
 #include <charconv>
 #include <optional>
 #include <string_view>
 
-namespace ppplugin {
+namespace ppplugin::detail {
+template <typename T>
+constexpr auto IsStringlikeV = // NOLINT(readability-identifier-naming)
+    templates::IsAnyOfV<T, std::string, std::string_view, const char*>;
+
 [[nodiscard]] inline bool endsWith(std::string_view string, std::string_view end)
 {
     if (string.size() < end.size()) {
@@ -25,6 +31,6 @@ template <typename Integer>
     }
     return std::nullopt;
 }
-} // namespace ppplugin
+} // namespace ppplugin::detail
 
 #endif // PPPLUGIN_DETAIL_STRING_UTILS_H

@@ -185,12 +185,22 @@ struct IsSpecialization : std::false_type { };
 template <template <typename...> typename ExpectedType, typename... Ts>
 struct IsSpecialization<ExpectedType<Ts...>, ExpectedType> : std::true_type { };
 
+/**
+ * Check if first type is template instantiation of second type.
+ */
 template <typename ActualType, template <typename...> typename ExpectedType>
 constexpr bool IsSpecializationV = // NOLINT(readability-identifier-naming)
     IsSpecialization<ActualType, ExpectedType>::value;
 
 template <typename T>
 using IsStdTuple = IsSpecialization<T, std::tuple>;
+
+/**
+ * Check if first type is any of the following types.
+ */
+template <typename ActualType, typename... Types>
+constexpr bool IsAnyOfV = // NOLINT(readability-identifier-naming)
+    (std::is_same_v<ActualType, Types> || ...);
 
 /**
  * C++17 compatible version of std::remove_cvref_t.
