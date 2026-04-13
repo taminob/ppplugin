@@ -104,7 +104,7 @@ public:
     [[nodiscard]] constexpr const T* operator->() const;
 
 #if __cplusplus >= 202101L
-    [[nodiscard]] explicit operator std::expected<T, E>() const;
+    [[nodiscard]] constexpr explicit operator std::expected<T, E>() const;
 #endif // __cplusplus
 
     template <typename U, typename V>
@@ -183,7 +183,7 @@ public:
     constexpr void operator*() const;
 
 #if __cplusplus >= 202101L
-    explicit operator std::expected<void, E>() const;
+    [[nodiscard]] constexpr explicit operator std::expected<void, E>() const;
 #endif // __cplusplus
 
     template <typename EL, typename ER>
@@ -550,9 +550,9 @@ template <typename T, typename E>
 constexpr Expected<T, E>::operator std::expected<T, E>() const
 {
     if (hasValue()) {
-        return t;
+        return std::expected { uncheckedValue() };
     }
-    return e;
+    return std::unexpected { uncheckedError() };
 }
 #endif // __cplusplus
 
@@ -698,7 +698,7 @@ template <typename E>
 constexpr Expected<void, E>::operator std::expected<void, E>() const
 {
     if (error_) {
-        return std::expected<void, E> { *error_ };
+        return std::unexpected { *error_ };
     }
     return std::expected<void, E> {};
 }
