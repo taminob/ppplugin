@@ -3,6 +3,7 @@
 
 #include "ppplugin/errors.h"
 #include "shell_session.h"
+#include "shell_type_conversion.h"
 
 #include <filesystem>
 #include <string>
@@ -44,10 +45,12 @@ public:
 
 private:
     explicit ShellPlugin()
-        // : shell_ { "/tmp/a.out" }
         : shell_ { "/bin/sh" }
     {
     }
+
+    template <typename... Args>
+    std::string buildCommandLine(const std::string& function_name, Args&&... args);
 
 private:
     ShellSession shell_;
@@ -56,29 +59,45 @@ private:
 template <typename ReturnValue, typename... Args>
 CallResult<ReturnValue> ShellPlugin::call(const std::string& function_name, Args&&... args)
 {
-    if constexpr (!((detail::IsStringlikeV<Args>) || ...)) {
-        // TODO: compile-time error requires changes to GenericPlugin
-        return CallError { CallError::Code::incorrectType, "shell functions can only accept strings as arguments" };
-    } else if constexpr (std::is_void_v<ReturnValue>) {
-        return shell_.callWithoutResult(function_name, { std::forward<Args>(args)... });
-    } else if constexpr (std::is_same_v<ReturnValue, std::string>) {
-        return shell_.callWithResult(function_name, { std::forward<Args>(args)... });
+    auto command_line = buildCommandLine(function_name, std::forward<Args>(args)...);
+    if constexpr (std::is_void_v<ReturnValue>) {
+        return shell_.callWithoutResult(command_line);
     } else {
-        // TODO: compile-time error requires changes to GenericPlugin
-        return CallError { CallError::Code::incorrectType, "shell functions can only return a string" };
+        return shell_.callWithResult(command_line).andThen([](auto&& result) -> CallResult<ReturnValue> {
+            if (auto converted_result = convertFromShellString<ReturnValue>(result)) {
+                return *converted_result;
+            }
+            return CallError { CallError::Code::incorrectType };
+        });
     }
 }
 
 template <typename VariableType>
 CallResult<VariableType> ShellPlugin::global(const std::string& variable_name)
 {
-    return shell_.environmentVariable(variable_name);
+    return shell_.environmentVariable(variable_name).andThen([](auto&& result) -> CallResult<VariableType> {
+        if (auto converted_result = convertFromShellString<VariableType>(result)) {
+            return *converted_result;
+        }
+        return CallError { CallError::Code::incorrectType };
+    });
 }
 
 template <typename VariableType>
 CallResult<void> ShellPlugin::global(const std::string& variable_name, VariableType&& new_value)
 {
     return shell_.environmentVariable(variable_name, std::forward<VariableType>(new_value));
+}
+
+template <typename... Args>
+std::string ShellPlugin::buildCommandLine(const std::string& function_name, Args&&... args)
+{
+    auto command_line = convertToShellString(function_name);
+    if constexpr (sizeof...(Args)) {
+        // use fold expression to convert each argument and separate using space character
+        command_line += ((' ' + convertToShellString(std::forward<Args>(args))) + ...);
+    }
+    return command_line;
 }
 } // namespace ppplugin
 
