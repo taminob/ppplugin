@@ -49,7 +49,7 @@ TEST_F(ShellTest, setEnvironmentVariable)
 
 TEST_F(ShellTest, callFunction)
 {
-    auto result = plugin->call<void>("print_first", "qwertz");
+    auto result = plugin->call<void>("print_all_args");
 
     EXPECT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
 }
@@ -106,4 +106,30 @@ TEST_F(ShellTest, callFunctionWithNonStringArguments)
 
     ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
     EXPECT_EQ(result.value().value(), "a ' 123 456 0.2\n");
+}
+
+TEST_F(ShellTest, callFunctionModifyEnvironment)
+{
+    auto before = plugin->global<std::string>("env_var");
+    auto call_result = plugin->call<void>("change_environment");
+    auto after = plugin->global<std::string>("env_var");
+
+    ASSERT_TRUE(before.hasValue()) << ppplugin::test::errorOutput(before);
+    ASSERT_TRUE(call_result.hasValue()) << ppplugin::test::errorOutput(call_result);
+    ASSERT_TRUE(after.hasValue()) << ppplugin::test::errorOutput(after);
+
+    EXPECT_EQ(before.valueOr(""), "abc");
+    EXPECT_EQ(after.valueOr(""), "xyz");
+}
+
+TEST_F(ShellTest, callFunctionExitShell)
+{
+    auto result = plugin->call<void>("exit_shell");
+    // ending the shell in a function is considered a failure
+    EXPECT_FALSE(result.hasValue());
+    EXPECT_FALSE(*plugin);
+
+    auto later_result = plugin->call<void>("print_first", "123");
+    // subsequent calls will all fail
+    EXPECT_FALSE(later_result.hasValue());
 }
