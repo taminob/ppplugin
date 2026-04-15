@@ -3,6 +3,7 @@
 
 #include "ppplugin/detail/string_utils.h"
 #include "ppplugin/errors.h"
+#include "ppplugin/shell/shell_type_conversion.h"
 
 #include <chrono>
 #include <iostream>
@@ -20,6 +21,7 @@
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
+#include <utility>
 
 namespace ppplugin {
 class ShellSession {
@@ -35,7 +37,6 @@ public:
     {
         thread_ = std::thread { [context = context_.get()]() { assert(context); runContextLoop(*context); } };
 
-        // TODO: make movable across threads
         shell_process_.async_wait(
             [stdout_pipe = stdout_pipe_.get(), is_running = is_running_.get()](const boost::system::error_code& /*exit_status*/, int /*exit_code*/) {
                 assert(stdout_pipe);
@@ -62,25 +63,35 @@ public:
     ShellSession& operator=(const ShellSession&) = delete;
     ShellSession& operator=(ShellSession&&) noexcept = default;
 
-    [[nodiscard]] CallResult<void> callWithoutResult(const std::string& function_name, const std::vector<std::string>& arguments)
+    /**
+     * Call shell function of given name with provided arguments in environment of shell session.
+     *
+     * @param command_line Command with arguments to be executed as-is
+     *
+     * @note This function requires the command-line to be properly escaped
+     * @note No newline at the end of the command-line is required
+     */
+    [[nodiscard]] CallResult<void> callWithoutResult(std::string command_line)
     {
-        auto result = callWithResult(function_name, arguments);
+        auto result = callWithResult(std::move(command_line));
         return result.andThen([]() { });
     }
-    [[nodiscard]] CallResult<std::string> callWithResult(const std::string& function_name, const std::vector<std::string>& arguments)
+
+    /**
+     * Call shell function of given name with provided arguments in environment of shell session.
+     *
+     * @param command_line Command with arguments to be executed as-is
+     *
+     * @note This function requires the command-line to be properly escaped
+     * @note No newline at the end of the command-line is required
+     */
+    [[nodiscard]] CallResult<std::string> callWithResult(std::string command_line)
     {
         if (!shell_process_.running()) {
-            return CallError { CallError::Code::unknown, "Shell is not running!" };
+            is_running_->store(false);
+            return CallError { CallError::Code::unknown, "shell is not running" };
         }
-        auto command_line = '\'' + function_name + '\'';
-        for (auto&& argument : arguments) {
-            // TODO: escape quotes in arguments
-            command_line += " '";
-            auto escaped_argument = argument;
-            boost::replace_all(escaped_argument, "'", "\\'");
-            command_line += argument;
-            command_line += "'";
-        }
+
         auto end_marker = boost::uuids::to_string(boost::uuids::random_generator()()) + '\n';
         command_line += " ; echo :$?" + end_marker;
 
@@ -119,7 +130,11 @@ public:
 
     [[nodiscard]] CallResult<std::string> environmentVariable(const std::string& variable_name)
     {
-        return callWithResult("printenv", { variable_name }).andThen([](auto&& result) {
+        if (!isValidShellVariableName(variable_name)) {
+            return CallError { CallError::Code::symbolNotFound, "invalid variable name" };
+        }
+
+        return callWithResult("printenv " + convertToShellString(variable_name)).andThen([](auto&& result) {
             assert(!result.empty());
             assert(result.back() == '\n');
             result.pop_back();
@@ -129,8 +144,12 @@ public:
 
     [[nodiscard]] CallResult<void> environmentVariable(const std::string& variable_name, const std::string& new_value)
     {
-        const std::string variable_assignment = variable_name + "='" + new_value + '\'';
-        return callWithoutResult("export", { variable_assignment });
+        if (!isValidShellVariableName(variable_name)) {
+            return CallError { CallError::Code::symbolNotFound, "invalid variable name" };
+        }
+
+        const std::string variable_assignment = variable_name + "=" + new_value;
+        return callWithoutResult("export " + convertToShellString(variable_assignment));
     }
 
     [[nodiscard]] bool isRunning()
