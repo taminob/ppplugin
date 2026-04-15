@@ -10,7 +10,7 @@
 namespace ppplugin::detail {
 template <typename T>
 constexpr auto IsStringlikeV = // NOLINT(readability-identifier-naming)
-    templates::IsAnyOfV<T, std::string, std::string_view, const char*>;
+    templates::IsAnyOfV<std::decay_t<T>, std::string, std::string_view, const char*, char*>;
 
 [[nodiscard]] inline bool endsWith(std::string_view string, std::string_view end)
 {
