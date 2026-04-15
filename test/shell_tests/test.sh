@@ -25,3 +25,8 @@ exit_shell()
 {
     exit
 }
+
+print_all_args()
+{
+    echo "${@}"
+}
