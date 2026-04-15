@@ -10,7 +10,7 @@ protected:
     void SetUp() override
     {
         auto load_result = ppplugin::ShellPlugin::load("./shell_tests/test.sh");
-        ASSERT_TRUE(load_result.hasValue());
+        ASSERT_TRUE(load_result.hasValue()) << ppplugin::codeToString(load_result.error().value());
 
         plugin = std::make_unique<ppplugin::ShellPlugin>(std::move(load_result.valueRef()->get()));
     }
@@ -73,4 +73,37 @@ TEST_F(ShellTest, moveToOtherThread)
         EXPECT_EQ(result.value().value(), "some_value");
     } };
     thread.join();
+}
+
+TEST_F(ShellTest, callFunctionWithStringArguments)
+{
+    const char* first_arg = "first_arg";
+    std::string second_arg = "second arg";
+    std::string_view third_arg = "third'arg\\'";
+    auto result = plugin->call<std::string>("print_all_args",
+        first_arg,
+        second_arg,
+        third_arg,
+        "fourth\"arg",
+        std::string { "fifth\narg" },
+        std::string_view { "sixth\\$!arg" });
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(result.value().value(), "first_arg second arg third'arg\\' fourth\"arg fifth\narg sixth\\$!arg\n");
+}
+
+TEST_F(ShellTest, callFunctionWithNonStringArguments)
+{
+    std::vector<std::string> first_arg { "a", "\'" };
+    int second_arg { 123 };
+    std::uint64_t third_arg { 456 };
+    double fourth_arg { 0.2 };
+    auto result = plugin->call<std::string>("print_all_args",
+        first_arg,
+        second_arg,
+        third_arg,
+        fourth_arg);
+
+    ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
+    EXPECT_EQ(result.value().value(), "a ' 123 456 0.2\n");
 }
