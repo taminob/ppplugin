@@ -22,7 +22,7 @@ public:
     [[nodiscard]] const auto& raw() const { return script_; }
 
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    operator bool() const { return true; }
+    operator bool() const { return true; } // TODO: perform actual check
 
     /**
      * Accepted types are:
