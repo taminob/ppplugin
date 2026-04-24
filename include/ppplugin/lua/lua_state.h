@@ -246,12 +246,12 @@ template <typename T, std::enable_if_t<!std::is_function_v<T>, bool>>
 std::optional<T> LuaState::top()
 {
     using PlainT = detail::templates::RemoveCvrefT<T>;
-    if constexpr (std::is_same_v<PlainT, double>) {
+    if constexpr (std::is_floating_point_v<PlainT>) {
         return topDouble();
-    } else if constexpr (std::is_same_v<PlainT, int>) {
-        return topInt();
     } else if constexpr (std::is_same_v<PlainT, bool>) {
         return topBool();
+    } else if constexpr (std::is_integral_v<PlainT>) {
+        return topInt();
     } else if constexpr (std::is_same_v<PlainT, std::string>) {
         return topString();
     } else if constexpr (detail::templates::IsSpecializationV<T, std::map>) {
