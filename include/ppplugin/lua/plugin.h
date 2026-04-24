@@ -32,6 +32,8 @@ public:
      * - std::string
      * - const char*
      * - std::tuple
+     * - std::vector
+     * - std::map
      */
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
