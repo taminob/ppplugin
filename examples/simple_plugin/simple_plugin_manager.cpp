@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
         // load plugin library and exit on error
         auto plugin_library = manager.loadCppPlugin(std::filesystem::path { library_path })
                                   .valueOrElse([](const auto& error) -> ppplugin::CppPlugin {
-                                      std::cerr << "Unable to load plugin: " << ppplugin::codeToString(error);
+                                      std::cerr << "Unable to load plugin: " << ppplugin::codeToString(error.code());
                                       std::exit(1); // NOLINT(concurrency-mt-unsafe)
                                   });
 

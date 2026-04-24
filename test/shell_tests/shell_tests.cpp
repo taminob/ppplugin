@@ -10,7 +10,7 @@ protected:
     void SetUp() override
     {
         auto load_result = ppplugin::ShellPlugin::load("./shell_tests/test.sh");
-        ASSERT_TRUE(load_result.hasValue()) << ppplugin::codeToString(load_result.error().value());
+        ASSERT_TRUE(load_result.hasValue()) << ppplugin::test::errorOutput(load_result);
 
         plugin = std::make_unique<ppplugin::ShellPlugin>(std::move(load_result.valueRef()->get()));
     }

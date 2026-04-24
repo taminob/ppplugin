@@ -14,11 +14,11 @@ namespace {
 [[nodiscard]] std::optional<ppplugin::CallError> isCallable(const boost::dll::shared_library& library, const std::string& function_name)
 {
     if (!library.is_loaded()) {
-        return ppplugin::CallError::Code::notLoaded;
+        return ppplugin::CallErrorCode::notLoaded;
     }
     // TODO: check ABI compatibility (same compiler + major version)?
     if (!library.has(function_name)) {
-        return ppplugin::CallError::Code::symbolNotFound;
+        return ppplugin::CallErrorCode::symbolNotFound;
     }
     // TODO: invalid number of arguments can cause segfault
     return std::nullopt;
@@ -37,9 +37,9 @@ CallResult<void*> getFunctionSymbol(const boost::dll::shared_library& library, c
             return symbol;
         }
     } catch (const std::exception& exception) {
-        return CallError { CallError::Code::unknown, exception.what() };
+        return CallError { CallErrorCode::unknown, exception.what() };
     }
-    return { CallError::Code::unknown };
+    return { CallErrorCode::unknown };
 }
 
 CallResult<void*> getFunctionPointerSymbol(const boost::dll::shared_library& library, const std::string& function_name)
@@ -52,9 +52,9 @@ CallResult<void*> getFunctionPointerSymbol(const boost::dll::shared_library& lib
             return symbol;
         }
     } catch (const std::exception& exception) {
-        return CallError { CallError::Code::unknown, exception.what() };
+        return CallError { CallErrorCode::unknown, exception.what() };
     }
-    return { CallError::Code::unknown };
+    return { CallErrorCode::unknown };
 }
 
 CallResult<void**> getSymbol(const boost::dll::shared_library& library, const std::string& function_name)
@@ -68,9 +68,9 @@ CallResult<void**> getSymbol(const boost::dll::shared_library& library, const st
             return symbol;
         }
     } catch (const std::exception& exception) {
-        return CallError { CallError::Code::unknown, exception.what() };
+        return CallError { CallErrorCode::unknown, exception.what() };
     }
-    return { CallError::Code::unknown };
+    return { CallErrorCode::unknown };
 }
 
 std::optional<boost::dll::shared_library> loadSharedLibrary(

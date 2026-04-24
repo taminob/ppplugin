@@ -134,7 +134,7 @@ std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)
         }
     };
     if (!file) {
-        return LoadError::fileNotReadable;
+        return LoadError { LoadErrorCode::fileNotReadable };
     }
     const PythonGuard python_guard { state() };
     auto* globals = PyModule_GetDict(mainModule());
@@ -148,7 +148,7 @@ std::optional<LoadError> PythonInterpreter::load(const std::string& file_name)
         return std::nullopt;
     }
     // TODO: check python exception on error
-    return LoadError::unknown;
+    return LoadError { LoadErrorCode::unknown };
 }
 
 CallResult<PythonObject> PythonInterpreter::internalCall(const std::string& function_name, PyObject* args)
@@ -159,13 +159,13 @@ CallResult<PythonObject> PythonInterpreter::internalCall(const std::string& func
         if (PythonException::occurred()) {
             if (auto exception = PythonException::latest()) {
                 return CallError {
-                    CallError::Code::symbolNotFound,
+                    CallErrorCode::symbolNotFound,
                     exception->toString()
                 };
             }
-            return CallError { CallError::Code::symbolNotFound };
+            return CallError { CallErrorCode::symbolNotFound };
         }
-        return { CallError::Code::unknown };
+        return CallError { CallErrorCode::unknown };
     }
     PyObject* kwargs = nullptr;
     // TODO: checkout PyEval_SetTrace (?) or PyThreadState_SetAsyncExc to interrupt thread
@@ -177,10 +177,10 @@ CallResult<PythonObject> PythonInterpreter::internalCall(const std::string& func
     Py_DECREF(function);
     if (PythonException::occurred()) {
         if (auto exception = PythonException::latest()) {
-            return CallError { CallError::Code::unknown,
+            return CallError { CallErrorCode::unknown,
                 exception->toString() };
         }
-        return CallError { CallError::Code::unknown };
+        return CallError { CallErrorCode::unknown };
     }
     return result;
 }
@@ -192,13 +192,13 @@ CallResult<PythonObject> PythonInterpreter::internalGlobal(const std::string& va
         if (PythonException::occurred()) {
             if (auto exception = PythonException::latest()) {
                 return CallError {
-                    CallError::Code::symbolNotFound,
+                    CallErrorCode::symbolNotFound,
                     exception->toString()
                 };
             }
-            return CallError { CallError::Code::symbolNotFound };
+            return CallError { CallErrorCode::symbolNotFound };
         }
-        return { CallError::Code::unknown };
+        return CallError { CallErrorCode::unknown };
     }
     return PythonObject { variable };
 }
@@ -210,7 +210,7 @@ CallResult<void> PythonInterpreter::internalGlobal(const std::string& variable_n
     if (result < 0) {
         auto exception = PythonException::latest();
         return CallError {
-            CallError::Code::unknown,
+            CallErrorCode::unknown,
             exception.value_or(PythonException {}).toString()
         };
     }

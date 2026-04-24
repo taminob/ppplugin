@@ -279,7 +279,7 @@ auto LuaState::topFunction()
     auto top_function = [this, function_id = topPointer()](auto&&... args)
         -> CallResult<typename FunctionDetails::ReturnType> {
         if (function_id != topPointer()) {
-            return CallError { CallError::Code::unknown,
+            return CallError { CallErrorCode::unknown,
                 "Invalid stack content" };
         }
         if constexpr (sizeof...(args) > 0) {
@@ -289,7 +289,7 @@ auto LuaState::topFunction()
         // TODO: proper error checking
         if (error != 0) {
             return CallError {
-                CallError::Code::unknown,
+                CallErrorCode::unknown,
                 format("Unable to call function. Code: '{}'. Error: '{}'",
                     error,
                     error == 2 ? pop<std::string>().value_or("?") : "")
@@ -300,13 +300,13 @@ auto LuaState::topFunction()
             if (auto result = PopTuple<typename FunctionDetails::ReturnType>::pop(*this)) {
                 return CallResult<typename FunctionDetails::ReturnType> { *result };
             }
-            return CallError { CallError::Code::unknown,
+            return CallError { CallErrorCode::unknown,
                 "Wrong return type" };
         } else if constexpr (RETURN_TYPE_COUNT == 1) {
             if (auto result = pop<typename FunctionDetails::ReturnType>()) {
                 return CallResult<typename FunctionDetails::ReturnType> { *result };
             }
-            return CallError { CallError::Code::unknown,
+            return CallError { CallErrorCode::unknown,
                 "Wrong return type" };
         } else {
             return CallResult<void> {};
