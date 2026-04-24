@@ -10,8 +10,7 @@ class NoopPlugin {
 public:
     NoopPlugin() = default;
 
-    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    operator bool() const { return true; }
+    explicit operator bool() const { return true; }
 
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(std::string_view /*function_name*/, Args&&... /*args*/);

@@ -13,7 +13,7 @@ public:
 
     [[nodiscard]] std::string toString() const;
 
-    explicit operator bool()
+    explicit operator bool() const
     {
         return type_ && value_ && traceback_;
     }

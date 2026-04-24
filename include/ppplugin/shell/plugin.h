@@ -20,10 +20,7 @@ public:
     ShellPlugin& operator=(const ShellPlugin&) = delete;
     ShellPlugin& operator=(ShellPlugin&&) = default;
 
-    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    operator bool() { return shell_.isRunning(); }
-    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    operator bool() const { return shell_.isRunning(); }
+    explicit operator bool() { return shell_.isRunning(); }
 
     /**
      * Accepted types are:
