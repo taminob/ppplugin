@@ -23,6 +23,9 @@ public:
     PythonPlugin& operator=(const PythonPlugin&) = delete;
     PythonPlugin& operator=(PythonPlugin&&) noexcept = default;
 
+    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
+    operator bool() const { return true; } // TODO: perform actual check
+
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
 
