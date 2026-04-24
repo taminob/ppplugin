@@ -33,16 +33,13 @@ public:
         , stderr_pipe_ { *context_ }
         , io_ { stdin_pipe_, *stdout_pipe_, stderr_pipe_ }
         , shell_process_ { *context_, shell_binary, {}, io_ }
-        , is_running_ { std::make_unique<decltype(is_running_)::element_type>(true) }
     {
         thread_ = std::thread { [context = context_.get()]() { assert(context); runContextLoop(*context); } };
 
         shell_process_.async_wait(
-            [stdout_pipe = stdout_pipe_.get(), is_running = is_running_.get()](const boost::system::error_code& /*exit_status*/, int /*exit_code*/) {
+            [stdout_pipe = stdout_pipe_.get()](const boost::system::error_code& /*exit_status*/, int /*exit_code*/) {
                 assert(stdout_pipe);
                 stdout_pipe->cancel();
-                assert(is_running);
-                is_running->store(false);
             });
     }
     ~ShellSession()
@@ -88,7 +85,6 @@ public:
     [[nodiscard]] CallResult<std::string> callWithResult(std::string command_line)
     {
         if (!shell_process_.running()) {
-            is_running_->store(false);
             return CallError { CallErrorCode::unknown, "shell is not running" };
         }
 
@@ -106,7 +102,6 @@ public:
             .wait();
 
         if (!shell_process_.running()) {
-            is_running_->store(false);
             return CallError { CallErrorCode::unknown, "shell ended prematurely" };
         }
 
@@ -158,13 +153,6 @@ public:
         return shell_process_.running();
     }
 
-    [[nodiscard]] bool isRunning() const
-    {
-        // return cached state because boost::process::v2::process::running()
-        // is not const since it modifies its internal state
-        return is_running_->load();
-    }
-
 private:
     static void runContextLoop(boost::asio::io_context& context)
     {
@@ -193,7 +181,6 @@ private:
     boost::asio::readable_pipe stderr_pipe_;
     boost::process::v2::process_stdio io_;
     boost::process::v2::process shell_process_;
-    std::unique_ptr<std::atomic<bool>> is_running_;
 
     // TODO: explore possibility to import/export variables and functions for each call
 };
