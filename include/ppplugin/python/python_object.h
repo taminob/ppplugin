@@ -52,7 +52,7 @@ public:
      */
     [[nodiscard]] PyObject* release() { return object_.release(); }
 
-    explicit operator bool()
+    explicit operator bool() const
     {
         return object() != nullptr;
     }
@@ -70,7 +70,8 @@ public:
     [[nodiscard]] std::optional<T> to();
 
 private:
-    PyObject* object() { return object_.get(); }
+    [[nodiscard]] PyObject* object() { return object_.get(); }
+    [[nodiscard]] const PyObject* object() const { return object_.get(); }
 
     // TODO: use explicit template instantiations instead?
     [[nodiscard]] std::optional<int> asInt();

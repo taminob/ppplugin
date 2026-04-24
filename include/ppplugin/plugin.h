@@ -51,8 +51,7 @@ public:
     GenericPlugin& operator=(const GenericPlugin&) = default;
     GenericPlugin& operator=(GenericPlugin&&) noexcept = default;
 
-    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    operator bool() const;
+    explicit operator bool();
 
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);
@@ -81,9 +80,9 @@ GenericPlugin<Plugins...>::GenericPlugin(P&& plugin)
 }
 
 template <typename... Plugins>
-GenericPlugin<Plugins...>::operator bool() const
+GenericPlugin<Plugins...>::operator bool()
 {
-    return std::visit([](const auto& plugin) -> bool { return plugin; }, plugin_);
+    return std::visit([](auto&& plugin) -> bool { return static_cast<bool>(plugin); }, plugin_);
 }
 
 template <typename... Plugins>

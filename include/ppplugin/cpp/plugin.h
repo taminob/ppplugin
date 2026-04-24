@@ -20,8 +20,7 @@ public:
     CppPlugin& operator=(const CppPlugin&) = default;
     CppPlugin& operator=(CppPlugin&&) = default;
 
-    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    operator bool() const;
+    explicit operator bool() const;
 
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);

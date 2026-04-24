@@ -21,8 +21,7 @@ public:
     [[nodiscard]] auto& raw() { return script_; }
     [[nodiscard]] const auto& raw() const { return script_; }
 
-    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    operator bool() const { return true; } // TODO: perform actual check
+    explicit operator bool() const { return true; } // TODO: perform actual check
 
     /**
      * Accepted types are:

@@ -9,8 +9,7 @@ class CPlugin {
 public:
     [[nodiscard]] static Expected<CPlugin, LoadError> load(const std::filesystem::path& plugin_library_path);
 
-    // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    operator bool() const;
+    explicit operator bool() const;
 
     template <typename ReturnValue, typename... Args>
     [[nodiscard]] CallResult<ReturnValue> call(const std::string& function_name, Args&&... args);

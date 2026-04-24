@@ -584,7 +584,6 @@ constexpr bool Expected<void, E>::hasValue() const
     return !error_;
 }
 template <typename E>
-// NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
 constexpr Expected<void, E>::operator bool() const
 {
     return hasValue();
