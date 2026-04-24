@@ -69,9 +69,9 @@ CallResult<ReturnValue> LuaScript::call(const std::string& function_name, Args&&
         if (auto function = state_.top<ReturnValue(Args...)>()) {
             return (*function)(std::forward<Args>(args)...);
         }
-        return CallError { CallError::Code::unknown, "Symbol does not match given type" };
+        return CallError { CallErrorCode::unknown, "Symbol does not match given type" };
     }
-    return { CallError::Code::symbolNotFound };
+    return { CallErrorCode::symbolNotFound };
 }
 
 template <typename VariableType>
@@ -81,9 +81,9 @@ CallResult<VariableType> LuaScript::global(const std::string& variable_name)
         if (auto value = state_.pop<VariableType>()) {
             return value.value();
         }
-        return { CallError::Code::incorrectType };
+        return { CallErrorCode::incorrectType };
     }
-    return { CallError::Code::symbolNotFound };
+    return { CallErrorCode::symbolNotFound };
 }
 template <typename VariableType>
 void LuaScript::global(const std::string& variable_name, VariableType&& new_value)

@@ -67,7 +67,7 @@ CallResult<ReturnValue> ShellPlugin::call(const std::string& function_name, Args
             if (auto converted_result = convertFromShellString<ReturnValue>(result)) {
                 return *converted_result;
             }
-            return CallError { CallError::Code::incorrectType };
+            return CallError { CallErrorCode::incorrectType };
         });
     }
 }
@@ -79,7 +79,7 @@ CallResult<VariableType> ShellPlugin::global(const std::string& variable_name)
         if (auto converted_result = convertFromShellString<VariableType>(result)) {
             return *converted_result;
         }
-        return CallError { CallError::Code::incorrectType };
+        return CallError { CallErrorCode::incorrectType };
     });
 }
 

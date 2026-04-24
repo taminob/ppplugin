@@ -73,7 +73,7 @@ CallResult<ReturnValue> PythonInterpreter::call(const std::string& function_name
             if (auto return_value = std::move(result).as<ReturnValue>()) {
                 return *return_value;
             }
-            return CallError { CallError::Code::incorrectType, "Unable to convert result to return type!" };
+            return CallError { CallErrorCode::incorrectType, "Unable to convert result to return type!" };
         }
     });
 }
@@ -86,7 +86,7 @@ CallResult<VariableType> PythonInterpreter::global(const std::string& variable_n
         if (auto result = std::move(object).template as<VariableType>()) {
             return *result;
         }
-        return { CallError::Code::incorrectType };
+        return { CallErrorCode::incorrectType };
     });
 }
 

@@ -89,7 +89,7 @@ public:
     {
         if (!shell_process_.running()) {
             is_running_->store(false);
-            return CallError { CallError::Code::unknown, "shell is not running" };
+            return CallError { CallErrorCode::unknown, "shell is not running" };
         }
 
         auto end_marker = boost::uuids::to_string(boost::uuids::random_generator()()) + '\n';
@@ -107,11 +107,11 @@ public:
 
         if (!shell_process_.running()) {
             is_running_->store(false);
-            return CallError { CallError::Code::unknown, "shell ended prematurely" };
+            return CallError { CallErrorCode::unknown, "shell ended prematurely" };
         }
 
         if (!detail::endsWith(result, end_marker)) {
-            return CallError { CallError::Code::unknown, "failed to get command output" };
+            return CallError { CallErrorCode::unknown, "failed to get command output" };
         }
         // remove end marker
         result.resize(result.size() - end_marker.size());
@@ -120,7 +120,7 @@ public:
         assert(exit_code_pos != std::string::npos);
         auto exit_code = detail::toInteger<int>(result.substr(exit_code_pos + 1)).value_or(std::numeric_limits<int>::max());
         if (exit_code != 0) {
-            return CallError { CallError::Code::unknown, std::to_string(exit_code) };
+            return CallError { CallErrorCode::unknown, std::to_string(exit_code) };
         }
         // remove colon and exit code
         result.resize(exit_code_pos);
@@ -131,7 +131,7 @@ public:
     [[nodiscard]] CallResult<std::string> environmentVariable(const std::string& variable_name)
     {
         if (!isValidShellVariableName(variable_name)) {
-            return CallError { CallError::Code::symbolNotFound, "invalid variable name" };
+            return CallError { CallErrorCode::symbolNotFound, "invalid variable name" };
         }
 
         return callWithResult("printenv " + convertToShellString(variable_name)).andThen([](auto&& result) {
@@ -145,7 +145,7 @@ public:
     [[nodiscard]] CallResult<void> environmentVariable(const std::string& variable_name, const std::string& new_value)
     {
         if (!isValidShellVariableName(variable_name)) {
-            return CallError { CallError::Code::symbolNotFound, "invalid variable name" };
+            return CallError { CallErrorCode::symbolNotFound, "invalid variable name" };
         }
 
         const std::string variable_assignment = variable_name + "=" + new_value;

@@ -44,13 +44,13 @@ bool LuaScript::run()
 std::optional<LoadError> LuaScript::loadFile(const std::filesystem::path& lua_file, bool auto_run)
 {
     if (!std::filesystem::exists(lua_file)) {
-        return LoadError::fileNotFound;
+        return LoadError { LoadErrorCode::fileNotFound };
     }
     if (luaL_loadfile(state_.state(), lua_file.c_str()) != LUA_OK) {
-        return LoadError::fileInvalid;
+        return LoadError { LoadErrorCode::fileInvalid };
     }
     if (auto_run && !run()) {
-        return LoadError::unknown;
+        return LoadError { LoadErrorCode::unknown };
     }
     return std::nullopt;
 }

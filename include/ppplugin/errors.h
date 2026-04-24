@@ -12,17 +12,11 @@
 #include <string_view>
 
 namespace ppplugin {
-class CallError {
+template <typename Code>
+class Error {
 public:
-    enum class Code : std::uint8_t {
-        unknown,
-        notLoaded,
-        symbolNotFound,
-        incorrectType,
-    };
-
     // NOLINTNEXTLINE(google-explicit-constructor,hicpp-explicit-conversions)
-    CallError(Code error_code
+    Error(Code error_code
 #ifndef PPPLUGIN_CPP17_COMPATIBILITY
         ,
         const std::source_location& location = std::source_location::current()
@@ -35,7 +29,7 @@ public:
     {
     }
 
-    CallError(Code error, std::string_view what
+    Error(Code error, std::string_view what
 #ifndef PPPLUGIN_CPP17_COMPATIBILITY
         ,
         const std::source_location& location = std::source_location::current()
@@ -65,7 +59,7 @@ public:
     }
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
 
-    friend constexpr bool operator==(const CallError& lhs, const CallError& rhs)
+    friend constexpr bool operator==(const Error& lhs, const Error& rhs)
     {
         return lhs.error_ == rhs.error_;
     }
@@ -78,42 +72,52 @@ private:
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
 };
 
-[[nodiscard]] static constexpr std::string_view codeToString(CallError::Code code)
+enum class CallErrorCode : std::uint8_t {
+    unknown,
+    notLoaded,
+    symbolNotFound,
+    incorrectType,
+};
+
+[[nodiscard]] static constexpr std::string_view codeToString(CallErrorCode code)
 {
     switch (code) {
-    case CallError::Code::incorrectType:
+    case CallErrorCode::incorrectType:
         return "incorrect type";
-    case CallError::Code::notLoaded:
+    case CallErrorCode::notLoaded:
         return "not loaded";
-    case CallError::Code::symbolNotFound:
+    case CallErrorCode::symbolNotFound:
         return "symbol not found";
-    case CallError::Code::unknown:
+    case CallErrorCode::unknown:
     default:
         return "unknown";
     }
 }
 
-enum class LoadError : std::uint8_t {
+using CallError = Error<CallErrorCode>;
+
+enum class LoadErrorCode : std::uint8_t {
     unknown,
     fileNotFound,
     fileInvalid,
     fileNotReadable,
 };
 
-[[nodiscard]] static constexpr std::string_view codeToString(LoadError code)
+[[nodiscard]] static constexpr std::string_view codeToString(LoadErrorCode code)
 {
     switch (code) {
-    case LoadError::fileNotReadable:
+    case LoadErrorCode::fileNotReadable:
         return "file not readable";
-    case LoadError::fileInvalid:
+    case LoadErrorCode::fileInvalid:
         return "file invalid";
-    case LoadError::fileNotFound:
+    case LoadErrorCode::fileNotFound:
         return "file not found";
-    case LoadError::unknown:
+    case LoadErrorCode::unknown:
     default:
         return "unknown";
     }
 }
+using LoadError = Error<LoadErrorCode>;
 
 template <typename ReturnType>
 using CallResult = Expected<ReturnType, CallError>;
