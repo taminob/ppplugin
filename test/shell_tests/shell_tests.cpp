@@ -12,7 +12,7 @@ protected:
         auto load_result = ppplugin::ShellPlugin::load("./shell_tests/test.sh");
         ASSERT_TRUE(load_result.hasValue()) << ppplugin::test::errorOutput(load_result);
 
-        plugin = std::make_unique<ppplugin::ShellPlugin>(std::move(load_result.valueRef()->get()));
+        plugin = std::make_unique<ppplugin::ShellPlugin>(std::move(load_result.value()));
     }
 
 protected:
@@ -59,7 +59,7 @@ TEST_F(ShellTest, callFunctionWithStringResult)
     auto result = plugin->call<std::string>("print_first", "qwerty");
 
     ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
-    EXPECT_EQ(result.value().value(), "qwerty\n");
+    EXPECT_EQ(result.value(), "qwerty\n");
 }
 
 TEST_F(ShellTest, moveToOtherThread)
@@ -70,7 +70,7 @@ TEST_F(ShellTest, moveToOtherThread)
     std::thread thread { [moved_plugin = std::move(*plugin)]() mutable {
         auto result = moved_plugin.global<std::string>("some_var");
         EXPECT_TRUE(result) << ppplugin::test::errorOutput(result);
-        EXPECT_EQ(result.value().value(), "some_value");
+        EXPECT_EQ(result.value(), "some_value");
     } };
     thread.join();
 }
@@ -89,7 +89,7 @@ TEST_F(ShellTest, callFunctionWithStringArguments)
         std::string_view { "sixth\\$!arg" });
 
     ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
-    EXPECT_EQ(result.value().value(), "first_arg second arg third'arg\\' fourth\"arg fifth\narg sixth\\$!arg\n");
+    EXPECT_EQ(result.value(), "first_arg second arg third'arg\\' fourth\"arg fifth\narg sixth\\$!arg\n");
 }
 
 TEST_F(ShellTest, callFunctionWithNonStringArguments)
@@ -105,7 +105,7 @@ TEST_F(ShellTest, callFunctionWithNonStringArguments)
         fourth_arg);
 
     ASSERT_TRUE(result.hasValue()) << ppplugin::test::errorOutput(result);
-    EXPECT_EQ(result.value().value(), "a ' 123 456 0.2\n");
+    EXPECT_EQ(result.value(), "a ' 123 456 0.2\n");
 }
 
 TEST_F(ShellTest, callFunctionModifyEnvironment)

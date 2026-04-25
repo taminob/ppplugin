@@ -63,7 +63,7 @@ constexpr void forEachCombination(Func&& func, Args&&... args)
 template <typename T, typename E>
 [[nodiscard]] static std::string errorOutput(const ppplugin::Expected<T, E>& expected)
 {
-    auto error = *expected.error();
+    auto&& error = expected.error();
 
     std::string output;
 #ifndef PPPLUGIN_CPP17_COMPATIBILITY

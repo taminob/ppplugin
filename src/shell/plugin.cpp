@@ -12,10 +12,11 @@ Expected<ShellPlugin, LoadError> ShellPlugin::load(
     }
 
     ShellPlugin plugin;
-    auto result = plugin.call<void>(".", plugin_library_path.string());
-    if (result.hasValue()) {
-        return plugin;
+    ;
+    if (auto result = plugin.call<void>(".", plugin_library_path.string());
+        !result.hasValue()) {
+        return LoadError { LoadErrorCode::unknown, result.error().what() };
     }
-    return LoadError { LoadErrorCode::unknown, result.error().value().what() };
+    return plugin;
 }
 } // namespace ppplugin

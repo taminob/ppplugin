@@ -72,7 +72,7 @@ TEST(Expected, simpleCopyErrorConstructor)
     auto copy_target { v };
     ASSERT_FALSE(v.hasValue());
     EXPECT_FALSE(copy_target.hasValue());
-    EXPECT_EQ(copy_target.errorRef()->get().copied(), 1);
+    EXPECT_EQ(copy_target.error().copied(), 1);
 }
 
 TEST(Expected, similarCopyValueConstructor)
@@ -108,7 +108,7 @@ TEST(Expected, simpleCopyErrorAssignment)
     copy_target = v;
     ASSERT_FALSE(v.hasValue());
     EXPECT_FALSE(copy_target.hasValue());
-    EXPECT_EQ(copy_target.errorRef()->get().copied(), 1);
+    EXPECT_EQ(copy_target.error().copied(), 1);
 }
 
 TEST(Expected, similarCopyValueAssignment)
@@ -144,11 +144,11 @@ TEST(Expected, simpleMoveErrorConstructor)
 {
     Expected<int, test::CopyAndMovable> v { test::CopyAndMovable {} };
     EXPECT_FALSE(v.hasValue());
-    EXPECT_EQ(v.errorRef()->get().moved(), 1);
+    EXPECT_EQ(v.error().moved(), 1);
     auto move_target { std::move(v) };
     EXPECT_FALSE(move_target.hasValue());
-    EXPECT_EQ(move_target.errorRef()->get().moved(), 2);
-    EXPECT_EQ(move_target.errorRef()->get().copied(), 0);
+    EXPECT_EQ(move_target.error().moved(), 2);
+    EXPECT_EQ(move_target.error().copied(), 0);
 }
 
 TEST(Expected, similarMoveValueConstructor)
@@ -184,11 +184,11 @@ TEST(Expected, simpleMoveErrorAssignment)
     Expected<int, test::CopyAndMovable> v { test::CopyAndMovable {} };
     decltype(v) move_target;
     EXPECT_FALSE(v.hasValue());
-    EXPECT_EQ(v.errorRef()->get().moved(), 1);
+    EXPECT_EQ(v.error().moved(), 1);
     move_target = std::move(v);
     EXPECT_FALSE(move_target.hasValue());
-    EXPECT_EQ(move_target.errorRef()->get().moved(), 2);
-    EXPECT_EQ(move_target.errorRef()->get().copied(), 0);
+    EXPECT_EQ(move_target.error().moved(), 2);
+    EXPECT_EQ(move_target.error().copied(), 0);
 }
 
 TEST(Expected, similarMoveValueAssignment)
@@ -229,10 +229,17 @@ TEST(Expected, value)
     const Expected<unsigned, double> v { 5U };
     const Expected<unsigned, double> e { 4.0 };
 
-    EXPECT_TRUE(v.value().has_value());
-    EXPECT_FALSE(e.value().has_value());
-    EXPECT_TRUE(v.value().has_value());
-    EXPECT_FALSE(e.value().has_value());
+    EXPECT_EQ(v.value(), 5U);
+    EXPECT_THROW({ std::ignore = e.value(); }, std::bad_optional_access);
+}
+
+TEST(Expected, valueOptional)
+{
+    const Expected<float, double> v { 1.1F };
+    const Expected<unsigned, double> e { 3.3 };
+
+    EXPECT_FLOAT_EQ(v.valueOptional().value_or(0), 1.1F);
+    EXPECT_FLOAT_EQ(e.errorOptional().value_or(0), 3.3);
 }
 
 TEST(Expected, valueReference)
@@ -240,16 +247,19 @@ TEST(Expected, valueReference)
     Expected<int, bool> v { 10 };
 
     ASSERT_TRUE(v.hasValue());
-    v.valueRef().value().get() = 5;
 
+    v.valueOptionalRef().value().get() = 5;
     EXPECT_EQ(v.value(), 5);
+
+    v.value() = 1;
+    EXPECT_EQ(v.value(), 1);
 }
 
 TEST(Expected, valueDereference)
 {
     Expected<int, bool> v { 10 };
 
-    ASSERT_TRUE(v.value().has_value());
+    ASSERT_TRUE(v.hasValue());
     *v = 5;
 
     EXPECT_EQ(v.value(), 5);
@@ -261,9 +271,17 @@ TEST(Expected, constValue)
     const Expected<int, char*> e { nullptr };
 
     EXPECT_EQ(v.value(), 2);
-    EXPECT_EQ(e.value(), std::nullopt);
-    EXPECT_EQ(v.error(), std::nullopt);
+    EXPECT_EQ(v.valueOptional().value(), 2);
+    EXPECT_EQ(v.valueOptionalRef().value().get(), 2);
+    EXPECT_THROW({ std::ignore = e.value(); }, std::bad_optional_access);
+    EXPECT_EQ(e.valueOptional(), std::nullopt);
+    EXPECT_EQ(e.valueOptionalRef(), std::nullopt);
+    EXPECT_THROW({ std::ignore = v.error(); }, std::bad_optional_access);
+    EXPECT_EQ(v.errorOptional(), std::nullopt);
+    EXPECT_EQ(v.errorOptionalRef(), std::nullopt);
     EXPECT_EQ(e.error(), nullptr);
+    EXPECT_EQ(e.errorOptional().value(), nullptr);
+    EXPECT_EQ(e.errorOptionalRef().value().get(), nullptr);
 }
 
 TEST(Expected, valueRefNoCopy)
@@ -272,7 +290,8 @@ TEST(Expected, valueRefNoCopy)
     ASSERT_TRUE(v.hasValue());
 
     auto moves_before = v->moved();
-    std::ignore = v.valueRef();
+    [[maybe_unused]] auto&& tmp_optional = v.valueOptionalRef();
+    [[maybe_unused]] auto&& tmp = v.value();
     EXPECT_EQ(v->copied(), 0);
     EXPECT_EQ(v->moved(), moves_before);
 }
@@ -290,23 +309,27 @@ TEST(Expected, valueDerefNoCopy)
 
 TEST(Expected, errorReference)
 {
-    Expected<int, bool> v { true };
+    Expected<int, bool> e { true };
 
-    ASSERT_FALSE(v.hasValue());
-    v.errorRef().value().get() = false;
+    ASSERT_FALSE(e.hasValue());
 
-    EXPECT_EQ(v.error(), false);
+    e.errorOptionalRef().value().get() = false;
+    EXPECT_EQ(e.error(), false);
+
+    e.error() = true;
+    EXPECT_EQ(e.error(), true);
 }
 
 TEST(Expected, errorRefNoCopy)
 {
-    const Expected<int, test::CopyAndMovable> v { test::CopyAndMovable {} };
-    ASSERT_FALSE(v.hasValue());
+    const Expected<int, test::CopyAndMovable> e { test::CopyAndMovable {} };
+    ASSERT_FALSE(e.hasValue());
 
-    auto moves_before = v.errorRef().value().get().moved();
-    std::ignore = v.valueRef();
-    EXPECT_EQ(v.errorRef().value().get().copied(), 0);
-    EXPECT_EQ(v.errorRef().value().get().moved(), moves_before);
+    auto moves_before = e.errorOptionalRef().value().get().moved();
+    [[maybe_unused]] auto&& tmp_optional = e.errorOptionalRef();
+    [[maybe_unused]] auto&& tmp = e.error();
+    EXPECT_EQ(e.error().copied(), 0);
+    EXPECT_EQ(e.error().moved(), moves_before);
 }
 
 TEST(Expected, comparisonNotEqual)
@@ -362,7 +385,7 @@ TEST(Expected, andThenReturnRawValue)
     auto result = v.andThen([]() { return 2.0; });
 
     EXPECT_TRUE(result.hasValue());
-    EXPECT_EQ(result.value().value_or(0.0), 2.0);
+    EXPECT_EQ(result.value(), 2.0);
 }
 
 TEST(Expected, andThenReturnValueInExpected)
@@ -372,7 +395,7 @@ TEST(Expected, andThenReturnValueInExpected)
     auto result = v.andThen([]() -> Expected<double, int> { return 3.0; });
 
     EXPECT_TRUE(result.hasValue());
-    EXPECT_EQ(result.value().value_or(0.0), 3.0);
+    EXPECT_EQ(result.value(), 3.0);
 }
 
 TEST(Expected, andThenReturnError)
@@ -384,7 +407,7 @@ TEST(Expected, andThenReturnError)
     // static_assert(std::is_same_v<const decltype(result), decltype(v)>);
 
     EXPECT_FALSE(result.hasValue());
-    EXPECT_EQ(result.error().value_or(-1), 1);
+    EXPECT_EQ(result.error(), 1);
 }
 
 TEST(Expected, andThenError)
@@ -394,5 +417,5 @@ TEST(Expected, andThenError)
     auto result = e.andThen([]() { return "abc"; });
 
     EXPECT_FALSE(result.hasValue());
-    EXPECT_EQ(result.error().value_or(-1), 5);
+    EXPECT_EQ(result.error(), 5);
 }
