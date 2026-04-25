@@ -68,10 +68,13 @@ public:
     [[nodiscard]] constexpr bool hasValue() const;
     constexpr explicit operator bool() const;
 
-    [[nodiscard]] constexpr std::optional<T> value() const&;
-    [[nodiscard]] constexpr std::optional<T> value() &&;
-    [[nodiscard]] constexpr std::optional<std::reference_wrapper<T>> valueRef();
-    [[nodiscard]] constexpr std::optional<std::reference_wrapper<const T>> valueRef() const;
+    [[nodiscard]] constexpr T& value() &;
+    [[nodiscard]] constexpr const T& value() const&;
+    [[nodiscard]] constexpr T&& value() &&;
+    [[nodiscard]] constexpr std::optional<T> valueOptional() const&;
+    [[nodiscard]] constexpr std::optional<T> valueOptional() &&;
+    [[nodiscard]] constexpr std::optional<std::reference_wrapper<T>> valueOptionalRef();
+    [[nodiscard]] constexpr std::optional<std::reference_wrapper<const T>> valueOptionalRef() const;
     template <typename U>
     [[nodiscard]] constexpr T valueOr(U&& default_value) const&;
     template <typename U>
@@ -81,9 +84,13 @@ public:
     template <typename F>
     [[nodiscard]] constexpr T valueOrElse(F&& func) &&;
 
-    [[nodiscard]] constexpr std::optional<E> error() const;
-    [[nodiscard]] constexpr std::optional<std::reference_wrapper<E>> errorRef();
-    [[nodiscard]] constexpr std::optional<std::reference_wrapper<const E>> errorRef() const;
+    [[nodiscard]] constexpr E& error() &;
+    [[nodiscard]] constexpr const E& error() const&;
+    [[nodiscard]] constexpr E&& error() &&;
+    [[nodiscard]] constexpr std::optional<E> errorOptional() const&;
+    [[nodiscard]] constexpr std::optional<E> errorOptional() &&;
+    [[nodiscard]] constexpr std::optional<std::reference_wrapper<E>> errorOptionalRef();
+    [[nodiscard]] constexpr std::optional<std::reference_wrapper<const E>> errorOptionalRef() const;
     template <typename U>
     [[nodiscard]] constexpr E errorOr(U&& default_value) const&;
     template <typename U>
@@ -165,9 +172,13 @@ public:
     template <typename F>
     constexpr void valueOrElse(F&& func) const;
 
-    [[nodiscard]] constexpr std::optional<E> error() const;
-    [[nodiscard]] constexpr std::optional<std::reference_wrapper<E>> errorRef();
-    [[nodiscard]] constexpr std::optional<std::reference_wrapper<const E>> errorRef() const;
+    [[nodiscard]] constexpr E& error() &;
+    [[nodiscard]] constexpr const E& error() const&;
+    [[nodiscard]] constexpr E&& error() &&;
+    [[nodiscard]] constexpr std::optional<E> errorOptional() const&;
+    [[nodiscard]] constexpr std::optional<E> errorOptional() &&;
+    [[nodiscard]] constexpr std::optional<std::reference_wrapper<E>> errorOptionalRef();
+    [[nodiscard]] constexpr std::optional<std::reference_wrapper<const E>> errorOptionalRef() const;
     template <typename U>
     [[nodiscard]] constexpr E errorOr(U&& default_value) const&;
     template <typename U>
@@ -297,7 +308,31 @@ template <typename T, typename E>
 constexpr Expected<T, E>::operator bool() const { return hasValue(); }
 
 template <typename T, typename E>
-constexpr std::optional<T> Expected<T, E>::value() const&
+constexpr T& Expected<T, E>::value() &
+{
+    if (hasValue()) {
+        return uncheckedValue();
+    }
+    throw std::bad_optional_access {};
+}
+template <typename T, typename E>
+constexpr const T& Expected<T, E>::value() const&
+{
+    if (hasValue()) {
+        return uncheckedValue();
+    }
+    throw std::bad_optional_access {};
+}
+template <typename T, typename E>
+constexpr T&& Expected<T, E>::value() &&
+{
+    if (hasValue()) {
+        return std::move(uncheckedValue());
+    }
+    throw std::bad_optional_access {};
+}
+template <typename T, typename E>
+constexpr std::optional<T> Expected<T, E>::valueOptional() const&
 {
     if (hasValue()) {
         return uncheckedValue();
@@ -305,7 +340,7 @@ constexpr std::optional<T> Expected<T, E>::value() const&
     return std::nullopt;
 }
 template <typename T, typename E>
-constexpr std::optional<T> Expected<T, E>::value() &&
+constexpr std::optional<T> Expected<T, E>::valueOptional() &&
 {
     if (hasValue()) {
         return std::move(uncheckedValue());
@@ -313,7 +348,7 @@ constexpr std::optional<T> Expected<T, E>::value() &&
     return std::nullopt;
 }
 template <typename T, typename E>
-constexpr std::optional<std::reference_wrapper<T>> Expected<T, E>::valueRef()
+constexpr std::optional<std::reference_wrapper<T>> Expected<T, E>::valueOptionalRef()
 {
     if (hasValue()) {
         return uncheckedValue();
@@ -321,7 +356,7 @@ constexpr std::optional<std::reference_wrapper<T>> Expected<T, E>::valueRef()
     return std::nullopt;
 }
 template <typename T, typename E>
-constexpr std::optional<std::reference_wrapper<const T>> Expected<T, E>::valueRef() const
+constexpr std::optional<std::reference_wrapper<const T>> Expected<T, E>::valueOptionalRef() const
 {
     if (hasValue()) {
         return uncheckedValue();
@@ -380,7 +415,31 @@ constexpr T Expected<T, E>::valueOrElse(F&& func) &&
 }
 
 template <typename T, typename E>
-constexpr std::optional<E> Expected<T, E>::error() const
+constexpr E& Expected<T, E>::error() &
+{
+    if (!hasValue()) {
+        return uncheckedError();
+    }
+    throw std::bad_optional_access {};
+}
+template <typename T, typename E>
+constexpr const E& Expected<T, E>::error() const&
+{
+    if (!hasValue()) {
+        return uncheckedError();
+    }
+    throw std::bad_optional_access {};
+}
+template <typename T, typename E>
+constexpr E&& Expected<T, E>::error() &&
+{
+    if (!hasValue()) {
+        return std::move(uncheckedError());
+    }
+    throw std::bad_optional_access {};
+}
+template <typename T, typename E>
+constexpr std::optional<E> Expected<T, E>::errorOptional() const&
 {
     if (!hasValue()) {
         return uncheckedError();
@@ -388,7 +447,15 @@ constexpr std::optional<E> Expected<T, E>::error() const
     return std::nullopt;
 }
 template <typename T, typename E>
-constexpr std::optional<std::reference_wrapper<E>> Expected<T, E>::errorRef()
+constexpr std::optional<E> Expected<T, E>::errorOptional() &&
+{
+    if (!hasValue()) {
+        return std::move(uncheckedError());
+    }
+    return std::nullopt;
+}
+template <typename T, typename E>
+constexpr std::optional<std::reference_wrapper<E>> Expected<T, E>::errorOptionalRef()
 {
     if (!hasValue()) {
         return uncheckedError();
@@ -396,7 +463,7 @@ constexpr std::optional<std::reference_wrapper<E>> Expected<T, E>::errorRef()
     return std::nullopt;
 }
 template <typename T, typename E>
-constexpr std::optional<std::reference_wrapper<const E>> Expected<T, E>::errorRef() const
+constexpr std::optional<std::reference_wrapper<const E>> Expected<T, E>::errorOptionalRef() const
 {
     if (!hasValue()) {
         return uncheckedError();
@@ -618,12 +685,22 @@ constexpr void Expected<void, E>::valueOrElse(F&& func) const
 }
 
 template <typename E>
-constexpr std::optional<E> Expected<void, E>::error() const
+constexpr E& Expected<void, E>::error() &
 {
-    return error_;
+    return error_.value();
 }
 template <typename E>
-constexpr std::optional<std::reference_wrapper<E>> Expected<void, E>::errorRef()
+constexpr const E& Expected<void, E>::error() const&
+{
+    return error_.value();
+}
+template <typename E>
+constexpr E&& Expected<void, E>::error() &&
+{
+    return std::move(error_.value());
+}
+template <typename E>
+constexpr std::optional<E> Expected<void, E>::errorOptional() const&
 {
     if (error_) {
         return *error_;
@@ -631,7 +708,23 @@ constexpr std::optional<std::reference_wrapper<E>> Expected<void, E>::errorRef()
     return std::nullopt;
 }
 template <typename E>
-constexpr std::optional<std::reference_wrapper<const E>> Expected<void, E>::errorRef() const
+constexpr std::optional<E> Expected<void, E>::errorOptional() &&
+{
+    if (error_) {
+        return std::move(*error_);
+    }
+    return std::nullopt;
+}
+template <typename E>
+constexpr std::optional<std::reference_wrapper<E>> Expected<void, E>::errorOptionalRef()
+{
+    if (error_) {
+        return *error_;
+    }
+    return std::nullopt;
+}
+template <typename E>
+constexpr std::optional<std::reference_wrapper<const E>> Expected<void, E>::errorOptionalRef() const
 {
     if (error_) {
         return *error_;
