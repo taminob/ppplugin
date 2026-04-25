@@ -18,6 +18,10 @@ Checks: >
         readability-*,-readability-redundant-access-specifiers
 
 CheckOptions:
+  - key:             readability-identifier-length.IgnoredVariableNames
+    value:           '^(id|it)$'
+  - key:             readability-identifier-length.IgnoredParameterNames
+    value:           '^(id|it)$'
   - key:             readability-identifier-naming.AbstractClassCase
     value:           CamelCase
   - key:             readability-identifier-naming.ClassCase
