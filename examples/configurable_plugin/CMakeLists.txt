@@ -1,4 +1,0 @@
-add_executable(configurable_plugin_manager configurable_plugin_manager.cpp)
-target_link_libraries(configurable_plugin_manager ${LIBRARY_TARGET})
-
-add_library(configurable_plugin SHARED configurable_plugin.cpp)
