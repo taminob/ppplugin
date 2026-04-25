@@ -12,7 +12,7 @@ protected:
         auto load_result = ppplugin::LuaPlugin::load("./lua_tests/test.lua");
         ASSERT_TRUE(load_result.hasValue());
 
-        plugin = std::make_unique<ppplugin::LuaPlugin>(std::move(load_result.valueRef()->get()));
+        plugin = std::make_unique<ppplugin::LuaPlugin>(std::move(load_result.value()));
     }
 
 protected:

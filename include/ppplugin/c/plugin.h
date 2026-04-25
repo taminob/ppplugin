@@ -47,9 +47,9 @@ CallResult<VariableType> CPlugin::global(const std::string& variable_name)
     if (result_pointer.hasValue()) {
         // raw type casting necessary due to lack of type information in shared library
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        return *reinterpret_cast<VariableType*>(result_pointer.value().value());
+        return *reinterpret_cast<VariableType*>(result_pointer.value());
     }
-    return { result_pointer.error().value() };
+    return { result_pointer.error() };
 }
 
 template <typename VariableType>
@@ -59,10 +59,10 @@ CallResult<void> CPlugin::global(const std::string& variable_name, VariableType&
     if (result_pointer.hasValue()) {
         // raw type casting necessary due to lack of type information in shared library
         // NOLINTNEXTLINE(cppcoreguidelines-pro-type-reinterpret-cast)
-        *reinterpret_cast<VariableType*>(result_pointer.value().value()) = std::forward<VariableType>(new_value);
+        *reinterpret_cast<VariableType*>(result_pointer.value()) = std::forward<VariableType>(new_value);
         return {};
     }
-    return { result_pointer.error().value() };
+    return { result_pointer.error() };
 }
 } // namespace ppplugin
 

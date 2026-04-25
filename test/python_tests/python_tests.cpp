@@ -11,7 +11,7 @@ protected:
         auto load_result = ppplugin::PythonPlugin::load("./python_tests/test.py");
         ASSERT_TRUE(load_result.hasValue());
 
-        plugin = std::make_unique<ppplugin::PythonPlugin>(std::move(load_result.valueRef()->get()));
+        plugin = std::make_unique<ppplugin::PythonPlugin>(std::move(load_result.value()));
     }
 
 protected:
