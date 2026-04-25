@@ -78,8 +78,8 @@ TEST_F(ShellTest, moveToOtherThread)
 TEST_F(ShellTest, callFunctionWithStringArguments)
 {
     const char* first_arg = "first_arg";
-    std::string second_arg = "second arg";
-    std::string_view third_arg = "third'arg\\'";
+    const std::string second_arg = "second arg";
+    const std::string_view third_arg = "third'arg\\'";
     auto result = plugin->call<std::string>("print_all_args",
         first_arg,
         second_arg,
@@ -94,7 +94,7 @@ TEST_F(ShellTest, callFunctionWithStringArguments)
 
 TEST_F(ShellTest, callFunctionWithNonStringArguments)
 {
-    std::vector<std::string> first_arg { "a", "\'" };
+    const std::vector<std::string> first_arg { "a", "\'" };
     int second_arg { 123 };
     std::uint64_t third_arg { 456 };
     double fourth_arg { 0.2 };
