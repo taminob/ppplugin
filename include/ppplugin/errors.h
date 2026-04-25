@@ -5,6 +5,7 @@
 #include "ppplugin/expected.h"
 
 #include <cstdint>
+#include <ostream>
 #ifndef PPPLUGIN_CPP17_COMPATIBILITY
 #include <source_location>
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
@@ -71,6 +72,21 @@ private:
     std::source_location location_;
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
 };
+
+template <typename Code>
+std::ostream& operator<<(std::ostream& out, const Error<Code>& error)
+{
+    auto&& code = codeToString(error.code());
+    out << "[" << code << "]";
+    auto&& what = error.what();
+    if (!what.empty()) {
+        out << " " << what;
+    }
+#ifndef PPPLUGIN_CPP17_COMPATIBILITY
+    out << error.where();
+#endif // PPPLUGIN_CPP17_COMPATIBILITY
+    return out;
+}
 
 enum class CallErrorCode : std::uint8_t {
     unknown,
