@@ -687,16 +687,19 @@ constexpr void Expected<void, E>::valueOrElse(F&& func) const
 template <typename E>
 constexpr E& Expected<void, E>::error() &
 {
+    // NOLINTNEXTLINE(bugprone-unchecked-optional-access); intentionally throw on bad access
     return error_.value();
 }
 template <typename E>
 constexpr const E& Expected<void, E>::error() const&
 {
+    // NOLINTNEXTLINE(bugprone-unchecked-optional-access); intentionally throw on bad access
     return error_.value();
 }
 template <typename E>
 constexpr E&& Expected<void, E>::error() &&
 {
+    // NOLINTNEXTLINE(bugprone-unchecked-optional-access); intentionally throw on bad access
     return std::move(error_.value());
 }
 template <typename E>
