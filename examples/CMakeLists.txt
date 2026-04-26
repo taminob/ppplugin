@@ -1,1 +1,1 @@
-
+add_subdirectory(cpp_plugin)
