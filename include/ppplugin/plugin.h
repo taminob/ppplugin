@@ -25,10 +25,27 @@ namespace ppplugin {
 template <typename P>
 concept IsPlugin = requires(P plugin) {
     {
+        P::load(std::declval<std::filesystem::path>())
+    } -> std::same_as<Expected<P, LoadError>>;
+
+    {
         std::convertible_to<const P, bool>
     };
+
     {
-        plugin.template call<void>(std::declval<std::string>())
+        plugin.template call<void>()
+    } -> std::same_as<CallResult<void>>;
+    {
+        // TODO: add better requirement for all supported types
+        plugin.template call<int>(std::declval<std::string>(), std::declval<int>(), std::declval<float>(), std::declval<bool>())
+    } -> std::same_as<CallResult<int>>;
+
+    {
+        plugin.template global<int>(std::declval<std::string>())
+    } -> std::same_as<CallResult<int>>;
+    {
+        // TODO: add better requirement for all supported types
+        plugin.global(std::declval<std::string>(), std::declval<std::size_t>())
     } -> std::same_as<CallResult<void>>;
 };
 #endif // PPPLUGIN_CPP17_COMPATIBILITY
