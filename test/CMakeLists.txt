@@ -14,6 +14,7 @@ add_subdirectory(python_tests)
 
 gtest_discover_tests(${TESTS_NAME})
 
+# test correct usage of CMake installation
 add_test(
   NAME cmake_shared_cpp17_compatible_installation_test
   COMMAND
@@ -43,6 +44,7 @@ add_test(
     ${CMAKE_CURRENT_BINARY_DIR}/test_install_root_static_cpp20 "STATIC" "Cpp20"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/find_package_test)
 
+# test incorrect usage of CMake installation
 add_test(
   NAME cmake_no_shared_installation_test
   COMMAND
@@ -61,3 +63,9 @@ add_test(
     "Cpp20"
   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/cmake_tests/find_package_test)
 set_property(TEST cmake_no_static_installation_test PROPERTY WILL_FAIL TRUE)
+
+# test conan packaging
+add_test(
+  NAME conan_test
+  COMMAND test.sh ${CMAKE_SOURCE_DIR} .
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/conan_tests)

@@ -5,6 +5,7 @@ Checks: >
         -readability-identifier-length,
         -readability-named-parameter,
         -readability-magic-numbers,
+        -readability-redundant-casting,
         -cert-oop54-cpp,
         -performance-unnecessary-copy-initialization,
         -bugprone-easily-swappable-parameters,
