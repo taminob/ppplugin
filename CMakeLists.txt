@@ -34,8 +34,23 @@ else()
   # add dummy target so that this check is only necessary once
   add_library(Boost::process ALIAS Boost::headers)
 endif()
-find_package(Python 3.0 REQUIRED COMPONENTS Development)
-find_package(Lua 5.2 REQUIRED)
+
+find_package(cpython 3.0 CONFIG COMPONENTS Development)
+if(NOT ${cpython_FOUND})
+  # cpython is provided via conan; if not found, use system Python instead
+  find_package(Python 3.0 REQUIRED COMPONENTS Development)
+else()
+  add_library(Python::Python ALIAS cpython::cpython)
+endif()
+
+find_package(lua 5.2 CONFIG)
+if(NOT ${lua_FOUND})
+  # lua is provided via conan; if not found, use system Lua instead
+  find_package(Lua 5.2 REQUIRED)
+  add_library(lua::lua INTERFACE IMPORTED)
+  target_include_directories(lua::lua INTERFACE ${LUA_INCLUDE_DIRS})
+  target_link_libraries(lua::lua INTERFACE ${LUA_LIBRARIES})
+endif()
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)

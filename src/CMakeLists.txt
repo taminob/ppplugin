@@ -20,12 +20,11 @@ file(GLOB_RECURSE LIBRARY_HEADERS ${CMAKE_SOURCE_DIR}/include/**/*.h)
 add_library(${LIBRARY_TARGET} ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 target_link_libraries(
   ${LIBRARY_TARGET}
-  PRIVATE ${LUA_LIBRARIES}
+  PRIVATE lua::lua
   PUBLIC Boost::headers Boost::filesystem Boost::process Python::Python
          $<$<BOOL:${PPPLUGIN_ENABLE_CPP17_COMPATIBILITY}>:fmt::fmt>)
 target_include_directories(
   ${LIBRARY_TARGET}
-  PRIVATE ${LUA_INCLUDE_DIR}
   PUBLIC $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
          $<INSTALL_INTERFACE:include>)
 target_compile_definitions(

@@ -1,7 +1,9 @@
 @PACKAGE_INIT@
 
 include(CMakeFindDependencyMacro)
-find_dependency(Boost @Boost_VERSION_MAJOR@ CONFIG COMPONENTS headers filesystem)
+
+find_dependency(Boost @Boost_VERSION_MAJOR@ CONFIG COMPONENTS headers
+                filesystem)
 if(@Boost_VERSION@ VERSION_GREATER_EQUAL 1.85.0)
   # Boost.process was header-only until 1.84; requires linking in >= 1.85
   find_dependency(Boost CONFIG COMPONENTS process)
@@ -9,8 +11,22 @@ else()
   # add dummy target so that this check is only necessary once
   add_library(Boost::process ALIAS Boost::headers)
 endif()
-find_dependency(Python @Python_VERSION_MAJOR@ COMPONENTS Development)
-find_dependency(Lua @LUA_VERSION_MAJOR@)
+
+find_package(cpython @Python_VERSION_MAJOR@ COMPONENTS Development)
+if(NOT ${cpython_FOUND})
+  find_dependency(Python @Python_VERSION_MAJOR@ COMPONENTS Development)
+else()
+  add_library(Python::Python ALIAS cpython::cpython)
+endif()
+
+find_package(lua @LUA_VERSION_MAJOR@ CONFIG)
+if(NOT ${lua_FOUND})
+  # lua is provided via conan; if not found, use system Lua instead
+  find_dependency(Lua @LUA_VERSION_MAJOR@)
+  add_library(lua::lua INTERFACE IMPORTED)
+  target_include_directories(lua::lua INTERFACE ${LUA_INCLUDE_DIRS})
+  target_link_libraries(lua::lua INTERFACE ${LUA_LIBRARIES})
+endif()
 
 if(@PPPLUGIN_ENABLE_CPP17_COMPATIBILITY@)
   find_dependency(fmt @fmt_VERSION_MAJOR@)
