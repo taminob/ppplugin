@@ -33,7 +33,7 @@ concept IsPlugin = requires(P plugin) {
     };
 
     {
-        plugin.template call<void>()
+        plugin.template call<void>(std::declval<std::string>())
     } -> std::same_as<CallResult<void>>;
     {
         // TODO: add better requirement for all supported types

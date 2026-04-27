@@ -3,12 +3,15 @@
 
 #include "ppplugin/errors.h"
 
+#include <filesystem>
 #include <string_view>
 
 namespace ppplugin {
 class NoopPlugin {
 public:
     NoopPlugin() = default;
+
+    [[nodiscard]] static Expected<NoopPlugin, LoadError> load(const std::filesystem::path& /*path*/) { return NoopPlugin {}; }
 
     explicit operator bool() const { return true; }
 
