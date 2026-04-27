@@ -207,6 +207,13 @@ constexpr bool IsAnyOfV = // NOLINT(readability-identifier-naming)
  */
 template <typename T>
 using RemoveCvrefT = std::remove_cv_t<std::remove_reference_t<T>>;
+
+/**
+ * C++17 compatible version of std::is_nothrow_convertible_v.
+ */
+template <typename From, typename To>
+constexpr bool IsNothrowConvertibleV = // NOLINT(readability-identifier-naming)
+    std::is_convertible_v<From, To> && std::is_nothrow_constructible_v<To, From>;
 } // namespace ppplugin::detail::templates
 
 #endif // PPPLUGIN_DETAIL_TEMPLATE_HELPERS_H

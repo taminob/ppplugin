@@ -24,14 +24,8 @@ public:
     using Value = T;
     using Error = E;
 
-#ifdef PPPLUGIN_CPP17_COMPATIBILITY
     template <typename X = T, typename = std::enable_if_t<std::is_default_constructible_v<X>>>
-#endif // PPPLUGIN_CPP17_COMPATIBILITY
-    constexpr Expected()
-#ifndef PPPLUGIN_CPP17_COMPATIBILITY
-        requires std::is_default_constructible_v<T>
-#endif // PPPLUGIN_CPP17_COMPATIBILITY
-    ;
+    constexpr Expected();
     // NOLINTBEGIN(google-explicit-constructor,hicpp-explicit-conversions)
     constexpr Expected(const T& value);
     constexpr Expected(T&& value);
@@ -39,20 +33,13 @@ public:
     constexpr Expected(E&& error);
     ~Expected() = default;
     constexpr Expected(const Expected&) = default;
-    constexpr Expected(Expected&&) noexcept = default;
+    constexpr Expected(Expected&&) noexcept(std::is_nothrow_move_constructible_v<T> && std::is_nothrow_move_constructible_v<E>) = default;
     template <typename U, typename V,
         typename = std::enable_if_t<std::is_convertible_v<U, T> && std::is_convertible_v<V, E>>>
     constexpr Expected(const Expected<U, V>& rhs);
-    template <typename U, typename V
-#ifdef PPPLUGIN_CPP17_COMPATIBILITY
-        ,
-        typename = std::enable_if_t<std::is_convertible_v<U, T> && std::is_convertible_v<V, E>>
-#else
-        ,
-        typename = std::enable_if_t<std::is_nothrow_convertible_v<U, T> && std::is_nothrow_convertible_v<V, E>>
-#endif // PPPLUGIN_CPP17_COMPATIBILITY
-        >
-    constexpr Expected(Expected<U, V>&& rhs) noexcept;
+    template <typename U, typename V,
+        typename = std::enable_if_t<std::is_convertible_v<U, T> && std::is_convertible_v<V, E>>>
+    constexpr Expected(Expected<U, V>&& rhs) noexcept(detail::templates::IsNothrowConvertibleV<U, T> && detail::templates::IsNothrowConvertibleV<V, E>);
     constexpr Expected& operator=(const Expected&) = default;
     constexpr Expected& operator=(Expected&&) noexcept = default;
     template <typename U, typename V>
@@ -205,13 +192,8 @@ private:
 };
 
 template <typename T, typename E>
-#ifdef PPPLUGIN_CPP17_COMPATIBILITY
 template <typename, typename>
-#endif // PPPLUGIN_CPP17_COMPATIBILITY
 constexpr Expected<T, E>::Expected()
-#ifndef PPPLUGIN_CPP17_COMPATIBILITY
-    requires std::is_default_constructible_v<T>
-#endif // PPPLUGIN_CPP17_COMPATIBILITY
     : value_ { T {} }
 {
     static_assert(std::is_default_constructible_v<T>,
@@ -249,7 +231,7 @@ constexpr Expected<T, E>::Expected(const Expected<U, V>& rhs)
 }
 template <typename T, typename E>
 template <typename U, typename V, typename>
-constexpr Expected<T, E>::Expected(Expected<U, V>&& rhs) noexcept
+constexpr Expected<T, E>::Expected(Expected<U, V>&& rhs) noexcept(detail::templates::IsNothrowConvertibleV<U, T> && detail::templates::IsNothrowConvertibleV<V, E>)
     : value_ { rhs.hasValue()
             ? decltype(value_) { static_cast<T&&>(std::move(rhs).uncheckedValue()) }
             : decltype(value_) { static_cast<E&&>(std::move(rhs).uncheckedError()) } }
